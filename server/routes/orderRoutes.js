@@ -1,70 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const Order = require('../models/Order');
+const {
+  addOrderItems,
+  getOrderById,
+  updateOrderToPaid,
+  updateOrderStatus,
+  getMyOrders,
+  getOrders,
+  getOrderReceipt,
+  getPaymentIntent,
+} = require('../controllers/orderController');
+const { protect, ClerkExpressRequireAuth } = require('../middleware/clerkAuth');
+const { admin, staff } = require('../middleware/roleAuth');
 
-// @desc    Create new order
-// @route   POST /api/orders
-// @access  Private (Simplified to Public for this demo)
-router.post('/', async (req, res) => {
-    try {
-        const {
-            orderItems,
-            shippingAddress,
-            paymentMethod,
-            itemsPrice,
-            taxPrice,
-            shippingPrice,
-            totalPrice,
-        } = req.body;
+router.route('/')
+  .post(ClerkExpressRequireAuth(), protect, addOrderItems)
+  .get(ClerkExpressRequireAuth(), protect, admin, getOrders);
 
-        if (orderItems && orderItems.length === 0) {
-            res.status(400).json({ message: 'No order items' });
-            return;
-        } else {
-            const order = new Order({
-                orderItems,
-                user: req.body.user || '650000000000000000000001', // Mock user if not provided
-                shippingAddress,
-                paymentMethod,
-                itemsPrice,
-                taxPrice,
-                shippingPrice,
-                totalPrice,
-            });
+router.route('/payment-intent')
+  .post(ClerkExpressRequireAuth(), protect, getPaymentIntent);
 
-            const createdOrder = await order.save();
-            res.status(201).json(createdOrder);
-        }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.route('/myorders')
+  .get(ClerkExpressRequireAuth(), protect, getMyOrders);
 
-// @desc    Get logged in user orders
-// @route   GET /api/orders/myorders
-// @access  Private
-router.get('/myorders', async (req, res) => {
-    try {
-        // In a real app, we get user ID from Clerk middleware
-        // For now, we search for the last sync'd user or use a dummy
-        const userId = req.headers['user-id'] || '650000000000000000000001';
-        const orders = await Order.find({ user: userId });
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.route('/:id')
+  .get(ClerkExpressRequireAuth(), protect, getOrderById);
 
-// @desc    Get all orders
-// @route   GET /api/orders
-// @access  Admin
-router.get('/', async (req, res) => {
-    try {
-        const orders = await Order.find({}).populate('user', 'id name');
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.route('/:id/receipt')
+  .get(ClerkExpressRequireAuth(), protect, getOrderReceipt);
+
+router.route('/:id/pay')
+  .put(ClerkExpressRequireAuth(), protect, updateOrderToPaid);
+
+router.route('/:id/status')
+  .put(ClerkExpressRequireAuth(), protect, staff, updateOrderStatus);
 
 module.exports = router;

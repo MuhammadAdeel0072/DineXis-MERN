@@ -43,25 +43,31 @@ const AuthModal = ({ onClose }) => {
         setError('');
         try {
             if (!otpSent) {
-                const result = await signIn.create({
-                    identifier: email,
+                // Step 1: Create sign-in with identifier
+                await signIn.create({ identifier: email });
+                
+                // Step 2: Prepare the first factor (send OTP code)
+                const result = await signIn.prepareFirstFactor({
                     strategy: "email_code"
                 });
+                
                 if (result.status === "needs_first_factor") {
                     setOtpSent(true);
                 }
             } else {
+                // Step 3: Attempt the first factor (verify OTP code)
                 const result = await signIn.attemptFirstFactor({
                     strategy: "email_code",
                     code: code
                 });
+                
                 if (result.status === "complete") {
                     await setSignInActive({ session: result.createdSessionId });
                     onClose();
                 }
             }
         } catch (err) {
-            setError(err.errors ? err.errors[0].longMessage : 'The code seems incorrect. Please check your inbox.');
+            setError(err.errors ? err.errors[0].longMessage : 'Authentication failed. Please check your email and try again.');
         } finally {
             setLoading(false);
         }
@@ -165,7 +171,7 @@ const AuthModal = ({ onClose }) => {
                                     />
                                 </div>
                                 <p className="text-center text-sm text-gray-400 p-4 border border-white/5 bg-white/5 rounded-xl mt-6">
-                                    We sent a special link to <span className="text-gold font-bold block mt-1">{email}</span>
+                                    We sent a verification code to <span className="text-gold font-bold block mt-1">{email}</span>
                                 </p>
                             </div>
                         )}

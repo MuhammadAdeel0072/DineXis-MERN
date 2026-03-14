@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useState, useEffect } from 'react';
+import { Shield as AuthIcon } from 'lucide-react';
 import AuthModal from './AuthModal';
 
 const AuthGuard = ({ children }) => {
@@ -25,14 +26,17 @@ const AuthGuard = ({ children }) => {
   if (!isSignedIn) {
     return (
       <>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
-            <p className="text-gray-600 mb-6">Please sign in to access this page.</p>
+        <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+            <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mb-6">
+                <AuthIcon className="w-10 h-10 text-gold/40" />
+            </div>
+            <h2 className="text-3xl font-serif font-bold text-white mb-2">Private Experience</h2>
+            <p className="text-gold/60 font-medium tracking-widest uppercase text-[10px] mb-8">Identification required for gourmet access</p>
             <button 
                 onClick={() => setShowModal(true)}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg"
+                className="bg-gold text-charcoal font-black py-4 px-12 rounded-2xl transition-all transform hover:scale-105 shadow-xl shadow-gold/20 active:scale-95"
             >
-                Sign In Now
+                Secure Identity
             </button>
         </div>
         {showModal && <AuthModal onClose={() => setShowModal(false)} />}

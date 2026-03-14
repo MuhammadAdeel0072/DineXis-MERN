@@ -7,10 +7,27 @@ const productSchema = new mongoose.Schema({
     category: { 
         type: String, 
         required: true,
-        enum: ['Drinks', 'Food', 'Dishes', 'Sweets']
+        enum: ['Food', 'Dishes', 'Sweets', 'Drinks']
     },
     price: { type: Number, required: true, default: 0 },
     countInStock: { type: Number, required: true, default: 0 },
+    isSpecial: { type: Boolean, default: false },
+    spicyLevel: { type: Number, default: 0 },
+    isVegetarian: { type: Boolean, default: false },
+    isBestSeller: { type: Boolean, default: false },
+    preparationTime: { type: Number, default: 20 },
+    dietaryInfo: [String],
+    customizations: [
+        {
+            name: String,
+            options: [
+                {
+                    name: String,
+                    extraPrice: { type: Number, default: 0 }
+                }
+            ]
+        }
+    ]
 }, {
     timestamps: true
 });

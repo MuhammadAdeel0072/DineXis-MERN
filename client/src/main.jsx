@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { ClerkProvider } from '@clerk/clerk-react'
-import { ThemeProvider } from './context/ThemeContext'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -35,9 +34,7 @@ if (!PUBLISHABLE_KEY) {
           }
         }}
       >
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
+        <App />
       </ClerkProvider>
     </StrictMode>
   );

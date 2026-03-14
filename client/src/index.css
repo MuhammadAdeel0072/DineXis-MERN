@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
-
 @import "tailwindcss";
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
 
 @theme {
   --color-charcoal: #121212;
@@ -12,22 +20,17 @@
 
 @layer base {
   body {
-    background-color: var(--color-charcoal);
-    color: var(--color-soft-white);
+    background-color: #121212;
+    color: #E0E0E0;
     font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  body.light-mode {
-    background-color: var(--color-off-white);
-    color: var(--color-charcoal);
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-gold text-charcoal px-6 py-3 rounded-md font-bold transition-all;
+    @apply bg-gold text-[#121212] px-6 py-3 rounded-md font-bold transition-all;
   }
+
   .btn-primary:hover {
     @apply opacity-90;
   }
@@ -35,14 +38,21 @@
   .btn-secondary {
     @apply bg-crimson text-white px-6 py-3 rounded-md font-bold transition-all;
   }
+
   .btn-secondary:hover {
     @apply opacity-90;
   }
 }
 
 @keyframes slide-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .animate-slide-in {

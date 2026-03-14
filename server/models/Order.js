@@ -17,6 +17,13 @@ const orderSchema = new mongoose.Schema({
                 required: true,
                 ref: 'Product'
             },
+            customizations: [
+                {
+                    name: String,
+                    selection: String,
+                    extraPrice: Number
+                }
+            ]
         }
     ],
     shippingAddress: {
@@ -26,11 +33,33 @@ const orderSchema = new mongoose.Schema({
         country: { type: String, required: true },
     },
     paymentMethod: { type: String, required: true },
+    paymentResult: {
+        id: String,
+        status: String,
+        update_time: String,
+        email_address: String,
+    },
+    taxPrice: { type: Number, default: 0.0 },
+    shippingPrice: { type: Number, default: 0.0 },
     totalPrice: { type: Number, required: true, default: 0.0 },
     isPaid: { type: Boolean, required: true, default: false },
     paidAt: { type: Date },
-    isDelivered: { type: Boolean, required: true, default: false },
+    status: {
+        type: String,
+        enum: ['placed', 'confirmed', 'preparing', 'ready', 'out-for-delivery', 'delivered', 'cancelled'],
+        default: 'placed'
+    },
+    statusHistory: [
+        {
+            status: String,
+            timestamp: { type: Date, default: Date.now }
+        }
+    ],
+    preparationStartTime: { type: Date },
+    preparationEndTime: { type: Date },
     deliveredAt: { type: Date },
+    orderNumber: { type: String, unique: true },
+    loyaltyPointsEarned: { type: Number, default: 0 }
 }, {
     timestamps: true
 });

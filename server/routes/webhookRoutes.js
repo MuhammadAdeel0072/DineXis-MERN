@@ -43,14 +43,14 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
     if (eventType === 'user.created' || eventType === 'user.updated') {
         const { email_addresses, first_name, last_name, image_url } = evt.data;
         const email = email_addresses[0].email_address;
-        const name = `${first_name || ''} ${last_name || ''}`.trim() || 'User';
 
         try {
             await User.findOneAndUpdate(
                 { clerkId: id },
                 {
                     clerkId: id,
-                    name,
+                    firstName: first_name,
+                    lastName: last_name,
                     email,
                     avatar: image_url,
                 },
@@ -60,6 +60,16 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
         } catch (err) {
             console.error('Error syncing user:', err);
             return res.status(500).json({ message: 'Sync failed' });
+        }
+    }
+
+    if (eventType === 'user.deleted') {
+        try {
+            await User.findOneAndDelete({ clerkId: id });
+            console.log(`User ${id} deleted successfully`);
+        } catch (err) {
+            console.error('Error deleting user:', err);
+            return res.status(500).json({ message: 'Delete failed' });
         }
     }
 

@@ -1,17 +1,19 @@
-const bcrypt = require('bcryptjs');
-
 const users = [
     {
         name: 'Admin User',
+        firstName: 'Admin',
+        lastName: 'User',
         email: 'admin@example.com',
-        password: 'password123',
-        isAdmin: true,
+        clerkId: 'user_admin_dummy_id',
+        role: 'admin',
     },
     {
         name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
         email: 'john@example.com',
-        password: 'password123',
-        isAdmin: false,
+        clerkId: 'user_john_dummy_id',
+        role: 'customer',
     }
 ];
 
