@@ -30,6 +30,8 @@ Highlighting the **Human-Computer Interaction (HCI)** focus:
 - Email OTP
 - Shopping Cart
 - Category-based filtering
-
+## Author
+-Muhammad Adeel
+=madeelkhan072@gmail.com
 ---
 *Built with modern "Clean Code" standards and HCI principles in mind.*
