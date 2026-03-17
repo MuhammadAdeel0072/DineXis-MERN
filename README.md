@@ -43,5 +43,9 @@ Highlighting the **Human-Computer Interaction (HCI)** focus:
 - Category-based filtering
 
 ---
+
+## Author
+-Muhammad Adeel Khan
+-madeelkhan072@gmail.com
 *Built with modern "Clean Code" standards and HCI principles to redefine digital dining.*
 
