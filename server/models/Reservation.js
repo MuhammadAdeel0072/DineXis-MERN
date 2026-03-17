@@ -19,13 +19,31 @@ const reservationSchema = new mongoose.Schema({
         required: true,
         min: 1
     },
+    phone: {
+        type: String,
+        required: [true, 'Phone number is required']
+    },
     tableNumber: {
         type: Number
     },
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-        default: 'pending'
+        enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
+        default: 'Pending'
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['Pending', 'Paid'],
+        default: 'Pending'
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['EasyPaisa', 'JazzCash', 'Bank Transfer'],
+        default: 'EasyPaisa'
+    },
+    advanceAmount: {
+        type: Number,
+        default: 1000
     },
     specialRequests: {
         type: String

@@ -5,7 +5,7 @@ const Reservation = require('../models/Reservation');
 // @route   POST /api/reservations
 // @access  Private
 const createReservation = asyncHandler(async (req, res) => {
-  const { reservationDate, reservationTime, numberOfGuests, specialRequests, occasion } = req.body;
+  const { reservationDate, reservationTime, numberOfGuests, specialRequests, occasion, phone, paymentMethod } = req.body;
 
   const reservation = new Reservation({
     user: req.user._id,
@@ -14,6 +14,10 @@ const createReservation = asyncHandler(async (req, res) => {
     numberOfGuests,
     specialRequests,
     occasion,
+    phone,
+    paymentMethod,
+    paymentStatus: 'Pending',
+    status: 'Pending'
   });
 
   const createdReservation = await reservation.save();

@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
+const Order = require('../models/Order');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -8,6 +9,10 @@ const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
+    const orders = await Order.find({ user: user._id });
+    const totalOrders = orders.length;
+    const totalSpent = orders.reduce((acc, order) => acc + order.totalPrice, 0);
+
     res.json({
       _id: user._id,
       clerkId: user.clerkId,
@@ -18,6 +23,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
       addresses: user.addresses,
       loyaltyPoints: user.loyaltyPoints,
       loyaltyTier: user.loyaltyTier,
+      totalOrders,
+      totalSpent
     });
   } else {
     res.status(404);

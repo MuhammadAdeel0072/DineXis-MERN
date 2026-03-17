@@ -1,15 +1,26 @@
-# AK-7 Rest - A Premium MERN Stack Dining Experience.
+# AK-7 REST — Midnight Gourmet 🪙🌑
 
-## What is AK-7 Rest?
-AK-7 Rest is a modern web application built for the food industry. Think of it as a digital bridge between a hungry customer and a gourmet kitchen. 
+**A Premium MERN Stack Dining Experience meticulously crafted for the digital age.**
 
-We designed it as a full-stack restaurant application allowing users to browse categories (Drinks, Food, Dishes, Sweets) and order online.
+AK-7 REST is not just a restaurant app; it's a digital flagship for a luxury dining brand. Built on the MERN stack (MongoDB, Express, React, Node.js), it combines cutting-edge performance with a bespoke "Midnight Gourmet" aesthetic to deliver a seamless, high-end ordering experience.
 
-## How it works
-- **Welcome:** The user arrives at a luxury-themed homepage.
-- **Identity:** They log in easily using Google or Twitter (no need to remember a new password).
-- **Discovery:** They browse high-quality images of food and drinks.
-- **Action:** They add items to a cart and place an order.
+---
+
+## 💎 The "Midnight Gourmet" Identity
+The system is designed around a premium visual language:
+- **Luxury Aesthetic**: A deep charcoal canvas (#121212) accented with brushed gold (#D4AF37) and crimson highlights.
+- **Glassmorphism**: UI components utilize high-end backdrop blurs and translucent borders for depth.
+- **Micro-interactions**: Powered by `framer-motion`, every interaction—from menu selection to checkout—feels fluid and responsive.
+- **Focus Icons**: Utilizing `lucide-react` for a sharp, consistent iconography set.
+
+---
+
+## 🚀 Key Features
+
+### 1. Intelligent Menu Discovery
+- **Dynamic Catalog**: Browse gourmet delicacies with real-time category filtering and fuzzy search.
+- **Detailed Delicacy View**: Premium modals showcasing high-res imagery, full descriptions, dietary markers (Vegetarian 🍃 / Spicy 🔥), and preparation times.
+- **Quantity Controls**: Integrated portion management directly within the product view.
 
 ## HCI Features
 Highlighting the **Human-Computer Interaction (HCI)** focus:
@@ -30,10 +41,7 @@ Highlighting the **Human-Computer Interaction (HCI)** focus:
 - Email OTP
 - Shopping Cart
 - Category-based filtering
-  
-## Author
-- Muhammad Adeel
-- madeelkhan072@gmail.com
 
 ---
-*Built with modern "Clean Code" standards and HCI principles in mind.*
+*Built with modern "Clean Code" standards and HCI principles to redefine digital dining.*
+
