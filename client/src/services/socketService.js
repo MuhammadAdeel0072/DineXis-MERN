@@ -25,4 +25,12 @@ export const unsubscribeFromOrderUpdates = () => {
   socket.off('orderUpdate');
 };
 
+export const subscribeToAdminActions = (callback) => {
+  socket.on('adminAction', callback);
+};
+
+export const unsubscribeFromAdminActions = () => {
+  socket.off('adminAction');
+};
+
 export default socket;

@@ -38,6 +38,18 @@ const socketHandler = (server) => {
       logger.info(`New order received: ${order.orderNumber}`);
     });
 
+    // Admin action broadcast (menu updates, reservations, etc.)
+    socket.on('adminAction', (data) => {
+      // data: { type: 'menuUpdate' | 'reservationUpdate' | 'paymentUpdate', ... }
+      socket.broadcast.emit('adminAction', data);
+      
+      // Also emit specific events for legacy compatibility if needed
+      if (data.type === 'menuUpdate') io.emit('menuUpdated');
+      if (data.type === 'reservationUpdate') io.emit('reservationUpdated');
+      
+      logger.info(`Admin action broadcasted: ${data.type}`);
+    });
+
     socket.on('disconnect', () => {
       logger.info('Client disconnected');
     });

@@ -7,8 +7,14 @@ const {
   removeFavorite,
   updateUserCart,
   getUserCart,
+  getUsers,
+  getUserById,
 } = require('../controllers/userController');
 const { protect, ClerkExpressRequireAuth } = require('../middleware/clerkAuth');
+const { admin } = require('../middleware/roleAuth');
+
+router.route('/')
+  .get(ClerkExpressRequireAuth(), protect, admin, getUsers);
 
 router.route('/profile')
   .get(ClerkExpressRequireAuth(), protect, getUserProfile)
@@ -21,5 +27,8 @@ router.route('/cart')
 router.route('/favorites/:productId')
   .post(ClerkExpressRequireAuth(), protect, addFavorite)
   .delete(ClerkExpressRequireAuth(), protect, removeFavorite);
+
+router.route('/:id')
+  .get(ClerkExpressRequireAuth(), protect, admin, getUserById);
 
 module.exports = router;

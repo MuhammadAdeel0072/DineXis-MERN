@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useProfile } from './UserContext';
-import { connectSocket, disconnectSocket, subscribeToOrderUpdates, unsubscribeFromOrderUpdates } from '../services/socketService';
+import { connectSocket, disconnectSocket, subscribeToOrderUpdates, unsubscribeFromOrderUpdates, subscribeToAdminActions, unsubscribeFromAdminActions } from '../services/socketService';
 import toast from 'react-hot-toast';
 
 const SocketContext = createContext();
@@ -8,6 +8,7 @@ const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
   const { profile, isSignedIn } = useProfile();
   const [notifications, setNotifications] = useState([]);
+  const [siteUpdate, setSiteUpdate] = useState(null);
 
   useEffect(() => {
     if (isSignedIn && profile) {
@@ -30,15 +31,28 @@ export const SocketProvider = ({ children }) => {
         setNotifications((prev) => [{ ...data, message, timestamp: new Date() }, ...prev]);
       });
 
+      subscribeToAdminActions((data) => {
+        // data: { type: 'menuUpdate' | 'reservationUpdate' | 'paymentUpdate' }
+        setSiteUpdate({ ...data, timestamp: new Date() });
+        
+        if (data.type === 'menuUpdate') {
+          toast('Chef has refined our culinary selection!', {
+            icon: '📜',
+            style: { background: '#121212', color: '#D4AF37', border: '1px solid #D4AF37/20' }
+          });
+        }
+      });
+
       return () => {
         unsubscribeFromOrderUpdates();
+        unsubscribeFromAdminActions();
         disconnectSocket();
       };
     }
   }, [isSignedIn, profile]);
 
   return (
-    <SocketContext.Provider value={{ notifications }}>
+    <SocketContext.Provider value={{ notifications, siteUpdate }}>
       {children}
     </SocketContext.Provider>
   );

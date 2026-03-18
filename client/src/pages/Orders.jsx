@@ -3,10 +3,12 @@ import { getMyOrders } from '../services/orderService';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Clock, ChevronRight, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSocket } from '../context/SocketContext';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { siteUpdate } = useSocket();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -22,6 +24,14 @@ const Orders = () => {
     };
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const data = await getMyOrders();
+      setOrders(data);
+    };
+    fetchOrders();
+  }, [siteUpdate]);
 
   const getStatusColor = (status) => {
     switch (status) {

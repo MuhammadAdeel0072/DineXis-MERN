@@ -4,12 +4,14 @@ import { getPaymentConfig } from '../services/paymentService';
 import { Calendar, Clock, Users, Phone, CheckCircle, Loader2, AlertCircle, Smartphone, Landmark, ExternalLink, HelpCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from '../context/SocketContext';
 
 const PAYMENT_ACCOUNT = import.meta.env.VITE_PAYMENT_ACCOUNT || '0312-3456789';
 
 const Reservations = () => {
     const [reservations, setReservations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { siteUpdate } = useSocket();
     const [isBooking, setIsBooking] = useState(false);
     const [phoneError, setPhoneError] = useState('');
 
@@ -40,6 +42,23 @@ const Reservations = () => {
         };
         fetchConfig();
     }, []);
+
+    useEffect(() => {
+        if (siteUpdate?.type === 'reservationUpdate') {
+            fetchReservations();
+        }
+        if (siteUpdate?.type === 'paymentUpdate') {
+            const fetchConfig = async () => {
+                try {
+                    const data = await getPaymentConfig();
+                    setPaymentConfig(data);
+                } catch (error) {
+                    console.error('Failed to reload payment config', error);
+                }
+            };
+            fetchConfig();
+        }
+    }, [siteUpdate]);
 
     const fetchReservations = async () => {
         try {

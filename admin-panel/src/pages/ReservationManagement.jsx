@@ -1,0 +1,136 @@
+import React, { useState, useEffect } from 'react';
+import api, { socket } from '../services/api';
+import { Calendar, Users, Phone, Check, X, Clock, Mail } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const ReservationManagement = () => {
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchReservations();
+    
+    // Listen for reservation updates
+    socket.on('reservationUpdated', fetchReservations);
+    return () => socket.off('reservationUpdated');
+  }, []);
+
+  const fetchReservations = async () => {
+    try {
+      const { data } = await api.get('/reservations');
+      setReservations(data);
+    } catch (error) {
+      console.error('Failed to fetch reservations', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (id, status) => {
+    try {
+      await api.put(`/reservations/${id}/status`, { status });
+      socket.emit('adminAction', { type: 'reservationUpdate' });
+      fetchReservations();
+    } catch (error) {
+      console.error('Failed to update reservation', error);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-10"
+    >
+      <header>
+        <h1 className="text-4xl font-serif font-black text-soft-white tracking-tighter">Table <span className="text-gold">Archives</span></h1>
+        <p className="text-soft-white/50 mt-2 uppercase text-[10px] font-bold tracking-[0.2em]">AK-7 REST RESERVATION CONTROL</p>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        {loading ? (
+          <div className="col-span-full py-20 text-center">
+            <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
+          </div>
+        ) : reservations.length === 0 ? (
+          <div className="col-span-full py-20 text-center text-soft-white/30 italic glass rounded-3xl">No reservations currently registered.</div>
+        ) : (
+          <AnimatePresence>
+            {reservations.map((res) => (
+              <motion.div 
+                layout
+                key={res._id} 
+                className={`glass rounded-3xl border ${res.status === 'Confirmed' ? 'border-gold/20' : 'border-white/5'} overflow-hidden group hover:border-gold/40 transition-all duration-500`}
+              >
+                <div className="p-8 space-y-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center border border-gold/20">
+                        <Users className="text-gold w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-soft-white text-xl">{res.user?.firstName} {res.user?.lastName}</h3>
+                        <p className="text-gold/60 text-[10px] font-bold uppercase tracking-widest">{res.numberOfGuests} Distinguished Guests</p>
+                      </div>
+                    </div>
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                      res.status === 'Confirmed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
+                      res.status === 'Cancelled' ? 'bg-crimson/10 text-crimson border-crimson/10' : 
+                      'bg-gold/10 text-gold border-gold/20'
+                    }`}>
+                      {res.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 text-soft-white/50">
+                      <Calendar className="w-4 h-4 text-gold/40" />
+                      <span className="text-sm">{new Date(res.reservationDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-soft-white/50">
+                      <Clock className="w-4 h-4 text-gold/40" />
+                      <span className="text-sm">{res.reservationTime}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-white/5 space-y-3">
+                    <div className="flex items-center gap-3 text-soft-white/40 hover:text-soft-white transition-colors">
+                      <Mail className="w-4 h-4" />
+                      <span className="text-sm font-medium truncate">{res.user?.email || 'No email provided'}</span>
+                    </div>
+                    {res.phone && (
+                      <div className="flex items-center gap-3 text-soft-white/40 hover:text-soft-white transition-colors">
+                         <Phone className="w-4 h-4" />
+                         <span className="text-sm font-medium">{res.phone}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {res.status === 'Pending' && (
+                    <div className="pt-4 flex gap-4">
+                      <button 
+                        onClick={() => updateStatus(res._id, 'Confirmed')}
+                        className="flex-1 btn-gold py-3 text-[10px] tracking-widest flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        CONFIRM
+                      </button>
+                      <button 
+                        onClick={() => updateStatus(res._id, 'Cancelled')}
+                        className="px-4 py-3 bg-white/5 hover:bg-crimson/10 text-soft-white/40 hover:text-crimson rounded-xl border border-white/10 hover:border-crimson/20 transition-all"
+                      >
+                        <X className="w-5 h-5 transition-transform group-hover:scale-110" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+export default ReservationManagement;

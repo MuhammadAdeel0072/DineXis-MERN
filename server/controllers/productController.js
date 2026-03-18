@@ -34,15 +34,18 @@ const getProductById = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
+  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, customizations } = req.body;
+
   const product = new Product({
-    name: 'Sample name',
-    price: 0,
-    image: '/images/sample.jpg',
-    category: 'Specials',
-    countInStock: 0,
-    description: 'Sample description',
-    isSpecial: false,
-    dietaryInfo: [],
+    name: name || 'New Product',
+    price: price || 0,
+    image: image || '/images/sample.jpg',
+    category: category || 'General',
+    countInStock: countInStock || 0,
+    description: description || '',
+    isSpecial: isSpecial || false,
+    dietaryInfo: dietaryInfo || [],
+    customizations: customizations || [],
   });
 
   const createdProduct = await product.save();

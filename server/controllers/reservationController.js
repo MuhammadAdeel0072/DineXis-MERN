@@ -49,6 +49,13 @@ const createReservation = asyncHandler(async (req, res) => {
   });
 
   const createdReservation = await reservation.save();
+  
+  // Notify admin of new reservation
+  if (req.io) {
+    req.io.emit('reservationUpdated');
+    req.io.emit('adminAction', { type: 'reservationUpdate' });
+  }
+
   res.status(201).json(createdReservation);
 });
 
@@ -78,6 +85,16 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
   if (reservation) {
     reservation.status = status;
     const updatedReservation = await reservation.save();
+
+    // Notify user and admin
+    if (req.io) {
+      req.io.emit('reservationUpdated');
+      req.io.to(reservation.user.toString()).emit('reservationStatusUpdate', {
+        id: reservation._id,
+        status: reservation.status
+      });
+    }
+
     res.json(updatedReservation);
   } else {
     res.status(404);

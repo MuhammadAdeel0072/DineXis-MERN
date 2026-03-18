@@ -54,6 +54,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
     // Emit real-time events
     req.io.to('kitchen').emit('incomingOrder', createdOrder);
+    req.io.emit('adminAction', { type: 'incomingOrder', order: createdOrder });
 
     res.status(201).json(createdOrder);
   }
@@ -159,6 +160,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       status: order.status,
       orderNumber: order.orderNumber
     });
+    req.io.emit('adminAction', { type: 'orderUpdate', orderId: order._id, status: order.status });
 
     res.json(updatedOrder);
   } else {

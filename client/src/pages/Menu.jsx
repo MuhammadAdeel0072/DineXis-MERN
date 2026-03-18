@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getProducts } from '../services/menuService';
 import { useCart } from '../context/CartContext';
 import { useProfile } from '../context/UserContext';
+import { useSocket } from '../context/SocketContext';
 import { ShoppingCart, Heart, Search, Filter, Plus, Minus, X, Package, Clock, Flame, Leaf } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +16,7 @@ const Menu = () => {
   const [qty, setQty] = useState(1);
   const { dispatch } = useCart();
   const { profile, isSignedIn } = useProfile();
+  const { siteUpdate } = useSocket();
 
   const fallbackItems = [
     // Drinks (12 items)
@@ -88,6 +90,16 @@ const Menu = () => {
     };
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (siteUpdate?.type === 'menuUpdate') {
+      const fetchProducts = async () => {
+        const data = await getProducts();
+        if (data && data.length > 0) setProducts(data);
+      };
+      fetchProducts();
+    }
+  }, [siteUpdate]);
 
   const addToCartHandler = (product, quantity = 1, e) => {
     if (e) e.stopPropagation();
