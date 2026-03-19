@@ -1,12 +1,19 @@
-import { useSignUp } from '@clerk/clerk-react';
-import { useState } from 'react';
+import { useSignUp, useUser } from '@clerk/clerk-react';
+import { useState, useEffect } from 'react';
 import { Mail, Chrome, Loader2, ArrowRight, CheckCircle2, AlertCircle, User as UserIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
     const { isLoaded, signUp, setActive } = useSignUp();
+    const { isSignedIn } = useUser();
     const navigate = useNavigate();
-    
+
+    useEffect(() => {
+        if (isSignedIn) {
+            navigate('/');
+        }
+    }, [isSignedIn, navigate]);
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -48,12 +55,12 @@ const SignUp = () => {
                 const firstName = nameParts[0];
                 const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-                await signUp.create({ 
+                await signUp.create({
                     emailAddress: email,
                     firstName,
                     lastName
                 });
-                
+
                 await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
                 setOtpSent(true);
             } else {
@@ -62,7 +69,7 @@ const SignUp = () => {
                 });
                 if (result.status === "complete") {
                     await setActive({ session: result.createdSessionId });
-                    navigate('/');
+                    window.location.href = '/';
                 }
             }
         } catch (err) {
@@ -75,7 +82,7 @@ const SignUp = () => {
     return (
         <div className="min-h-[90vh] flex items-center justify-center p-4 bg-charcoal py-12">
             <div className="bg-charcoal w-full md:max-w-md rounded-3xl border border-gold/30 shadow-[0_0_40px_rgba(212,175,55,0.15)] relative flex flex-col overflow-hidden">
-                
+
                 {loading && (
                     <div className="absolute inset-0 bg-charcoal/95 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in duration-300">
                         <Loader2 className="w-16 h-16 text-gold animate-spin mb-6" />
@@ -102,14 +109,14 @@ const SignUp = () => {
 
                     {!otpSent && (
                         <div className="space-y-4 mb-4">
-                            <button 
+                            <button
                                 onClick={() => handleSocialLogin('google')}
                                 className="w-full flex items-center justify-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-gold hover:bg-white/10 transition-all group active:scale-[0.98]"
                             >
                                 <Chrome className="text-gray-300 group-hover:text-gold transition-colors" size={20} />
                                 <span className="font-bold text-white tracking-wide group-hover:text-gold transition-colors">Register with Google</span>
                             </button>
-                            <button 
+                            <button
                                 onClick={() => handleSocialLogin('x')}
                                 className="w-full flex items-center justify-center gap-3 p-4 bg-black border border-white/10 rounded-2xl hover:border-gold transition-all group active:scale-[0.98]"
                             >
@@ -133,10 +140,10 @@ const SignUp = () => {
                                     <label htmlFor="name-input" className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Full Name</label>
                                     <div className="relative">
                                         <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-                                        <input 
+                                        <input
                                             id="name-input"
-                                            type="text" 
-                                            required 
+                                            type="text"
+                                            required
                                             className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none transition-all font-bold text-white placeholder:text-gray-600 focus:border-gold"
                                             placeholder="Gourmet Chef"
                                             value={name}
@@ -148,10 +155,10 @@ const SignUp = () => {
                                     <label htmlFor="email-input" className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Email Address</label>
                                     <div className="relative">
                                         <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isValidEmail ? 'text-green-400' : 'text-gray-500'}`} size={20} />
-                                        <input 
+                                        <input
                                             id="email-input"
-                                            type="email" 
-                                            required 
+                                            type="email"
+                                            required
                                             className={`w-full pl-12 pr-12 py-4 bg-white/5 border rounded-2xl outline-none transition-all font-bold text-white placeholder:text-gray-600 ${isValidEmail === true ? 'border-green-400/50 focus:border-green-400' : isValidEmail === false ? 'border-crimson/50 focus:border-crimson' : 'border-white/10 focus:border-gold'}`}
                                             placeholder="chef@ak7rest.com"
                                             value={email}
@@ -164,10 +171,10 @@ const SignUp = () => {
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                                 <div className="text-center">
                                     <label htmlFor="otp-input" className="text-xs font-black text-gold uppercase tracking-widest mb-3 block">Enter Verification Code</label>
-                                    <input 
+                                    <input
                                         id="otp-input"
-                                        type="text" 
-                                        required 
+                                        type="text"
+                                        required
                                         maxLength={6}
                                         className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-center text-3xl font-black tracking-[0.5rem] focus:border-gold outline-none transition-all text-white"
                                         placeholder="000000"
@@ -182,7 +189,7 @@ const SignUp = () => {
                             </div>
                         )}
 
-                        <button 
+                        <button
                             type="submit"
                             disabled={loading || (!otpSent && (!name || !isValidEmail)) || (otpSent && code.length < 6)}
                             className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-xl ${((!otpSent && (!name || !isValidEmail)) || (otpSent && code.length < 6)) ? 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gold hover:bg-yellow-400 text-charcoal hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-[0.98]'}`}

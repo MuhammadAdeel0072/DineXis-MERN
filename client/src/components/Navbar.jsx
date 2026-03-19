@@ -1,7 +1,7 @@
 import { ShoppingCart, Menu as MenuIcon, LogIn, User as UserIcon, ShoppingBag, Calendar, LogOut, X, AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import { useUser, SignedIn, SignedOut, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,6 +11,7 @@ const Navbar = () => {
   const { user, isSignedIn, isLoaded } = useUser();
   const { signOut } = useClerk();
 
+  const { dispatch } = useCart();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -33,8 +34,10 @@ const Navbar = () => {
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
+      dispatch({ type: 'CLEAR_CART' });
       await signOut();
       setShowSignOutModal(false);
+      window.location.href = '/';
     } catch {
       // sign-out failed silently
     } finally {
@@ -42,18 +45,8 @@ const Navbar = () => {
     }
   };
 
-  // Loading shimmer
-  if (!isLoaded) {
-    return (
-      <nav className="bg-charcoal/90 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-50 px-8 py-5 flex justify-between items-center overflow-hidden">
-        <Link to="/" className="text-3xl font-serif font-bold text-gold tracking-wider">
-          AK-7 <span className="text-crimson">REST</span>
-        </Link>
-        <div className="h-10 w-10 bg-white/5 border border-white/10 rounded-full animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-      </nav>
-    );
-  }
+  // Step 3: Add loading check
+  if (!isLoaded) return null;
 
   return (
     <>
@@ -65,11 +58,11 @@ const Navbar = () => {
 
         {/* Nav links */}
         <div className="hidden md:flex gap-8 items-center text-sm font-black uppercase tracking-widest">
-          <Link to="/"            className="text-gray-300 hover:text-gold transition-colors">Home</Link>
-          <Link to="/menu"        className="text-gray-300 hover:text-gold transition-colors">Menu</Link>
-          <Link to="/orders"      className="text-gray-300 hover:text-gold transition-colors">Orders</Link>
-          <Link to="/reservations" className="text-gray-300 hover:text-gold transition-colors">Table</Link>
-          <Link to="/profile"     className="text-gray-300 hover:text-gold transition-colors">Profile</Link>
+          <Link to="/" className="text-gray-300 hover:text-gold transition-colors">Home</Link>
+          <Link to="/menu" className="text-gray-300 hover:text-gold transition-colors">Menu</Link>
+          <Link to="/orders" className="text-gray-300 hover:text-gold transition-colors">Orders</Link>
+          <Link to="/reservation" className="text-gray-300 hover:text-gold transition-colors">Table</Link>
+          <Link to="/profile" className="text-gray-300 hover:text-gold transition-colors">Profile</Link>
         </div>
 
         {/* Right side */}
@@ -88,7 +81,7 @@ const Navbar = () => {
           </Link>
 
           {/* Auth */}
-          <SignedIn>
+          {isSignedIn ? (
             <div className="relative" ref={dropdownRef}>
               {/* Avatar button */}
               <button
@@ -135,7 +128,7 @@ const Navbar = () => {
                         <span>My Orders</span>
                       </Link>
                       <Link
-                        to="/reservations"
+                        to="/reservation"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item"
                       >
@@ -165,17 +158,15 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
             </div>
-          </SignedIn>
-
-          <SignedOut>
+          ) : (
             <Link
-              to="/sign-in"
+              to="/signin"
               className="flex items-center gap-2 bg-gold text-charcoal px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-widest shadow-lg shadow-gold/20 hover:shadow-gold/40 hover:scale-105 active:scale-95 transition-all"
             >
               <LogIn size={16} />
               <span>Sign In</span>
             </Link>
-          </SignedOut>
+          )}
 
           {/* Mobile hamburger */}
           <button className="md:hidden p-2">

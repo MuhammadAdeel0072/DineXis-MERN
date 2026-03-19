@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 import { useCart } from './context/CartContext';
 import { useProfile } from './context/UserContext';
 import { CartProvider } from './context/CartContext';
@@ -20,13 +20,13 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 
 const AuthRedirect = () => {
-    const { profile, loading } = useProfile();
-    const { state } = useCart();
-    const navigate = useNavigate();
+  const { profile, loading } = useProfile();
+  const { state } = useCart();
+  const navigate = useNavigate();
 
-    // Logic to handle redirection after login if needed
-    // Removed specific redirect to keep user on same page or go to destination
-    return null;
+  // Logic to handle redirection after login if needed
+  // Removed specific redirect to keep user on same page or go to destination
+  return null;
 };
 
 import OrderTracker from './pages/OrderTracker';
@@ -47,8 +47,9 @@ function App() {
               <Toaster position="top-right" />
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/sign-in" element={<SignIn />} />
-                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
                 <Route path="/menu" element={<Menu />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={
@@ -71,7 +72,7 @@ function App() {
                     <Profile />
                   </AuthGuard>
                 } />
-                <Route path="/reservations" element={
+                <Route path="/reservation" element={
                   <AuthGuard>
                     <Reservations />
                   </AuthGuard>
