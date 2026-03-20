@@ -8,17 +8,14 @@ const {
   getMyOrders,
   getOrders,
   getOrderReceipt,
-  getPaymentIntent,
 } = require('../controllers/orderController');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/clerkAuth');
-const { admin, staff } = require('../middleware/roleAuth');
+const { protect } = require('../middleware/authMiddleware');
+const { admin } = require('../middleware/adminMiddleware');
+const { ClerkExpressRequireAuth } = require('@clerk/clerk-sdk-node');
 
 router.route('/')
   .post(ClerkExpressRequireAuth(), protect, addOrderItems)
   .get(ClerkExpressRequireAuth(), protect, admin, getOrders);
-
-router.route('/payment-intent')
-  .post(ClerkExpressRequireAuth(), protect, getPaymentIntent);
 
 router.route('/myorders')
   .get(ClerkExpressRequireAuth(), protect, getMyOrders);
@@ -33,6 +30,6 @@ router.route('/:id/pay')
   .put(ClerkExpressRequireAuth(), protect, updateOrderToPaid);
 
 router.route('/:id/status')
-  .put(ClerkExpressRequireAuth(), protect, staff, updateOrderStatus);
+  .put(ClerkExpressRequireAuth(), protect, admin, updateOrderStatus);
 
 module.exports = router;

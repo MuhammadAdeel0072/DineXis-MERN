@@ -1,18 +1,32 @@
 const asyncHandler = require('express-async-handler');
 const Product = require('../models/Product');
+const { emitEvent } = require('../services/socketService');
+const { getCachedMenu, setCachedMenu, clearMenuCache } = require('../services/cacheService');
 
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
   const { category, isSpecial, dietary } = req.query;
-  const query = {};
+  
+  // Try to get from cache if no filters
+  if (!category && !isSpecial && !dietary) {
+    const cached = getCachedMenu();
+    if (cached) return res.json(cached);
+  }
 
+  const query = {};
   if (category) query.category = category;
   if (isSpecial) query.isSpecial = isSpecial === 'true';
   if (dietary) query.dietaryInfo = { $in: dietary.split(',') };
 
-  const products = await Product.find(query);
+  const products = await Product.find(query).lean();
+  
+  // Set cache if no filters
+  if (!category && !isSpecial && !dietary) {
+    setCachedMenu(products);
+  }
+
   res.json(products);
 });
 
@@ -20,7 +34,7 @@ const getProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/:id
 // @access  Public
 const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id).lean();
 
   if (product) {
     res.json(product);
@@ -36,11 +50,17 @@ const getProductById = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, customizations } = req.body;
 
+  // Basic validation
+  if (!name || !price || !category) {
+    res.status(400);
+    throw new Error('Please provide name, price, and category');
+  }
+
   const product = new Product({
-    name: name || 'New Product',
-    price: price || 0,
+    name,
+    price,
     image: image || '/images/sample.jpg',
-    category: category || 'General',
+    category,
     countInStock: countInStock || 0,
     description: description || '',
     isSpecial: isSpecial || false,
@@ -50,10 +70,9 @@ const createProduct = asyncHandler(async (req, res) => {
 
   const createdProduct = await product.save();
   
-  if (req.io) {
-    req.io.emit('menuUpdated');
-    req.io.emit('adminAction', { type: 'menuUpdate' });
-  }
+  clearMenuCache();
+  emitEvent(null, 'productUpdated', createdProduct);
+  emitEvent(null, 'adminAction', { type: 'menuUpdate' });
 
   res.status(201).json(createdProduct);
 });
@@ -79,10 +98,9 @@ const updateProduct = asyncHandler(async (req, res) => {
 
     const updatedProduct = await product.save();
 
-    if (req.io) {
-      req.io.emit('menuUpdated');
-      req.io.emit('adminAction', { type: 'menuUpdate' });
-    }
+    clearMenuCache();
+    emitEvent(null, 'productUpdated', updatedProduct);
+    emitEvent(null, 'adminAction', { type: 'menuUpdate' });
 
     res.json(updatedProduct);
   } else {
@@ -100,10 +118,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
   if (product) {
     await Product.deleteOne({ _id: product._id });
 
-    if (req.io) {
-      req.io.emit('menuUpdated');
-      req.io.emit('adminAction', { type: 'menuUpdate' });
-    }
+    clearMenuCache();
+    emitEvent(null, 'productUpdated', { _id: product._id, deleted: true });
+    emitEvent(null, 'adminAction', { type: 'menuUpdate' });
 
     res.json({ message: 'Product removed' });
   } else {

@@ -6,8 +6,8 @@ const {
   getReservations,
   updateReservationStatus,
 } = require('../controllers/reservationController');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/clerkAuth');
-const { staff } = require('../middleware/roleAuth');
+const { protect } = require('../middleware/authMiddleware');
+const { admin } = require('../middleware/adminMiddleware');
 
 router.route('/')
   .post(ClerkExpressRequireAuth(), protect, createReservation)

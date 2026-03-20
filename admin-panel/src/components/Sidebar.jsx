@@ -21,8 +21,8 @@ const Sidebar = () => {
       className="w-72 glass border-r border-white/5 flex flex-col h-full z-50 shadow-2xl"
     >
       <div className="p-8 border-b border-white/5">
-        <h1 className="text-3xl font-serif font-black tracking-tighter text-gold italic">
-          AK-7 <span className="text-soft-white not-italic font-sans text-xs ml-1 tracking-widest opacity-50">REST</span>
+        <h1 className="text-3xl font-serif font-black tracking-tighter italic">
+          <span className="text-gold">AK-7</span> <span className="text-crimson ml-1">REST</span>
         </h1>
       </div>
       

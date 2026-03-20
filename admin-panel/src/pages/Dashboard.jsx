@@ -67,7 +67,9 @@ const Dashboard = () => {
       className="space-y-10"
     >
       <header>
-        <h1 className="text-4xl font-serif font-black text-soft-white mb-2 tracking-tighter">AK-7 <span className="text-gold">REST</span></h1>
+        <h1 className="text-4xl font-serif font-black mb-2 tracking-tighter">
+          <span className="text-gold">AK-7</span> <span className="text-crimson ml-1">REST</span>
+        </h1>
         <p className="text-soft-white/50 tracking-[0.3em] uppercase text-[10px] font-bold">Culinary Control Center</p>
       </header>
 

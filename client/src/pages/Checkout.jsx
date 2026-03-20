@@ -205,10 +205,19 @@ const Checkout = () => {
                         <h3 className="font-bold text-lg">Bank</h3>
                         <p className="text-gray-500 text-[10px] uppercase font-black">Direct Transfer</p>
                     </div>
+                    <div 
+                        onClick={() => { setPaymentMethod('cod'); setHasPaid(true); }}
+                        className={`p-6 rounded-3xl border-2 transition-all cursor-pointer ${paymentMethod === 'cod' ? 'border-gold bg-gold/5' : 'border-white/5 hover:border-gold/20'}`}
+                    >
+                        <Truck className={`w-8 h-8 mb-4 ${paymentMethod === 'cod' ? 'text-gold' : 'text-gray-500'}`} />
+                        <h3 className="font-bold text-lg">COD</h3>
+                        <p className="text-gray-500 text-[10px] uppercase font-black">Cash on Delivery</p>
+                    </div>
                   </div>
 
-                  {/* Payment Instructions Simulation */}
-                  <div className="mt-8 p-8 bg-gold/5 border border-gold/20 rounded-[2rem] animate-in fade-in slide-in-from-bottom-4">
+                  {paymentMethod !== 'cod' && (
+                    /* Payment Instructions Simulation */
+                    <div className="mt-8 p-8 bg-gold/5 border border-gold/20 rounded-[2rem] animate-in fade-in slide-in-from-bottom-4">
                     <h4 className="text-white font-serif font-bold text-lg mb-4 flex items-center gap-2">
                       <HelpCircle className="w-5 h-5 text-gold" />
                       Payment Instructions
@@ -288,6 +297,19 @@ const Checkout = () => {
                       </button>
                     </div>
                   </div>
+                  )}
+
+                  {paymentMethod === 'cod' && (
+                    <div className="mt-8 p-8 bg-gold/5 border border-gold/20 rounded-[2rem] animate-in fade-in slide-in-from-bottom-4 flex items-center gap-6">
+                        <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center border border-gold/20">
+                            <Truck className="text-gold w-8 h-8" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-serif font-bold text-lg">Cash on Delivery</h4>
+                            <p className="text-gray-400 text-sm">Pay directly when your premium gourmet order arrives at your doorstep.</p>
+                        </div>
+                    </div>
+                  )}
 
                   <div className="flex gap-4 mt-6">
                     <button onClick={prevStep} className="flex-1 bg-white/5 text-white font-bold py-4 rounded-2xl border border-white/10 flex items-center justify-center gap-2">

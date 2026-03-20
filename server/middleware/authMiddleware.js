@@ -1,34 +1,29 @@
 const jwt = require('jsonwebtoken');
 
 const protect = async (req, res, next) => {
-    let token;
+const { ClerkExpressRequireAuth } = require('@clerk/clerk-sdk-node');
+const User = require('../models/User');
+const asyncHandler = require('express-async-handler');
 
-    if (req.cookies.accessToken) {
-        try {
-            token = req.cookies.accessToken;
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = await User.findById(decoded.id).select('-password');
-            next();
-        } catch (error) {
-            console.error(error);
-            res.status(401);
-            throw new Error('Not authorized, token failed');
-        }
-    }
+// Middleware to protect routes and attach user to request
+const protect = asyncHandler(async (req, res, next) => {
+  const clerkUser = req.auth;
 
-    if (!token) {
-        res.status(401);
-        throw new Error('Not authorized, no token');
-    }
-};
+  if (!clerkUser) {
+    res.status(401);
+    throw new Error('Not authorized, no token');
+  }
 
-const admin = (req, res, next) => {
-    if (req.user && req.user.isAdmin) {
-        next();
-    } else {
-        res.status(401);
-        throw new Error('Not authorized as an admin');
-    }
-};
+  // Find user in our database by clerkId
+  let user = await User.findOne({ clerkId: clerkUser.userId }).lean();
 
-module.exports = { protect, admin };
+  if (!user) {
+    res.status(401);
+    throw new Error('User not found in database');
+  }
+
+  req.user = user;
+  next();
+});
+
+module.exports = { protect, ClerkExpressRequireAuth };

@@ -41,4 +41,8 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Index for faster lookups
+userSchema.index({ email: 1 });
+userSchema.index({ clerkId: 1 });
+
 module.exports = mongoose.model('User', userSchema);

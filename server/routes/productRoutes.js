@@ -7,8 +7,9 @@ const {
   updateProduct,
   deleteProduct,
 } = require('../controllers/productController');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/clerkAuth');
-const { admin } = require('../middleware/roleAuth');
+const { protect } = require('../middleware/authMiddleware');
+const { admin } = require('../middleware/adminMiddleware');
+const { ClerkExpressRequireAuth } = require('@clerk/clerk-sdk-node');
 
 router.route('/')
   .get(getProducts)

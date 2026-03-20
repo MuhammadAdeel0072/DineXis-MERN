@@ -32,4 +32,7 @@ const productSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Index for category filtering
+productSchema.index({ category: 1 });
+
 module.exports = mongoose.model('Product', productSchema);
