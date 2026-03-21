@@ -6,17 +6,17 @@ const {
   getReservations,
   updateReservationStatus,
 } = require('../controllers/reservationController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, ClerkExpressRequireAuth } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
 
 router.route('/')
   .post(ClerkExpressRequireAuth(), protect, createReservation)
-  .get(ClerkExpressRequireAuth(), protect, staff, getReservations);
+  .get(ClerkExpressRequireAuth(), protect, admin, getReservations);
 
 router.route('/my')
   .get(ClerkExpressRequireAuth(), protect, getMyReservations);
 
 router.route('/:id/status')
-  .put(ClerkExpressRequireAuth(), protect, staff, updateReservationStatus);
+  .put(ClerkExpressRequireAuth(), protect, admin, updateReservationStatus);
 
 module.exports = router;
