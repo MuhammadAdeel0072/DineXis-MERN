@@ -45,8 +45,9 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173', // client dev
   'http://localhost:5174', // admin dev
-  process.env.FRONTEND_URL, // deployed client
-  process.env.ADMIN_URL     // deployed admin
+  process.env.FRONTEND_URL, // deployed client (e.g., https://your-client.vercel.app)
+  process.env.ADMIN_URL,    // deployed admin (e.g., https://your-admin.vercel.app)
+  'https://your-vercel-app-name.vercel.app' // specific Vercel URL for Railway
 ];
 app.use(cors({
   origin: function (origin, callback) {

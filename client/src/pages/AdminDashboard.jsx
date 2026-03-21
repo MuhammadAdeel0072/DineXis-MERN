@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import { LayoutDashboard, ShoppingBag, Users, Plus, Edit, Trash2 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -11,8 +11,8 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         const [ordersRes, productsRes] = await Promise.all([
-          axios.get('/api/orders'),
-          axios.get('/api/products')
+          apiClient.get('/orders'),
+          apiClient.get('/products')
         ]);
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
