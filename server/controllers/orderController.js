@@ -3,6 +3,7 @@ const User = require('../models/User');
 const LoyaltyTransaction = require('../models/Loyalty');
 const { generateReceipt } = require('../services/pdfService');
 const { emitEvent } = require('../services/socketService');
+const asyncHandler = require('express-async-handler');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -24,7 +25,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     throw new Error('No order items');
   } else {
     const orderNumber = `AK7-${Math.floor(10000 + Math.random() * 90000)}`;
-    
+
     // COD Logic: Mark as not paid initially
     const isPaid = paymentMethod === 'cod' ? false : req.body.isPaid;
 
