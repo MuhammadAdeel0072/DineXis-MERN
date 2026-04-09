@@ -14,36 +14,34 @@ const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true' || !CLERK_PUBLISHABLE_KEY;
 
 function App() {
-  // Development mode: bypass Clerk authentication
-  if (DEV_MODE) {
-    return (
-      <ErrorBoundary>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<AdminLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/menu" element={<MenuManagement />} />
-              <Route path="/orders" element={<OrderManagement />} />
-              <Route path="/reservations" element={<ReservationManagement />} />
-              <Route path="/payments" element={<PaymentManagement />} />
-              <Route path="/users" element={<UserManagement />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </ErrorBoundary>
-    );
-  }
-
   // Production mode: use Clerk authentication
-  if (!CLERK_PUBLISHABLE_KEY) {
+  if (!DEV_MODE && !CLERK_PUBLISHABLE_KEY) {
     return <div className="text-center p-10 text-red-500">Missing Clerk Publishable Key</div>;
   }
 
   return (
     <ErrorBoundary>
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY || 'pk_test_dummy'}>
         <BrowserRouter>
-          <SignedIn>
+          {!DEV_MODE ? (
+            <>
+              <SignedIn>
+                <Routes>
+                  <Route element={<AdminLayout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/menu" element={<MenuManagement />} />
+                    <Route path="/orders" element={<OrderManagement />} />
+                    <Route path="/reservations" element={<ReservationManagement />} />
+                    <Route path="/payments" element={<PaymentManagement />} />
+                    <Route path="/users" element={<UserManagement />} />
+                  </Route>
+                </Routes>
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          ) : (
             <Routes>
               <Route element={<AdminLayout />}>
                 <Route path="/" element={<Dashboard />} />
@@ -54,10 +52,7 @@ function App() {
                 <Route path="/users" element={<UserManagement />} />
               </Route>
             </Routes>
-          </SignedIn>
-          <SignedOut>
-            <RedirectToSignIn />
-          </SignedOut>
+          )}
         </BrowserRouter>
       </ClerkProvider>
     </ErrorBoundary>
