@@ -5,9 +5,18 @@
   "scripts": {
     "start": "cd server && node server.js",
     "build": "cd server && npm install",
-    "dev": "cd server && npm run dev"
+    "dev": "concurrently -n \"SERVER,CLIENT,ADMIN,CHEF,RIDER\" -c \"bgBlue.bold,bgGreen.bold,bgMagenta.bold,bgCyan.bold,bgRed.bold\" \"npm run server\" \"npm run client\" \"npm run admin\" \"npm run chef\" \"npm run rider\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "admin": "cd admin-panel && npm run dev",
+    "chef": "cd chef-panel && npm run dev",
+    "rider": "cd rider-panel && npm run dev"
   },
   "dependencies": {
     "express-async-handler": "^1.2.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "open-cli": "^9.0.0"
   }
 }

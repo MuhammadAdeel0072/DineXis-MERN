@@ -26,10 +26,10 @@ export const updateOrderStatus = async (id, status) => {
 };
 
 export const createPaymentIntent = async (amount) => {
-    const response = await apiClient.post('/orders/payment-intent', { amount });
-    return response.data;
+  const response = await apiClient.post('/orders/payment-intent', { amount });
+  return response.data;
 };
 
 export const getOrderReceiptUrl = (id) => {
-    return `${import.meta.env.VITE_API_URL}/orders/${id}/receipt`;
+  return `${import.meta.env.VITE_API_URL}/orders/${id}/receipt`;
 };

@@ -6,7 +6,7 @@
   --color-gold: #D4AF37;
   --color-soft-white: #E0E0E0;
   --color-crimson: #dc143c;
-  
+
   --font-sans: 'Outfit', sans-serif;
   --font-serif: 'Playfair Display', serif;
 }
@@ -46,14 +46,24 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 @keyframes pulse-slow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(0.98); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
 }
 
 .animate-pulse-slow {

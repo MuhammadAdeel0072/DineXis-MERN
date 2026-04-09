@@ -1,51 +1,66 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+axios.defaults.withCredentials = true;
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: 'http://127.0.0.1:5000/api',
+  timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor to add Clerk token to requests
+// Track interceptor IDs so we can eject and re-register when getToken changes
+let requestInterceptorId = null;
+let responseInterceptorId = null;
+
+// Interceptor to add Clerk token to requests (if available in development mode)
+// Called from App.jsx useEffect — safe to call multiple times
 export const setupInterceptors = (getToken) => {
-  apiClient.interceptors.request.use(
+  // Eject existing interceptors before re-registering
+  if (requestInterceptorId !== null) {
+    apiClient.interceptors.request.eject(requestInterceptorId);
+  }
+  if (responseInterceptorId !== null) {
+    apiClient.interceptors.response.eject(responseInterceptorId);
+  }
+
+  requestInterceptorId = apiClient.interceptors.request.use(
     async (config) => {
       try {
-        const token = await getToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+        // In development mode, token is optional
+        if (typeof getToken === 'function') {
+          const token = await getToken();
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
         }
       } catch (error) {
-        console.error('Error getting auth token', error);
+        console.warn('[API Client] Token setup warning (non-blocking in dev):', error.message);
       }
       return config;
     },
-    (error) => {
-      return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
   );
 
-  apiClient.interceptors.response.use(
+  responseInterceptorId = apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-      const message = error.response?.data?.message || 'Something went wrong';
-      
       if (error.response?.status === 401) {
-        // Handle unauthorized (e.g., redirect or clear state)
-        console.warn('Unauthorized access - potential session expiry');
+        console.warn('Unauthorized — session may have expired');
       } else if (error.response?.status >= 500) {
-        toast.error('Server error. Please try again later.', {
-            id: 'api-error',
-            style: {
-                background: '#1a1a1a',
-                color: '#D4AF37',
-                border: '1px solid #D4AF37'
-            }
+        const errorDetail = error.response?.data?.message || 'Server-side protocol failure';
+        toast.error(`System Protocol Error: ${errorDetail}`, {
+          id: 'api-error',
+          style: {
+            background: '#1a1a1a',
+            color: '#ff4b4b',
+            border: '1px solid #ff4b4b',
+          },
         });
       }
-      
       return Promise.reject(error);
     }
   );

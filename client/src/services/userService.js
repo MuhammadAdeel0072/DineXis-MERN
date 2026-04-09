@@ -1,12 +1,17 @@
 import apiClient from './apiClient';
 
 export const getUserProfile = async () => {
-  const response = await apiClient.get('/users/profile');
+  const response = await apiClient.get('/auth/profile');
+  return response.data;
+};
+
+export const syncUser = async (userData) => {
+  const response = await apiClient.post('/auth/sync', userData);
   return response.data;
 };
 
 export const updateUserProfile = async (userData) => {
-  const response = await apiClient.put('/users/profile', userData);
+  const response = await apiClient.put('/auth/profile', userData);
   return response.data;
 };
 

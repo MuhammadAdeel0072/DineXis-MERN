@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { useUser, AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
+import { useUser, useAuth, AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
+import { setupInterceptors } from './services/apiClient';
 import { useCart } from './context/CartContext';
 import { useProfile } from './context/UserContext';
 import { CartProvider } from './context/CartContext';
@@ -31,12 +32,18 @@ const AuthRedirect = () => {
 
 import OrderTracker from './pages/OrderTracker';
 
-import Profile from './pages/Profile';
+import Help from './pages/Help';
 
 import Reservations from './pages/Reservations';
 import Settings from './pages/Settings';
 
 function App() {
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    setupInterceptors(getToken);
+  }, [getToken]);
+
   return (
     <UserProvider>
       <SocketProvider>
@@ -67,9 +74,9 @@ function App() {
                     <Orders />
                   </AuthGuard>
                 } />
-                <Route path="/profile" element={
+                <Route path="/help" element={
                   <AuthGuard>
-                    <Profile />
+                    <Help />
                   </AuthGuard>
                 } />
                 <Route path="/reservation" element={

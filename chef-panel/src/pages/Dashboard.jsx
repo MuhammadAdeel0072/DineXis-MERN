@@ -49,16 +49,28 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchStats();
+    }, []);
+
+    useEffect(() => {
         if (socket) {
-            socket.on('orderUpdate', fetchStats);
-            socket.on('incomingOrder', fetchStats);
+            let debounceTimer = null;
+            
+            const handleUpdate = () => {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    fetchStats();
+                }, 500);
+            };
+            
+            socket.on('orderUpdate', handleUpdate);
+            socket.on('incomingOrder', handleUpdate);
+            
+            return () => {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                socket.off('orderUpdate', handleUpdate);
+                socket.off('incomingOrder', handleUpdate);
+            };
         }
-        return () => {
-            if (socket) {
-                socket.off('orderUpdate');
-                socket.off('incomingOrder');
-            }
-        };
     }, []);
 
     if (loading) return (

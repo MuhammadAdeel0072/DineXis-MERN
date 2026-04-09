@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { SignOutButton } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
+import { BrandLogo, typographyClasses } from './BrandingUtils';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -45,12 +46,11 @@ const Sidebar = ({ isOpen, onClose }) => {
         ${!isOpen && !isDesktop ? 'pointer-events-none' : 'pointer-events-auto'}
       `}
     >
+      {/* Logo Section */}
       <div className="p-8 border-b border-white/5 flex items-center justify-between">
-        <div className="flex flex-col">
-          <h1 className="text-2xl md:text-3xl font-serif font-black tracking-tighter italic">
-            <span className="text-gold">AK-7</span> <span className="text-crimson ml-1">REST</span>
-          </h1>
-          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gold/40 mt-1 uppercase italic">PRO KITCHEN STATION</span>
+        <div className="flex flex-col flex-1">
+          <BrandLogo size="md" />
+          <span className={`${typographyClasses.labelSmall} mt-2`}>PRO KITCHEN STATION</span>
         </div>
         <button 
           onClick={onClose}

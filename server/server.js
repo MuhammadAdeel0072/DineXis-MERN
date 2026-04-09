@@ -21,48 +21,47 @@ const server = http.createServer(app);
 const io = init(server);
 
 // ======================
-// 🔒 SECURITY & RATE LIMIT
+// ⚙️ CORE BRIDGE & HANDSHAKE (ABSOLUTE TOP)
 // ======================
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,
-  message: 'Too many requests, please try again later',
-});
-app.use('/api/', limiter);
-
-// ======================
-// ⚙️ MIDDLEWARE
-// ======================
-
-// Webhook route (must come before express.json)
-const webhookRoutes = require('./routes/webhookRoutes');
-app.use('/api/webhooks/clerk', webhookRoutes);
-
-// Body parser
-app.use(express.json());
-
-// CORS Configuration
-const allowedOrigins = [
-  'http://localhost:5173', // client dev
-  'http://localhost:5174', // admin dev
-  'http://localhost:5175', // chef dev
-  process.env.FRONTEND_URL, // deployed client (e.g., https://your-client.vercel.app)
-  process.env.ADMIN_URL,    // deployed admin (e.g., https://your-admin.vercel.app)
-  process.env.CHEF_URL,     // deployed chef (e.g., https://your-chef.vercel.app)
-];
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+    'http://127.0.0.1:5176'
+  ],
   credentials: true,
 }));
+const { clerkMiddleware } = require('@clerk/express');
 
-// Security headers
-app.use(helmet());
+app.use(express.json());
+app.use(clerkMiddleware()); // Mandatory for Clerk v5 integration
+
+// ======================
+// 🔒 SECURITY & RATE LIMIT
+// ======================
+const limter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  message: {
+    status: 429,
+    message: 'System Protocol: Rate limit exceeded. Please stand by.',
+  },
+});
+app.use('/api/', limter);
+
+
+
+// Security headers - Relaxed for cross-origin development
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginEmbedderPolicy: false
+}));
 
 // Logger for development
 if (process.env.NODE_ENV === 'development') {
@@ -74,19 +73,25 @@ if (process.env.NODE_ENV === 'development') {
 // ======================
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const chefRoutes = require('./routes/chefRoutes');
+const riderRoutes = require('./routes/riderRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/chef', chefRoutes);
+app.use('/api/rider', riderRoutes);
+app.use('/api/webhooks/clerk', webhookRoutes);
 
 // ======================
 // 🏠 ROOT ROUTE
@@ -95,13 +100,18 @@ app.get('/', (req, res) => {
   res.send('AK-7 REST API is running');
 });
 
+// Diagnostic Health Check
+app.get('/api/health', (req, res) => res.json({ status: 'Server is running 🚀' }));
+
 // ======================
 // ❌ ERROR HANDLING
 // ======================
-app.use((req, res, next) => {
-  res.status(404);
-  next(new Error(`Not Found - ${req.originalUrl}`));
+// 404 catch-all (must be after all routes)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl });
 });
+
+// Error handler middleware (must be last)
 app.use(errorHandler);
 
 // ======================
@@ -109,6 +119,8 @@ app.use(errorHandler);
 // ======================
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+server.timeout = 60000;
+
+server.listen(PORT, '127.0.0.1', () => {
+  console.log(`Server Forced to 127.0.0.1:${PORT}`);
 });

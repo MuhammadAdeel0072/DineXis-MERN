@@ -44,10 +44,15 @@ const orderSchema = new mongoose.Schema({
     specialInstructions: { type: String },
     estimatedPrepTime: { type: Number, default: 20 }, // in minutes
     shippingAddress: {
-        address: { type: String },
+        fullName: { type: String },
+        phoneNumber: { type: String, required: true },
+        address: { type: String, required: true }, 
+        streetAddress: { type: String },
         city: { type: String },
+        area: { type: String },
         postalCode: { type: String },
-        country: { type: String },
+        landmark: { type: String },
+        country: { type: String, default: 'Pakistan' },
     },
     paymentMethod: { type: String, required: true },
     paymentReference: { type: String },
@@ -65,7 +70,7 @@ const orderSchema = new mongoose.Schema({
     paidAt: { type: Date },
     status: {
         type: String,
-        enum: ['placed', 'confirmed', 'preparing', 'ready', 'out-for-delivery', 'delivered', 'cancelled'],
+        enum: ['placed', 'confirmed', 'preparing', 'ready', 'picked-up', 'out-for-delivery', 'delivered', 'cancelled'],
         default: 'placed'
     },
     statusHistory: [
@@ -79,7 +84,18 @@ const orderSchema = new mongoose.Schema({
     readyAt: { type: Date },
     deliveredAt: { type: Date },
     orderNumber: { type: String, unique: true },
-    loyaltyPointsEarned: { type: Number, default: 0 }
+    loyaltyPointsEarned: { type: Number, default: 0 },
+    rider: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    acceptedAt: { type: Date },
+    pickedUpAt: { type: Date },
+    riderLocation: {
+        lat: { type: Number },
+        lng: { type: Number },
+        updatedAt: { type: Date }
+    },
 }, {
     timestamps: true
 });

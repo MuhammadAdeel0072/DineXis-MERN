@@ -55,11 +55,12 @@ import ReadyQueue from "./pages/ReadyQueue";
 import Alerts from "./pages/Alerts";
 
 import Settings from "./pages/Settings";
+import { AlertProvider } from "./context/AlertContext";
 
 function App() {
   return (
     <Routes>
-      <Route element={<ChefLayout />}>
+      <Route element={<AlertProvider><ChefLayout /></AlertProvider>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/orders" element={<ActiveOrders />} />
         <Route path="/orders/:id" element={<OrderDetails />} />

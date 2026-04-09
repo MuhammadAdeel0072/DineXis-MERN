@@ -9,69 +9,120 @@ const asyncHandler = require('express-async-handler');
 // @route   POST /api/orders
 // @access  Private
 const addOrderItems = asyncHandler(async (req, res) => {
+  // 📝 Structured Diagnostic Log
+  console.log('--- Incoming Order Protocol ---');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Payload:', JSON.stringify(req.body, null, 2));
+
+  // 🛡️ Pre-emptive Destructuring with Defaults
   const {
-    orderItems,
-    shippingAddress,
-    paymentMethod,
-    itemsPrice,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
-    paymentReference
+    orderItems = [],
+    shippingAddress = {},
+    paymentMethod = 'cod',
+    itemsPrice = 0,
+    taxPrice = 0,
+    shippingPrice = 0,
+    totalPrice = 0,
+    paymentReference = ''
   } = req.body;
 
-  if (orderItems && orderItems.length === 0) {
-    res.status(400);
-    throw new Error('No order items');
-  } else {
-    const orderNumber = `AK7-${Math.floor(10000 + Math.random() * 90000)}`;
+  // 🧹 Data Normalization (Mongoose Numeric Cast Protection)
+  const normalizedTotalPrice = Number(totalPrice);
+  const normalizedItemsPrice = Number(itemsPrice);
+  const normalizedTaxPrice = Number(taxPrice);
+  const normalizedShippingPrice = Number(shippingPrice);
 
-    // COD Logic: Mark as not paid initially
-    const isPaid = paymentMethod === 'cod' ? false : req.body.isPaid;
+  // 🛡️ Data Integrity Check (Phase 2 - Ultra Defensive)
+  if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+    res.status(400);
+    throw new Error('Mission Aborted: No order items detected in payload');
+  }
+
+  // Validate each item for required product ID and name
+  const isItemsValid = orderItems.every(item => item.product && item.name && item.qty > 0);
+  if (!isItemsValid) {
+    res.status(400);
+    throw new Error('Data Corruption: One or more order items are missing critical identifiers (Product ID/Name)');
+  }
+
+  if (!shippingAddress.phoneNumber || !shippingAddress.address) {
+    res.status(400);
+    throw new Error('Identity Verification Failed: Phone and Address are required protocol');
+  }
+
+  if (!req.user) {
+    res.status(401);
+    throw new Error('Security Breach: Authentication required for order placement');
+  }
+
+  try {
+    const orderNumber = `AK7-${Math.floor(100000 + Math.random() * 899999)}`;
 
     const order = new Order({
       orderItems,
       user: req.user._id,
-      shippingAddress,
+      shippingAddress: {
+        fullName: shippingAddress.fullName || (req.user.firstName + ' ' + (req.user.lastName || '')).trim(),
+        phoneNumber: shippingAddress.phoneNumber,
+        address: shippingAddress.address,
+        streetAddress: shippingAddress.streetAddress || shippingAddress.address,
+        city: shippingAddress.city || 'isb',
+        area: shippingAddress.area || 'isb',
+        postalCode: shippingAddress.postalCode || '44000',
+        landmark: shippingAddress.landmark || '',
+      },
       paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
+      itemsPrice: normalizedItemsPrice,
+      taxPrice: normalizedTaxPrice,
+      shippingPrice: normalizedShippingPrice,
+      totalPrice: normalizedTotalPrice,
       paymentReference,
-      isPaid: isPaid || false,
-      paidAt: isPaid ? Date.now() : null,
+      isPaid: req.body.isPaid || false,
+      paidAt: (req.body.isPaid || paymentMethod !== 'cod' && req.body.isPaid) ? Date.now() : null,
       orderNumber,
       status: 'placed',
-      statusHistory: [{ status: 'placed' }]
+      statusHistory: [{ status: 'placed', timestamp: Date.now() }]
     });
 
     const createdOrder = await order.save();
 
-    // --- Loyalty Logic ---
-    const pointsEarned = Math.floor(totalPrice * 10);
-    const user = await User.findById(req.user._id);
-    if (user) {
-      user.loyaltyPoints += pointsEarned;
-      if (user.loyaltyPoints >= 5000) user.loyaltyTier = 'Platinum';
-      else if (user.loyaltyPoints >= 2500) user.loyaltyTier = 'Gold';
-      else if (user.loyaltyPoints >= 1000) user.loyaltyTier = 'Silver';
-      await user.save();
+    // 📡 Immediate Response - Send before loyalty syncing to prevent timeouts
+    res.status(201).json(createdOrder);
+
+    // --- Loyalty Sync & Real-time Sockets (Background Phase) ---
+    // This allows the client to receive confirmation instantly while we finish bookkeeping
+    try {
+      const pointsEarned = Math.floor(normalizedTotalPrice * 10);
+      
+      // req.user is now a full Mongoose Document from authMiddleware
+      req.user.loyaltyPoints += pointsEarned;
+      
+      if (req.user.loyaltyPoints >= 5000) req.user.loyaltyTier = 'Platinum';
+      else if (req.user.loyaltyPoints >= 2500) req.user.loyaltyTier = 'Gold';
+      else if (req.user.loyaltyPoints >= 1000) req.user.loyaltyTier = 'Silver';
+      
+      await req.user.save();
 
       await LoyaltyTransaction.create({
         user: req.user._id,
         type: 'earned',
         points: pointsEarned,
-        description: `Earned from order ${orderNumber}`,
+        description: `Earned from mission ${orderNumber}`,
         order: createdOrder._id
       });
+
+      // 📡 Real-time Synchronization
+      emitEvent('kitchen', 'incomingOrder', createdOrder);
+      emitEvent(null, 'adminAction', { type: 'incomingOrder', order: createdOrder });
+    } catch (loyaltyError) {
+      console.warn('Loyalty Sync Protocol Jammed (Non-critical):', loyaltyError.message);
     }
-
-    // Emit real-time events to admin/kitchen
-    emitEvent('kitchen', 'incomingOrder', createdOrder);
-    emitEvent(null, 'adminAction', { type: 'incomingOrder', order: createdOrder });
-
-    res.status(201).json(createdOrder);
+  } catch (error) {
+    console.error('System Exception [Order Save]:', error);
+    res.status(500).json({ 
+      message: error.name === 'ValidationError' ? 'Database Validation Breach' : 'Internal System Exception',
+      details: error.name === 'ValidationError' ? Object.values(error.errors).map(e => e.message) : error.message
+    });
   }
 });
 
@@ -164,14 +215,16 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/myorders
 // @access  Private
 const getMyOrders = asyncHandler(async (req, res) => {
+  console.log('Order Route Hit (MyOrders)');
   const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
-  res.json(orders);
+  res.json({ orders });
 });
 
 // @desc    Get all orders
 // @route   GET /api/orders
 // @access  Private/Admin
 const getOrders = asyncHandler(async (req, res) => {
+  console.log('Order Route Hit (Admin Orders)');
   const orders = await Order.find({}).populate('user', 'firstName lastName').sort({ createdAt: -1 }).lean();
   res.json(orders);
 });

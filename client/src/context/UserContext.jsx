@@ -1,21 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
-import { getUserProfile, updateUserProfile } from '../services/userService';
-import { setupInterceptors } from '../services/apiClient';
+import { useUser } from '@clerk/clerk-react';
+import { getUserProfile, updateUserProfile, syncUser } from '../services/userService';
 import toast from 'react-hot-toast';
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useUser();
-  const { getToken } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Setup API interceptors with Clerk token
-  useEffect(() => {
-    setupInterceptors(getToken);
-  }, [getToken]);
 
   const fetchProfile = async (retryCount = 0) => {
     try {
@@ -38,8 +31,18 @@ export const UserProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (clerkLoaded && isSignedIn) {
-      fetchProfile();
+    if (clerkLoaded && isSignedIn && clerkUser) {
+      // Auto-sync the Clerk user into MongoDB (upsert) before fetching profile.
+      // This is the fallback for when the Clerk webhook hasn't run (e.g. local dev).
+      syncUser({
+        clerkId: clerkUser.id,
+        email: clerkUser.primaryEmailAddress?.emailAddress || '',
+        firstName: clerkUser.firstName || '',
+        lastName: clerkUser.lastName || '',
+        avatar: clerkUser.imageUrl || '',
+      })
+        .then(() => fetchProfile())
+        .catch(() => fetchProfile()); // Still try to fetch even if sync fails
     } else if (clerkLoaded && !isSignedIn) {
       setProfile(null);
       setLoading(false);

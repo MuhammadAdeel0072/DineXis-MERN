@@ -9,26 +9,26 @@ const {
   getOrders,
   getOrderReceipt,
 } = require('../controllers/orderController');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
 
 router.route('/')
-  .post(ClerkExpressRequireAuth(), protect, addOrderItems)
-  .get(ClerkExpressRequireAuth(), protect, admin, getOrders);
+  .post(protect, addOrderItems)
+  .get(protect, admin, getOrders);
 
 router.route('/myorders')
-  .get(ClerkExpressRequireAuth(), protect, getMyOrders);
+  .get(protect, getMyOrders);
 
 router.route('/:id')
-  .get(ClerkExpressRequireAuth(), protect, getOrderById);
+  .get(protect, getOrderById);
 
 router.route('/:id/receipt')
-  .get(ClerkExpressRequireAuth(), protect, getOrderReceipt);
+  .get(protect, getOrderReceipt);
 
 router.route('/:id/pay')
-  .put(ClerkExpressRequireAuth(), protect, updateOrderToPaid);
+  .put(protect, updateOrderToPaid);
 
 router.route('/:id/status')
-  .put(ClerkExpressRequireAuth(), protect, admin, updateOrderStatus);
+  .put(protect, admin, updateOrderStatus);
 
 module.exports = router;

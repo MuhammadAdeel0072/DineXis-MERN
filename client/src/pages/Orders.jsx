@@ -15,20 +15,14 @@ const Orders = () => {
       try {
         setLoading(true);
         const data = await getMyOrders();
-        setOrders(data);
-      } catch {
+        setOrders(data.orders || data || []);
+      } catch (err) {
+        console.error('Failed to load orders:', err);
         toast.error('Failed to load orders');
+        setOrders([]);
       } finally {
         setLoading(false);
       }
-    };
-    fetchOrders();
-  }, []);
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const data = await getMyOrders();
-      setOrders(data);
     };
     fetchOrders();
   }, [siteUpdate]);

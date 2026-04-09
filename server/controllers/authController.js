@@ -1,6 +1,8 @@
 const asyncHandler = require('express-async-handler');
+const { clerkClient } = require('@clerk/express');
 const User = require('../models/User');
 const Cart = require('../models/Cart');
+const Order = require('../models/Order');
 const LoyaltyTransaction = require('../models/Loyalty');
 
 // @desc    Get user profile (Self)
@@ -19,9 +21,15 @@ const getUserProfile = asyncHandler(async (req, res) => {
 
 // @desc    Sync Clerk User with Database
 // @route   POST /api/auth/sync
-// @access  Private
+// @access  Clerk JWT (no DB user required)
 const syncUser = asyncHandler(async (req, res) => {
-  const { clerkId, email, firstName, lastName, avatar } = req.body;
+  const clerkId = req.clerkUserId || req.body.clerkId;
+  const { email, firstName, lastName, avatar } = req.body;
+
+  if (!clerkId) {
+    res.status(400);
+    throw new Error('clerkId is required');
+  }
 
   let user = await User.findOne({ clerkId });
 
@@ -43,6 +51,28 @@ const syncUser = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json(user);
+});
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  const { firstName, lastName, phoneNumber, address, avatar } = req.body;
+  if (firstName !== undefined) user.firstName = firstName;
+  if (lastName !== undefined) user.lastName = lastName;
+  if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+  if (address !== undefined) user.address = address;
+  if (avatar !== undefined) user.avatar = avatar;
+
+  const updated = await user.save();
+  res.json(updated);
 });
 
 // --- CART FEATURES ---
@@ -79,4 +109,62 @@ const getLoyaltyStatus = asyncHandler(async (req, res) => {
   res.json({ ...user, transactions });
 });
 
-module.exports = { getUserProfile, syncUser, getCart, updateCart, getLoyaltyStatus };
+// @desc    Delete user account
+// @route   DELETE /api/auth/delete
+// @access  Private
+const deleteUserAccount = asyncHandler(async (req, res) => {
+  // Get user ID from request
+  const userId = req.user?._id;
+
+  if (!userId) {
+    res.status(400);
+    throw new Error('User ID not found in request');
+  }
+
+  // Find user to get clerkId before deletion
+  const user = await User.findById(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Delete from Clerk if clerkId exists (only in production)
+  if (user.clerkId && user.clerkId !== 'dev_user') {
+    try {
+      await clerkClient.users.deleteUser(user.clerkId);
+      console.log(`Clerk user deleted: ${user.clerkId}`);
+    } catch (error) {
+      console.error('Clerk deletion error:', error);
+      // Continue even if Clerk deletion fails (user might already be deleted)
+    }
+  }
+
+  // Delete all user-related data from MongoDB
+  try {
+    // Delete cart
+    await Cart.findOneAndDelete({ user: userId });
+    
+    // Delete loyalty transactions
+    await LoyaltyTransaction.deleteMany({ user: userId });
+    
+    // Delete orders (keep for audit trail in production, but delete in dev)
+    if (process.env.NODE_ENV === 'development') {
+      await Order.deleteMany({ user: userId });
+    }
+    
+    // Delete user
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({ 
+      success: true,
+      message: 'Account and all associated data successfully deleted' 
+    });
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+    res.status(500);
+    throw new Error('Failed to delete account. Please try again.');
+  }
+});
+
+module.exports = { getUserProfile, updateUserProfile, syncUser, getCart, updateCart, getLoyaltyStatus, deleteUserAccount };

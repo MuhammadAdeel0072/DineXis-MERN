@@ -22,7 +22,7 @@ const Navbar = () => {
     { name: 'Menu', path: '/menu' },
     { name: 'Orders', path: '/orders' },
     { name: 'Table', path: '/reservation' },
-    { name: 'Profile', path: '/profile' },
+    { name: 'Help', path: '/help' },
   ];
 
   const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);

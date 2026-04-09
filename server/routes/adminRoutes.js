@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { getAdminStats, getAllUsers, updateUserRole } = require('../controllers/adminController');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const { onlyAdmin } = require('../middleware/adminMiddleware');
 
-router.use(ClerkExpressRequireAuth(), protect, onlyAdmin);
+router.use(protect, onlyAdmin);
 
 router.get('/stats', getAdminStats);
+router.get('/analytics/dashboard', getAdminStats); // Alias for admin dashboard
 router.get('/users', getAllUsers);
 router.put('/users/:id/role', updateUserRole);
 

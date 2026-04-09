@@ -7,7 +7,7 @@ const {
   updateItemStatus,
   getKitchenStats
 } = require('../controllers/chefController.js');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/authMiddleware.js');
+const { protect } = require('../middleware/authMiddleware.js');
 const { isChef } = require('../middleware/chefMiddleware.js');
 
 // Get active orders and kitchen stats

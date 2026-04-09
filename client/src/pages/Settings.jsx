@@ -4,6 +4,8 @@ import {
   User, Camera, Loader2, X, AlertTriangle, Shield, Key, Smartphone, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import apiClient from '../services/apiClient';
 import toast from 'react-hot-toast';
 
 const Settings = () => {
@@ -15,6 +17,10 @@ const Settings = () => {
     const [isSavingName, setIsSavingName] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [showSignOutModal, setShowSignOutModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const navigate = useNavigate();
 
     if (!isLoaded) return (
         <div className="flex items-center justify-center py-32">
@@ -46,6 +52,26 @@ const Settings = () => {
         } catch (e) {
             toast.error('Upload failed');
         } finally { setIsUploading(false); }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== 'DELETE') {
+            toast.error('Validation failed: Please type DELETE to confirm');
+            return;
+        }
+
+        setIsDeleting(true);
+        const loadingToast = toast.loading('Terminating Account Protocol...');
+        try {
+            await apiClient.delete('/auth/delete');
+            toast.success('Account Successfully Terminated', { id: loadingToast });
+            await signOut();
+            navigate('/');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Protocol termination failed', { id: loadingToast });
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const Section = ({ title, icon: Icon, children }) => (
@@ -134,43 +160,28 @@ const Settings = () => {
                 {/* ── ACCOUNT SECURITY ── */}
                 <Section title="Account Security" icon={Shield}>
                     <p className="text-gray-500 text-sm mb-10 leading-relaxed font-medium italic">
-                        Configure your secure authentication parameters and session monitoring. Your account is encrypted with AK-7 Tier-1 security protocols.
+                        Manage your secure authentication parameters. Note that account deletion is permanent and cannot be reversed.
                     </p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-5 group hover:border-gold/30 transition-all cursor-pointer">
-                            <div className="w-10 h-10 bg-gold/5 rounded-xl flex items-center justify-center border border-white/5">
-                                <Key className="w-5 h-5 text-gold/60" />
-                            </div>
-                            <div>
-                                <p className="text-white font-bold text-sm">Credentials</p>
-                                <p className="text-gray-600 text-[9px] uppercase tracking-widest">Update Password</p>
-                            </div>
-                        </div>
-                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-5 group hover:border-gold/30 transition-all cursor-pointer">
-                            <div className="w-10 h-10 bg-gold/5 rounded-xl flex items-center justify-center border border-white/5">
-                                <Smartphone className="w-5 h-5 text-gold/60" />
-                            </div>
-                            <div>
-                                <p className="text-white font-bold text-sm">Multi-Factor</p>
-                                <p className="text-gray-600 text-[9px] uppercase tracking-widest font-black text-green-500/60">Active</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-12 pt-10 border-t border-white/5">
+                    <div className="flex flex-col gap-4">
                         <button 
                             onClick={() => setShowSignOutModal(true)} 
-                            className="w-full bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 text-red-500 font-black py-5 rounded-[2rem] uppercase tracking-[0.3em] text-[10px] transition-all active:scale-95 flex items-center justify-center gap-3"
+                            className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black py-5 rounded-[2rem] uppercase tracking-[0.3em] text-[10px] transition-all active:scale-95 flex items-center justify-center gap-3"
                         >
                             <X className="w-4 h-4" /> De-authenticate Executive Session
+                        </button>
+                        <button 
+                            onClick={() => setShowDeleteModal(true)} 
+                            className="w-full bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 text-red-500 font-black py-5 rounded-[2rem] uppercase tracking-[0.3em] text-[10px] transition-all active:scale-95 flex items-center justify-center gap-3"
+                        >
+                            <AlertTriangle className="w-4 h-4" /> Terminate Account Profile
                         </button>
                     </div>
                 </Section>
             </div>
 
             <AnimatePresence>
-                {showSignOutModal && (
+                {showDeleteModal && (
                     <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -178,17 +189,37 @@ const Settings = () => {
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="bg-[#1a1a1a] border border-white/10 p-12 rounded-[4rem] max-w-md w-full shadow-[0_50px_100px_rgba(0,0,0,0.8)] text-center relative"
                         >
-                            <button onClick={() => setShowSignOutModal(false)} className="absolute top-8 right-8 p-3 text-gray-600 hover:text-white transition-colors rounded-2xl hover:bg-white/5">
+                            <button onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }} className="absolute top-8 right-8 p-3 text-gray-600 hover:text-white transition-colors rounded-2xl hover:bg-white/5">
                                 <X className="w-6 h-6" />
                             </button>
                             <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20">
                                 <AlertTriangle className="w-10 h-10 text-red-500" />
                             </div>
-                            <h2 className="text-4xl font-serif font-black text-white mb-4">Sign Out?</h2>
-                            <p className="text-gray-500 mb-12 text-sm leading-relaxed font-medium italic">Your gourmet preferences and secure session will be cleared from this device. Re-authentication will be required.</p>
+                            <h2 className="text-4xl font-serif font-black text-white mb-4">Delete Account?</h2>
+                            <p className="text-gray-500 mb-8 text-sm leading-relaxed font-medium italic">
+                                Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently removed.
+                            </p>
+                            
+                            <div className="mb-8 space-y-3 text-left">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gold/60 ml-2">Type DELETE to confirm</label>
+                                <input 
+                                    type="text"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className="w-full bg-white/[0.02] border border-white/10 focus:border-red-500 rounded-2xl p-5 outline-none text-white transition-all font-bold text-center tracking-widest shadow-inner"
+                                    placeholder="DELETE"
+                                />
+                            </div>
+
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <button onClick={() => setShowSignOutModal(false)} className="flex-1 py-5 rounded-[2rem] border border-white/10 text-gray-400 font-black text-xs uppercase tracking-widest hover:text-white transition-all">Stay Secure</button>
-                                <button onClick={() => signOut()} className="flex-1 py-5 rounded-[2rem] bg-red-500 hover:bg-red-400 text-white font-black text-xs uppercase tracking-widest transition-all shadow-2xl shadow-red-500/20">Sign Out</button>
+                                <button onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }} className="flex-1 py-5 rounded-[2rem] border border-white/10 text-gray-400 font-black text-xs uppercase tracking-widest hover:text-white transition-all">Cancel</button>
+                                <button 
+                                    onClick={handleDeleteAccount} 
+                                    disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                                    className="flex-1 py-5 rounded-[2rem] bg-red-500 hover:bg-red-400 text-white font-black text-xs uppercase tracking-widest transition-all shadow-2xl shadow-red-500/20 disabled:opacity-30"
+                                >
+                                    {isDeleting ? 'Terminating...' : 'Confirm'}
+                                </button>
                             </div>
                         </motion.div>
                     </div>

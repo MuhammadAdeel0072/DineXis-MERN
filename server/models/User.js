@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     avatar: { type: String },
     role: {
         type: String,
-        enum: ['customer', 'staff', 'chef', 'admin'],
+        enum: ['customer', 'staff', 'chef', 'admin', 'rider'],
         default: 'customer'
     },
     addresses: [
@@ -31,8 +31,6 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for faster lookups
-userSchema.index({ email: 1 });
-userSchema.index({ clerkId: 1 });
+
 
 module.exports = mongoose.model('User', userSchema);

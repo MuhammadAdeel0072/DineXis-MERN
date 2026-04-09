@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Utensils, ShoppingBag, Calendar, CreditCard, Users, LogOut, X } from 'lucide-react';
 import { SignOutButton } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BrandLogo, typographyClasses } from './BrandingUtils';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -38,10 +39,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         ${!isOpen && !isDesktop ? 'pointer-events-none' : 'pointer-events-auto'}
       `}
     >
+      {/* Logo Section */}
       <div className="p-8 border-b border-white/5 flex items-center justify-between">
-        <h1 className="text-2xl md:text-3xl font-serif font-black tracking-tighter italic">
-          <span className="text-gold">AK-7</span> <span className="text-crimson ml-1">REST</span>
-        </h1>
+        <BrandLogo size="md" className="flex-1" />
         {/* Mobile Close Button */}
         <button 
           onClick={onClose}

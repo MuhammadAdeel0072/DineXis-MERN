@@ -25,13 +25,33 @@ const getAdminStats = asyncHandler(async (req, res) => {
   ]);
   const totalRevenue = totalRevenueResult.length > 0 ? totalRevenueResult[0].total : 0;
 
+  // Get order statistics
+  const orderStatsResult = await Order.aggregate([
+    { $group: { _id: '$status', count: { $sum: 1 } } }
+  ]);
+
+  // Get popular items
+  const popularItemsResult = await Order.aggregate([
+    { $unwind: '$orderItems' },
+    { $group: { 
+        _id: '$orderItems.name', 
+        totalSold: { $sum: '$orderItems.qty' } 
+      } 
+    },
+    { $sort: { totalSold: -1 } },
+    { $limit: 10 }
+  ]);
+
   res.json({
     totalUsers,
     totalOrders,
     totalProducts,
     totalReservations,
     totalRevenue,
-    recentOrders
+    totalSales: totalRevenue, // Alias for frontend compatibility
+    recentOrders,
+    orderStats: orderStatsResult,
+    popularItems: popularItemsResult
   });
 });
 

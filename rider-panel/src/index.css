@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --color-charcoal: #121212;
+  --color-off-white: #F9F9F9;
+  --color-gold: #D4AF37;
+  --color-soft-white: #E0E0E0;
+  --color-crimson: #dc143c;
+  
+  --font-sans: 'Times New Roman', Times, serif;
+  --font-serif: 'Times New Roman', Times, serif;
+}
+
+@layer base {
+  body {
+    background-color: #121212;
+    color: #E0E0E0;
+    font-family: var(--font-sans);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Reusing 'Midnight Gourmet' Component System */
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-gold {
+  background: rgba(212, 175, 55, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.btn-gold {
+  @apply bg-gold text-charcoal px-6 py-2 rounded-xl font-black transition-all hover:bg-gold/10 hover:text-gold hover:border hover:border-gold/30 active:scale-95 shadow-[0_0_15px_rgba(212,175,55,0.3)] uppercase tracking-widest text-[10px];
+}
+
+.btn-secondary {
+  @apply bg-crimson text-white px-6 py-2 rounded-xl font-black transition-all hover:bg-crimson/20 hover:text-crimson hover:border hover:border-crimson/30 active:scale-95 uppercase tracking-widest text-[10px];
+}
+
+.card-premium {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2rem;
+  transition: all 0.3s ease;
+}
+
+.card-premium:hover {
+  border-color: rgba(212, 175, 55, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Typography Helpers */
+.text-premium {
+  @apply italic tracking-tighter;
+}
+
+.label-caps {
+  @apply text-[10px] font-bold uppercase tracking-[0.2em] text-soft-white/40;
+}

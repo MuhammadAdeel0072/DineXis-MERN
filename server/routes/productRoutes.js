@@ -7,16 +7,16 @@ const {
   updateProduct,
   deleteProduct,
 } = require('../controllers/productController');
-const { protect, ClerkExpressRequireAuth } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
 
 router.route('/')
   .get(getProducts)
-  .post(ClerkExpressRequireAuth(), protect, admin, createProduct);
+  .post(protect, admin, createProduct);
 
 router.route('/:id')
   .get(getProductById)
-  .put(ClerkExpressRequireAuth(), protect, admin, updateProduct)
-  .delete(ClerkExpressRequireAuth(), protect, admin, deleteProduct);
+  .put(protect, admin, updateProduct)
+  .delete(protect, admin, deleteProduct);
 
 module.exports = router;

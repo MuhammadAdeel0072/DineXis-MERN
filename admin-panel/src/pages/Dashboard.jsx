@@ -7,29 +7,43 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get('/analytics/dashboard');
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to fetch stats', error);
+      setStats(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await api.get('/analytics/dashboard');
-        setStats(data);
-      } catch (error) {
-        console.error('Failed to fetch stats', error);
-      } finally {
-        setLoading(false);
-      }
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    // Debounce multiple socket events to prevent spam
+    let debounceTimer = null;
+    
+    const handleUpdate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchStats();
+      }, 500); // Wait 500ms after last event before fetching
     };
     
-    fetchStats();
-    
-    // Listen for real-time updates to refresh analytics
-    socket.on('orderUpdate', fetchStats);
-    socket.on('incomingOrder', fetchStats);
-    socket.on('reservationUpdated', fetchStats);
+    // Listen for real-time updates to refresh analytics (debounced)
+    socket.on('orderUpdate', handleUpdate);
+    socket.on('incomingOrder', handleUpdate);
+    socket.on('reservationUpdated', handleUpdate);
     
     return () => {
-      socket.off('orderUpdate');
-      socket.off('incomingOrder');
-      socket.off('reservationUpdated');
+      if (debounceTimer) clearTimeout(debounceTimer);
+      socket.off('orderUpdate', handleUpdate);
+      socket.off('incomingOrder', handleUpdate);
+      socket.off('reservationUpdated', handleUpdate);
     };
   }, []);
 

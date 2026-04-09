@@ -30,16 +30,28 @@ const ActiveOrders = () => {
 
     useEffect(() => {
         fetchOrders();
+    }, []);
+
+    useEffect(() => {
         if (socket) {
-            socket.on('orderUpdate', fetchOrders);
-            socket.on('incomingOrder', fetchOrders);
+            let debounceTimer = null;
+            
+            const handleUpdate = () => {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    fetchOrders();
+                }, 500);
+            };
+            
+            socket.on('orderUpdate', handleUpdate);
+            socket.on('incomingOrder', handleUpdate);
+            
+            return () => {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                socket.off('orderUpdate', handleUpdate);
+                socket.off('incomingOrder', handleUpdate);
+            };
         }
-        return () => {
-            if (socket) {
-                socket.off('orderUpdate');
-                socket.off('incomingOrder');
-            }
-        };
     }, []);
 
     const filteredOrders = orders.filter(o => {
