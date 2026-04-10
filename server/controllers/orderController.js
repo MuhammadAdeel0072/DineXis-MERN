@@ -1,6 +1,8 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const LoyaltyTransaction = require('../models/Loyalty');
+const Cart = require('../models/Cart');
 const { generateReceipt } = require('../services/pdfService');
 const { emitEvent } = require('../services/socketService');
 const asyncHandler = require('express-async-handler');
@@ -43,6 +45,14 @@ const addOrderItems = asyncHandler(async (req, res) => {
   if (!isItemsValid) {
     res.status(400);
     throw new Error('Data Corruption: One or more order items are missing critical identifiers (Product ID/Name)');
+  }
+
+  // 🛡️ Guard: Ensure all product IDs are valid MongoDB ObjectIDs
+  for (const item of orderItems) {
+    if (!mongoose.Types.ObjectId.isValid(item.product)) {
+      res.status(400);
+      throw new Error(`Protocol Violation: Invalid Product Identity detected (${item.product}). Only MongoDB ObjectIDs are permitted.`);
+    }
   }
 
   if (!shippingAddress.phoneNumber || !shippingAddress.address) {
@@ -112,8 +122,15 @@ const addOrderItems = asyncHandler(async (req, res) => {
       });
 
       // 📡 Real-time Synchronization
-      emitEvent('kitchen', 'incomingOrder', createdOrder);
-      emitEvent(null, 'adminAction', { type: 'incomingOrder', order: createdOrder });
+      // 📡 Real-time Synchronization (Kitchen, Admin, Rider)
+      emitEvent('kitchen', 'NEW_ORDER', createdOrder);
+      emitEvent('admin', 'NEW_ORDER', createdOrder);
+      emitEvent(null, 'NEW_ORDER', createdOrder); // Global fallback
+
+      // 🧹 Post-Mission Cleanup (Clear Backend Cart)
+      await Cart.findOneAndDelete({ user: req.user._id });
+      console.log('Cart Synchronization: Purged for user', req.user._id);
+
     } catch (loyaltyError) {
       console.warn('Loyalty Sync Protocol Jammed (Non-critical):', loyaltyError.message);
     }

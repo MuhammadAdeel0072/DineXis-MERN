@@ -15,7 +15,7 @@ const generateToken = (id) => {
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
-const registerUser = asyncHandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res, next) => {
   const { firstName, lastName, email, password } = req.body;
 
   const userExists = await User.findOne({ email });
@@ -51,7 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
 // @desc    Authenticate user & get token
 // @route   POST /api/auth/login
 // @access  Public
-const authUser = asyncHandler(async (req, res) => {
+const authUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
@@ -75,7 +75,7 @@ const authUser = asyncHandler(async (req, res) => {
 // @desc    Get user profile (Self)
 // @route   GET /api/auth/profile
 // @access  Private
-const getUserProfile = asyncHandler(async (req, res) => {
+const getUserProfile = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id).select('-password').lean();
 
   if (user) {
@@ -89,7 +89,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
-const updateUserProfile = asyncHandler(async (req, res) => {
+const updateUserProfile = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id);
 
   if (!user) {
@@ -124,14 +124,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 // @desc    Get user cart
 // @route   GET /api/auth/cart
-const getCart = asyncHandler(async (req, res) => {
+const getCart = asyncHandler(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user._id }).lean();
   res.json(cart ? cart.items : []);
 });
 
 // @desc    Update user cart
 // @route   POST /api/auth/cart
-const updateCart = asyncHandler(async (req, res) => {
+const updateCart = asyncHandler(async (req, res, next) => {
   const { cartItems } = req.body;
   let cart = await Cart.findOne({ user: req.user._id });
 
@@ -144,11 +144,18 @@ const updateCart = asyncHandler(async (req, res) => {
   res.json(cart.items);
 });
 
+// @desc    Clear user cart
+// @route   DELETE /api/cart
+const clearCart = asyncHandler(async (req, res, next) => {
+  await Cart.findOneAndDelete({ user: req.user._id });
+  res.json({ message: 'Cart cleared successfully' });
+});
+
 // --- LOYALTY FEATURES ---
 
 // @desc    Get loyalty status
 // @route   GET /api/auth/loyalty
-const getLoyaltyStatus = asyncHandler(async (req, res) => {
+const getLoyaltyStatus = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id).select('loyaltyPoints loyaltyTier').lean();
   const transactions = await LoyaltyTransaction.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
   res.json({ ...user, transactions });
@@ -157,7 +164,7 @@ const getLoyaltyStatus = asyncHandler(async (req, res) => {
 // @desc    Delete user account
 // @route   DELETE /api/auth/delete
 // @access  Private
-const deleteUserAccount = asyncHandler(async (req, res) => {
+const deleteUserAccount = asyncHandler(async (req, res, next) => {
   const userId = req.user?._id;
 
   if (!userId) {
@@ -191,9 +198,10 @@ module.exports = {
   authUser, 
   getUserProfile, 
   updateUserProfile, 
-  getCart, 
-  updateCart, 
+  getCart,
+  updateCart,
   getLoyaltyStatus, 
-  deleteUserAccount 
+  deleteUserAccount,
+  clearCart
 };
 

@@ -5,8 +5,6 @@ const {
   authUser, 
   getUserProfile, 
   updateUserProfile, 
-  getCart, 
-  updateCart, 
   getLoyaltyStatus, 
   deleteUserAccount 
 } = require('../controllers/authController');
@@ -21,7 +19,7 @@ router.use(protect);
 
 router.get('/profile', getUserProfile);
 router.put('/profile', updateUserProfile);
-router.route('/cart').get(getCart).post(updateCart);
+
 router.get('/loyalty', getLoyaltyStatus);
 router.delete('/delete', deleteUserAccount);
 

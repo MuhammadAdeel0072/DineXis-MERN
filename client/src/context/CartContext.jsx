@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
-import { useProfile } from './UserContext';
+import { useProfile } from './AuthContext';
 import apiClient from '../services/apiClient';
 
 const CartContext = createContext();
@@ -77,7 +77,9 @@ export const CartProvider = ({ children }) => {
       // 2. Clear backend if we have a session
       if (isSignedIn) {
         try {
+          // Standardized Cart Endpoint synchronization
           await apiClient.delete('/cart');
+          console.log('Backend Cart Protocol: Cleared successfully');
         } catch (error) {
           console.error('Failed to clear backend cart on auth change', error);
         }

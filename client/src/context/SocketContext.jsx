@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useProfile } from './UserContext';
+import { useProfile } from './AuthContext';
 import { connectSocket, disconnectSocket, subscribeToOrderUpdates, unsubscribeFromOrderUpdates, subscribeToAdminActions, unsubscribeFromAdminActions } from '../services/socketService';
 import toast from 'react-hot-toast';
 

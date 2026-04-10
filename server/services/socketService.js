@@ -14,8 +14,14 @@ const init = (server) => {
       origin: [
         process.env.FRONTEND_URL, // deployed client
         process.env.ADMIN_URL,    // deployed admin
-        'http://localhost:5173',  // dev client
-        'http://localhost:5174',  // dev admin
+        'http://localhost:5173',  // client
+        'http://localhost:5174',  // admin
+        'http://localhost:5175',  // chef
+        'http://localhost:5176',  // rider
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'http://127.0.0.1:5175',
+        'http://127.0.0.1:5176',
       ],
       methods: ['GET', 'POST'],
       credentials: true,
@@ -31,10 +37,22 @@ const init = (server) => {
       console.log(`User ${userId} joined personal room`);
     });
 
-    // Join kitchen room (staff/admin)
+    // Join kitchen room (staff/chef)
     socket.on('joinKitchen', () => {
       socket.join('kitchen');
       console.log('Staff joined kitchen room');
+    });
+
+    // Join admin room
+    socket.on('joinAdmin', () => {
+      socket.join('admin');
+      console.log('Admin joined administrative room');
+    });
+
+    // Join rider room
+    socket.on('joinRider', () => {
+      socket.join('rider');
+      console.log('Rider joined delivery room');
     });
 
     socket.on('disconnect', () => {
