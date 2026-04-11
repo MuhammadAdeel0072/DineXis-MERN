@@ -29,10 +29,14 @@ const Settings = () => {
     const handleSaveName = async () => {
         if (!firstName.trim()) { toast.error('First name cannot be empty'); return; }
         setIsSavingName(true);
+        const loadingToast = toast.loading('Updating profile...');
         try {
             await updateProfile({ firstName: firstName.trim(), lastName: lastName.trim() });
+            toast.dismiss(loadingToast);
+            toast.success('Profile updated successfully ✅');
         } catch (e) {
-            toast.error('Failed to update profile. Please try again.');
+            toast.dismiss(loadingToast);
+            toast.error(e.response?.data?.message || 'Failed to update profile. Please try again.');
         } finally { setIsSavingName(false); }
     };
 

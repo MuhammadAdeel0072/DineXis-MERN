@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Mail, Lock, Loader2, Key } from 'lucide-react';
 
 const Login = () => {
@@ -13,11 +14,15 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        const loadingToast = toast.loading('Authenticating rider credentials...');
         try {
             await login(email, password);
+            toast.dismiss(loadingToast);
+            toast.success('Welcome to Rider Terminal! 🚴');
             navigate('/');
         } catch (error) {
-            // Error handled in context toast
+            toast.dismiss(loadingToast);
+            toast.error(error.response?.data?.message || 'Authentication failed ❌');
         } finally {
             setLoading(false);
         }

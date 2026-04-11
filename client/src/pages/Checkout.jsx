@@ -68,6 +68,7 @@ const Checkout = () => {
     }
 
     setIsSubmitting(true);
+    const loadingToast = toast.loading('Placing order...');
     try {
       const orderData = {
         orderItems: cartItems
@@ -94,11 +95,13 @@ const Checkout = () => {
       };
 
       const createdOrder = await createOrder(orderData);
+      toast.dismiss(loadingToast);
       toast.success('Order placed successfully 🎉');
       dispatch({ type: 'CLEAR_CART' });
       navigate(`/order-success?id=${createdOrder._id}&total=${total.toFixed(0)}`);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message || 'Transmission failed';
+      toast.dismiss(loadingToast);
+      const errorMsg = error.response?.data?.message || error.message || 'Order placement failed ❌';
       toast.error(errorMsg);
       console.error('Order submission protocol failure:', error);
     } finally {

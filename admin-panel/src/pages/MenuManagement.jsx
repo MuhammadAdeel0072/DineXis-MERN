@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
-import { Plus, Edit, Trash2, Search, X, Image as ImageIcon, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, X, Image as ImageIcon, Save, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const MenuManagement = () => {
   const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -24,6 +30,7 @@ const MenuManagement = () => {
 
   useEffect(() => {
     fetchItems();
+    fetchCategories();
     
     // Listen for real-time updates from other admin sessions or system
     socket.on('menuUpdated', fetchItems);
@@ -38,6 +45,104 @@ const MenuManagement = () => {
       console.error('Failed to fetch items', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get('/categories');
+      if (Array.isArray(data)) {
+        setCategories(data.map(cat => typeof cat === 'string' ? cat : cat.name));
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories', error);
+      // Fallback to default categories
+      setCategories(['Food', 'Dishes', 'Sweets', 'Drinks']);
+    }
+  };
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) {
+      toast.error('Category name cannot be empty ❌');
+      return;
+    }
+    
+    // Add category to the list (categories are just strings in the Product model)
+    if (!categories.includes(newCategoryName)) {
+      setCategories([...categories, newCategoryName]);
+      const categoryName = newCategoryName;
+      setNewCategoryName('');
+      socket.emit('adminAction', { type: 'categoryAdded' });
+      toast.success(`${categoryName} category added successfully ✅`);
+    } else {
+      toast.error('Category already exists ❌');
+    }
+  };
+
+  const handleEditCategory = (index, categoryName) => {
+    setEditingCategoryId(index);
+    setEditingCategoryName(categoryName);
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategoryName.trim()) {
+      toast.error('Category name cannot be empty ❌');
+      return;
+    }
+
+    if (categories.includes(editingCategoryName) && editingCategoryName !== categories[editingCategoryId]) {
+      toast.error('Category name already exists ❌');
+      return;
+    }
+
+    const loadingToast = toast.loading('Updating category...');
+    try {
+      const oldName = categories[editingCategoryId];
+      const updatedCategories = [...categories];
+      updatedCategories[editingCategoryId] = editingCategoryName;
+      setCategories(updatedCategories);
+
+      // Update all products that use this category
+      const productsToUpdate = items.filter(item => item.category === oldName);
+      for (const product of productsToUpdate) {
+        await api.put(`/products/${product._id}`, { ...product, category: editingCategoryName });
+      }
+
+      socket.emit('adminAction', { type: 'categoryUpdated' });
+      toast.dismiss(loadingToast);
+      toast.success(`Category updated to "${editingCategoryName}" ✅`);
+      setEditingCategoryId(null);
+      setEditingCategoryName('');
+      fetchItems();
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error(error.response?.data?.message || 'Failed to update category ❌');
+    }
+  };
+
+  const handleDeleteCategory = async (index) => {
+    const categoryName = categories[index];
+    const productsInCategory = items.filter(item => item.category === categoryName);
+
+    if (productsInCategory.length > 0) {
+      toast.error(`Cannot delete "${categoryName}" - it has ${productsInCategory.length} product(s) ❌`);
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete "${categoryName}" category?`)) {
+      const loadingToast = toast.loading('Deleting category...');
+      try {
+        const updatedCategories = categories.filter((_, i) => i !== index);
+        setCategories(updatedCategories);
+        socket.emit('adminAction', { type: 'categoryDeleted' });
+        toast.dismiss(loadingToast);
+        toast.success(`Category "${categoryName}" deleted successfully 🗑️`);
+        setEditingCategoryId(null);
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        toast.error('Failed to delete category ❌');
+      }
     }
   };
 
@@ -80,15 +185,20 @@ const MenuManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const loadingToast = toast.loading(editingItem ? 'Updating product...' : 'Adding product...');
       if (editingItem) {
         await api.put(`/products/${editingItem._id}`, formData);
       } else {
         await api.post('/products', formData);
       }
+      toast.dismiss(loadingToast);
+      toast.success(editingItem ? 'Product updated successfully ✅' : 'Product added successfully ✅');
       socket.emit('adminAction', { type: 'menuUpdate' });
       fetchItems();
       handleCloseModal();
     } catch (error) {
+      toast.dismiss();
+      toast.error(error.response?.data?.message || 'Failed to save product ❌');
       console.error('Failed to save item', error);
     }
   };
@@ -96,10 +206,15 @@ const MenuManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this exquisite item?')) {
       try {
+        const loadingToast = toast.loading('Deleting product...');
         await api.delete(`/products/${id}`);
+        toast.dismiss(loadingToast);
+        toast.success('Product deleted successfully 🗑️');
         socket.emit('adminAction', { type: 'menuUpdate' });
         fetchItems();
       } catch (error) {
+        toast.dismiss();
+        toast.error(error.response?.data?.message || 'Failed to delete product ❌');
         console.error('Failed to delete item', error);
       }
     }
@@ -121,13 +236,22 @@ const MenuManagement = () => {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-soft-white tracking-tighter">Menu <span className="text-gold">Registry</span></h1>
           <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">AK-7 REST CULINARY DATABASE</p>
         </div>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="btn-gold flex items-center justify-center space-x-2 py-3 px-6 rounded-2xl w-full sm:w-auto"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="text-sm font-bold uppercase tracking-widest">Add Masterpiece</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <button 
+            onClick={() => setIsCategoryModalOpen(true)}
+            className="btn-gold flex items-center justify-center space-x-2 py-3 px-6 rounded-2xl w-full sm:w-auto"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-sm font-bold uppercase tracking-widest">Add Category</span>
+          </button>
+          <button 
+            onClick={() => handleOpenModal()}
+            className="btn-gold flex items-center justify-center space-x-2 py-3 px-6 rounded-2xl w-full sm:w-auto"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-sm font-bold uppercase tracking-widest">Add Masterpiece</span>
+          </button>
+        </div>
       </header>
 
       <div className="glass rounded-3xl border border-white/5 overflow-hidden">
@@ -262,10 +386,9 @@ const MenuManagement = () => {
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
                     >
-                      <option className="bg-charcoal" value="Food">Food</option>
-                      <option className="bg-charcoal" value="Dishes">Dishes</option>
-                      <option className="bg-charcoal" value="Sweets">Sweets</option>
-                      <option className="bg-charcoal" value="Drinks">Drinks</option>
+                      {categories.map(cat => (
+                        <option key={cat} className="bg-charcoal" value={cat}>{cat}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -370,6 +493,173 @@ const MenuManagement = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+        
+        {isCategoryModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-10 overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsCategoryModalOpen(false);
+                setEditingCategoryId(null);
+              }}
+              className="absolute inset-0 bg-charcoal/80 backdrop-blur-md"
+            ></motion.div>
+            
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 50 }}
+              className="glass rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_32px_128px_rgba(0,0,0,0.5)] border border-white/10"
+            >
+              <div className="bg-charcoal/80 backdrop-blur-xl p-5 md:p-8 border-b border-white/5 flex items-center justify-between sticky top-0">
+                <h2 className="text-xl md:text-2xl font-serif font-bold text-gold tracking-tighter">
+                  Manage Categories
+                </h2>
+                <button 
+                  onClick={() => {
+                    setIsCategoryModalOpen(false);
+                    setEditingCategoryId(null);
+                  }} 
+                  className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-soft-white/50 hover:text-soft-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-8 space-y-8">
+                {/* Add New Category Section */}
+                <div className="glass p-6 rounded-2xl border border-white/5">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-gold opacity-70 mb-4">Add New Category</h3>
+                  <form onSubmit={handleAddCategory} className="flex gap-4">
+                    <input 
+                      required
+                      placeholder="e.g., Appetizers, Desserts"
+                      className="flex-1 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-soft-white focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all" 
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                    <button 
+                      type="submit"
+                      className="btn-gold px-8 py-3 text-sm flex items-center justify-center gap-2 rounded-2xl whitespace-nowrap"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add</span>
+                    </button>
+                  </form>
+                </div>
+
+                {/* Categories List Section */}
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-gold opacity-70 mb-4">
+                    All Categories ({categories.length})
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <AnimatePresence mode="popLayout">
+                      {categories.length === 0 ? (
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="py-8 text-center text-soft-white/30 italic glass p-6 rounded-2xl border border-white/5"
+                        >
+                          No categories yet. Create one to get started.
+                        </motion.div>
+                      ) : (
+                        categories.map((category, index) => (
+                          <motion.div
+                            layout
+                            key={`${category}-${index}`}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="glass p-5 rounded-2xl border border-white/5 hover:border-gold/20 transition-all group flex items-center justify-between"
+                          >
+                            <div className="flex-1">
+                              {editingCategoryId === index ? (
+                                <div className="flex items-center gap-3">
+                                  <input 
+                                    autoFocus
+                                    type="text"
+                                    value={editingCategoryName}
+                                    onChange={(e) => setEditingCategoryName(e.target.value)}
+                                    className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-gold/30 text-soft-white focus:outline-none focus:ring-2 focus:ring-gold/30 transition-all"
+                                    placeholder="Category name"
+                                  />
+                                  <button
+                                    onClick={handleUpdateCategory}
+                                    className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-500 rounded-lg transition-all"
+                                    title="Save changes"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingCategoryId(null);
+                                      setEditingCategoryName('');
+                                    }}
+                                    className="p-2 bg-white/5 hover:bg-white/10 text-soft-white/50 rounded-lg transition-all"
+                                    title="Cancel"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-bold text-sm">
+                                    {index + 1}
+                                  </div>
+                                  <span className="text-soft-white font-medium group-hover:text-gold transition-colors">{category}</span>
+                                  <span className="text-[10px] text-soft-white/40 font-bold uppercase tracking-tighter ml-auto">
+                                    ({items.filter(item => item.category === category).length} products)
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {editingCategoryId !== index && (
+                              <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={() => handleEditCategory(index, category)}
+                                  className="p-2 bg-gold/20 hover:bg-gold/30 text-gold rounded-lg transition-all"
+                                  title="Edit category"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteCategory(index)}
+                                  className="p-2 bg-crimson/20 hover:bg-crimson/30 text-crimson rounded-lg transition-all"
+                                  title="Delete category"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        ))
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="flex justify-end pt-4 border-t border-white/5">
+                  <button 
+                    onClick={() => {
+                      setIsCategoryModalOpen(false);
+                      setEditingCategoryId(null);
+                    }}
+                    className="px-8 py-3 bg-gold hover:bg-yellow-400 text-charcoal font-bold uppercase tracking-widest text-sm rounded-2xl transition-all"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}

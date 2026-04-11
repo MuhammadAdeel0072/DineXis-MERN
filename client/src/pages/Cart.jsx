@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, CheckCircle } from 'lucide-react';
 
 const Cart = () => {
@@ -10,6 +11,7 @@ const Cart = () => {
 
   const removeFromCartHandler = (item) => {
     dispatch({ type: 'REMOVE_FROM_CART', payload: item });
+    toast.success(`${item.name} removed from cart 🗑️`);
   };
 
   const updateQtyHandler = (item, qty) => {
@@ -18,6 +20,9 @@ const Cart = () => {
         type: 'ADD_TO_CART',
         payload: { ...item, qty: Number(qty) },
       });
+      toast.success(`${item.name} quantity updated ✅`);
+    } else if (qty > item.countInStock) {
+      toast.error('Not enough stock available ❌');
     }
   };
 

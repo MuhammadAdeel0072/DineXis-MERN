@@ -13,6 +13,7 @@ import OrderSuccess from './pages/OrderSuccess';
 import AdminDashboard from './pages/AdminDashboard';
 import AuthGuard from './components/AuthGuard';
 import Orders from './pages/Orders';
+import OrderHistory from './pages/OrderHistory';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import OrderTracker from './pages/OrderTracker';
@@ -51,6 +52,11 @@ function App() {
                 <Route path="/orders" element={
                   <AuthGuard>
                     <Orders />
+                  </AuthGuard>
+                } />
+                <Route path="/order-history" element={
+                  <AuthGuard>
+                    <OrderHistory />
                   </AuthGuard>
                 } />
                 <Route path="/help" element={

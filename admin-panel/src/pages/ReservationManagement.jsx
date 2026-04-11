@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
+import toast from 'react-hot-toast';
 import { Calendar, Users, Phone, Check, X, Clock, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,11 +28,17 @@ const ReservationManagement = () => {
   };
 
   const updateStatus = async (id, status) => {
+    const loadingToast = toast.loading('Updating reservation status...');
     try {
       await api.put(`/reservations/${id}/status`, { status });
       socket.emit('adminAction', { type: 'reservationUpdate' });
+      toast.dismiss(loadingToast);
+      const statusLabel = status === 'Confirmed' ? 'Confirmed ✅' : 'Cancelled 🗑️';
+      toast.success(`Reservation ${statusLabel}`);
       fetchReservations();
     } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error(error.response?.data?.message || 'Failed to update reservation ❌');
       console.error('Failed to update reservation', error);
     }
   };

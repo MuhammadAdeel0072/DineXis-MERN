@@ -44,11 +44,15 @@ const OrderCard = ({ order, onUpdate }) => {
         if (isUpdating) return;
         setIsUpdating(true);
         const nextStatus = currentStatus === 'ready' ? 'preparing' : 'ready';
+        const loadingToast = toast.loading(`Updating item status...`);
         try {
             await updateItemStatus(order._id, itemId, nextStatus);
+            toast.dismiss(loadingToast);
+            toast.success(`Item marked as ${nextStatus.toUpperCase()} 👨‍🍳`);
             onUpdate();
         } catch (error) {
-            toast.error('Failed to update item status');
+            toast.dismiss(loadingToast);
+            toast.error(error.response?.data?.message || 'Failed to update item status ❌');
         } finally {
             setIsUpdating(false);
         }
@@ -57,13 +61,16 @@ const OrderCard = ({ order, onUpdate }) => {
     const handleMainAction = async () => {
         if (isUpdating) return;
         setIsUpdating(true);
+        const nextStatus = order.status === 'preparing' ? 'ready' : 'preparing';
+        const loadingToast = toast.loading('Updating order status...');
         try {
-            const nextStatus = order.status === 'preparing' ? 'ready' : 'preparing';
             await updateOrderStatus(order._id, nextStatus);
+            toast.dismiss(loadingToast);
+            toast.success(`Order #${order.orderNumber || '...'} ${nextStatus.toUpperCase()} 👨‍🍳`);
             onUpdate();
-            toast.success(`Order #${order.orderNumber || '...'} ${nextStatus.toUpperCase()}`);
         } catch (error) {
-            toast.error('Failed to update order status');
+            toast.dismiss(loadingToast);
+            toast.error(error.response?.data?.message || 'Failed to update order status ❌');
         } finally {
             setIsUpdating(false);
         }

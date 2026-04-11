@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Utensils, ShoppingBag, Calendar, CreditCard, Users, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Utensils, ShoppingBag, Calendar, CreditCard, Users, LogOut, X, Tag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrandLogo, typographyClasses } from './BrandingUtils';
@@ -20,6 +20,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     { title: 'Dashboard', path: '/', icon: LayoutDashboard },
     { title: 'Menu', path: '/menu', icon: Utensils },
+    { title: 'Deals', path: '/deals', icon: Tag },
     { title: 'Orders', path: '/orders', icon: ShoppingBag },
     { title: 'Reservations', path: '/reservations', icon: Calendar },
     { title: 'Payments', path: '/payments', icon: CreditCard },

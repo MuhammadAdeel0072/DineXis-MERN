@@ -41,12 +41,16 @@ const Orders = () => {
 
     const handleAction = async (orderId, type) => {
         setActionLoading(true);
+        const loadingToast = toast.loading(`Updating delivery status...`);
         try {
             await updateDeliveryStatus(orderId, type);
-            toast.success(`Success! Status updated to ${type.replace(/-/g, ' ')}`);
+            toast.dismiss(loadingToast);
+            const statusLabel = type === 'accepted' ? 'Accepted 🚴' : type === 'out-for-delivery' ? 'Out for Delivery 📦' : 'Delivered ✅';
+            toast.success(`Delivery ${statusLabel}`);
             refreshData();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update order');
+            toast.dismiss(loadingToast);
+            toast.error(error.response?.data?.message || 'Failed to update order ❌');
         } finally {
             setActionLoading(false);
         }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
+import toast from 'react-hot-toast';
 import { CreditCard, Save, RefreshCw, Landmark, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,12 +35,15 @@ const PaymentManagement = () => {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
+    const loadingToast = toast.loading('Updating payment configuration...');
     try {
       await api.put('/payments/config', config);
       socket.emit('adminAction', { type: 'paymentUpdate' });
-      setMessage({ type: 'success', text: 'Financial channels updated with distinction.' });
+      toast.dismiss(loadingToast);
+      toast.success('Payment gateway configuration updated ✅');
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update transaction protocols.' });
+      toast.dismiss(loadingToast);
+      toast.error(error.response?.data?.message || 'Failed to update transaction protocols ❌');
     } finally {
       setSaving(false);
     }

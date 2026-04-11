@@ -4,6 +4,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import AdminLayout from './components/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import MenuManagement from './pages/MenuManagement';
+import DealManagement from './pages/DealManagement';
 import OrderManagement from './pages/OrderManagement';
 import ReservationManagement from './pages/ReservationManagement';
 import PaymentManagement from './pages/PaymentManagement';
@@ -42,6 +43,7 @@ function App() {
             }>
               <Route index element={<Dashboard />} />
               <Route path="/menu" element={<MenuManagement />} />
+              <Route path="/deals" element={<DealManagement />} />
               <Route path="/orders" element={<OrderManagement />} />
               <Route path="/reservations" element={<ReservationManagement />} />
               <Route path="/payments" element={<PaymentManagement />} />

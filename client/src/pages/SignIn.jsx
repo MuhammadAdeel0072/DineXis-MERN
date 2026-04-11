@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Mail, Lock, Loader2, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
 const SignIn = () => {
@@ -32,11 +33,17 @@ const SignIn = () => {
         
         setLoading(true);
         setError('');
+        const loadingToast = toast.loading('Signing in...');
         try {
             await login(email, password);
+            toast.dismiss(loadingToast);
+            toast.success('Welcome back! ✅');
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
+            toast.dismiss(loadingToast);
+            const errorMsg = err.response?.data?.message || 'Authentication failed. Please check your credentials.';
+            toast.error(errorMsg);
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }

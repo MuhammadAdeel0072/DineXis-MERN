@@ -15,7 +15,10 @@ const Orders = () => {
       try {
         setLoading(true);
         const data = await getMyOrders();
-        setOrders(data.orders || data || []);
+        const allOrders = data.orders || data || [];
+        // Filter to show only active orders (not delivered)
+        const activeOrders = allOrders.filter(order => order.status !== 'delivered');
+        setOrders(activeOrders);
       } catch (err) {
         console.error('Failed to load orders:', err);
         toast.error('Failed to load orders');
@@ -33,6 +36,9 @@ const Orders = () => {
       case 'out-for-delivery': return 'text-gold bg-gold/10 border-gold/20';
       case 'ready':            return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
       case 'preparing':        return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
+      case 'placed':           return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
+      case 'confirmed':        return 'text-blue-300 bg-blue-300/10 border-blue-300/20';
+      case 'picked-up':        return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
       case 'cancelled':        return 'text-red-400 bg-red-400/10 border-red-400/20';
       default:                 return 'text-gray-400 bg-white/5 border-white/10';
     }
@@ -42,7 +48,7 @@ const Orders = () => {
     <div className="container mx-auto px-6 py-12 max-w-6xl">
       <div className="mb-12">
         <h1 className="text-5xl font-serif font-bold text-white mb-2">My Orders</h1>
-        <p className="text-gold/60 font-medium tracking-widest uppercase text-xs italic">Order History</p>
+        <p className="text-gold/60 font-medium tracking-widest uppercase text-xs italic">Active Orders - Track Your Status</p>
       </div>
 
       {loading ? (

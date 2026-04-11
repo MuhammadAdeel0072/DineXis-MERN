@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
+import toast from 'react-hot-toast';
 import { ShoppingBag, Clock, CheckCircle, Truck, PackageCheck, Search, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,10 +36,15 @@ const OrderManagement = () => {
   };
 
   const updateStatus = async (orderId, status) => {
+    const loadingToast = toast.loading('Updating order status...');
     try {
       await api.put(`/orders/${orderId}/status`, { status });
+      toast.dismiss(loadingToast);
+      toast.success(`Order status updated to ${status.replace(/-/g, ' ')} ✅`);
       fetchOrders();
     } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error(error.response?.data?.message || 'Failed to update status ❌');
       console.error('Failed to update status', error);
     }
   };

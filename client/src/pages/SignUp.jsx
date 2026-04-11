@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Mail, Lock, Loader2, ArrowRight, CheckCircle2, AlertCircle, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
 const SignUp = () => {
@@ -32,12 +33,16 @@ const SignUp = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isValidEmail || !password || !firstName || password !== confirmPassword) {
-            if (password !== confirmPassword) setError('Passwords do not match');
+            if (password !== confirmPassword) {
+                setError('Passwords do not match');
+                toast.error('Passwords do not match ❌');
+            }
             return;
         }
         
         setLoading(true);
         setError('');
+        const loadingToast = toast.loading('Creating account...');
         try {
             await register({
                 firstName,
@@ -45,9 +50,14 @@ const SignUp = () => {
                 email,
                 password
             });
+            toast.dismiss(loadingToast);
+            toast.success('Account created successfully 🎉');
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+            toast.dismiss(loadingToast);
+            const errorMsg = err.response?.data?.message || 'Registration failed. Please try again.';
+            toast.error(errorMsg);
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }

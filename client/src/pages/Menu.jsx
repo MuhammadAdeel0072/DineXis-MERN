@@ -8,8 +8,12 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fallbackItems } from '../data/menuData';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 const Menu = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +39,39 @@ const Menu = () => {
         setLoading(false);
       }
     };
+    
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          const categoryNames = Array.isArray(data) 
+            ? data.map(cat => typeof cat === 'string' ? cat : cat.name)
+            : [];
+          setCategories(categoryNames);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // Fallback to default categories
+        setCategories(['Food', 'Dishes', 'Sweets', 'Drinks']);
+      }
+    };
+    
+    const fetchDeals = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/deals?isActive=true`);
+        if (response.ok) {
+          const data = await response.json();
+          setDeals(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch deals:', error);
+      }
+    };
+    
     fetchProducts();
+    fetchCategories();
+    fetchDeals();
   }, []);
 
   useEffect(() => {
@@ -79,13 +115,14 @@ const Menu = () => {
     toast.success(isFavorite ? 'Removed' : 'Added', { icon: '❤️' });
   };
 
-  const categories = [
-    { id: 'All', label: 'All' },
-    { id: 'Food', label: 'Food' },
-    { id: 'Dishes', label: 'Dishes' },
-    { id: 'Sweets', label: 'Sweets' },
-    { id: 'Drinks', label: 'Drinks' }
-  ];
+  const getDealForProduct = (productId, category) => {
+    return deals.find(deal => 
+      (deal.productId && (deal.productId._id === productId || deal.productId === productId)) ||
+      (deal.category === category && !deal.productId)
+    );
+  };
+
+  const categoryList = ['All', ...categories];
 
   const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
@@ -111,17 +148,17 @@ const Menu = () => {
 
         <div className="w-full lg:w-auto overflow-x-auto no-scrollbar scroll-smooth">
           <div className="flex flex-nowrap lg:flex-wrap gap-2 md:gap-3 pb-2 lg:pb-0 justify-start lg:justify-center min-w-max lg:min-w-0">
-            {categories.map(cat => (
+            {categoryList.map(cat => (
               <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
                 className={`px-6 md:px-8 py-2.5 md:py-3 rounded-2xl transition-all font-black text-[10px] md:text-xs uppercase tracking-widest whitespace-nowrap ${
-                  activeCategory === cat.id
+                  activeCategory === cat
                     ? 'bg-gold text-charcoal shadow-[0_0_20px_rgba(212,175,55,0.4)] scale-105'
                     : 'bg-white/5 text-gray-400 hover:text-gold border border-white/5 hover:border-gold/30'
                 }`}
               >
-                {cat.label}
+                {cat}
               </button>
             ))}
           </div>
@@ -156,6 +193,17 @@ const Menu = () => {
                   </button>
 
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    {(() => {
+                      const deal = getDealForProduct(product._id, product.category);
+                      return deal ? (
+                        <div className="bg-crimson text-white px-2.5 py-1 rounded-full text-[7px] font-black uppercase tracking-widest shadow-lg border border-crimson/50 whitespace-nowrap">
+                          {deal.discountPercentage > 0 
+                            ? `🔥 ${deal.discountPercentage}% OFF`
+                            : `💰 Rs. ${deal.discountAmount} OFF`
+                          }
+                        </div>
+                      ) : null;
+                    })()}
                     {product.isBestSeller && (
                       <div className="bg-crimson text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg border border-white/10">
                         Popular
