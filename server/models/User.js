@@ -39,14 +39,14 @@ userSchema.pre('save', async function () {
     if (!this.isModified('password')) {
         return;
     }
-    
+
     // Validate password exists and is a string
     if (!this.password || typeof this.password !== 'string' || this.password.length === 0) {
         const error = new Error('Password must be a non-empty string');
         console.error(`❌ Invalid password format for ${this.email}:`, error.message);
         throw error;
     }
-    
+
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
@@ -65,13 +65,13 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
             console.error('❌ Password comparison error: Entered password is invalid');
             return false;
         }
-        
+
         // Validate stored password
         if (!this.password || typeof this.password !== 'string') {
             console.error(`❌ Password comparison error: Stored password is invalid for user ${this.email}`);
             throw new Error('Server error: User password data is corrupted');
         }
-        
+
         // Compare passwords using bcrypt
         const isMatch = await bcrypt.compare(enteredPassword, this.password);
         return isMatch;

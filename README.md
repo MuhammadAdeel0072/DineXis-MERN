@@ -10,7 +10,7 @@ AK-7 REST is a luxury restaurant management ecosystem built on the **MERN** stac
 
 The system is designed around a premium visual language ensuring a spectacular user experience across all modules:
 - **Luxury Aesthetic**: A deep charcoal canvas accented with brushed gold and crimson highlights.
-- **Glassmorphism**: UI components utilize high-end backdrop blurs and translucent borders for deep visual immersion.
+- **Glassmorphism**: UI components utilize high-end backdrop blurs and tacranslucent borders for deep visual immersion.
 - **Dynamic Micro-interactions**: Powered by `framer-motion`, every interaction—from menu selection to checkout to drag-and-drop order management—feels fluid, responsive, and alive.
 - **Sharp Iconography**: Consistent and minimalist icons using `lucide-react` for a state-of-the-art look.
 

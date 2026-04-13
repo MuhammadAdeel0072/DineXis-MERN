@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "open-cli http://localhost:5000/api/health && nodemon server.js",
+    "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,11 +13,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-async-handler": "^1.2.0",
     "express-rate-limit": "^7.5.0",
@@ -30,7 +32,8 @@
     "nodemailer": "^6.10.1",
     "pdfkit": "^0.16.0",
     "socket.io": "^4.8.1",
-    "stripe": "^17.7.0"
+    "stripe": "^17.7.0",
+    "svix": "^1.88.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

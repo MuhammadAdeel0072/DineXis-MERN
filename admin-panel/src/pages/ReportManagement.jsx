@@ -1,0 +1,300 @@
+import React, { useState, useEffect } from 'react';
+import {
+    FileText,
+    Download,
+    Calendar,
+    TrendingUp,
+    Users,
+    Package,
+    DollarSign,
+    RefreshCcw,
+    ChevronDown
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import api, { socket } from '../services/api';
+import toast from 'react-hot-toast';
+
+const ReportManagement = () => {
+    const [reportType, setReportType] = useState('sales');
+    const [dateRange, setDateRange] = useState({
+        startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0]
+    });
+    const [reportData, setReportData] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const fetchReportData = async () => {
+        setLoading(true);
+        // Do not reset reportData here to avoid flickering during real-time updates
+        
+        try {
+            const endpoint = `/reports/${reportType === 'daily' ? 'daily-closing' : reportType}`;
+            const params = reportType === 'daily' ? { date: dateRange.endDate } : dateRange;
+            const { data } = await api.get(endpoint, { params });
+            setReportData(data);
+        } catch (error) {
+            console.error('Fetch Error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchReportData();
+
+        // 📡 Real-time Synchronization Listeners
+        const handleLiveUpdate = () => {
+            console.log('📡 Real-time update detected. Refreshing intelligence data...');
+            fetchReportData();
+        };
+
+        socket.on('NEW_ORDER', handleLiveUpdate);
+        socket.on('adminAction', handleLiveUpdate);
+        socket.on('inventoryAlert', handleLiveUpdate);
+
+        return () => {
+            socket.off('NEW_ORDER', handleLiveUpdate);
+            socket.off('adminAction', handleLiveUpdate);
+            socket.off('inventoryAlert', handleLiveUpdate);
+        };
+    }, [reportType, dateRange.startDate, dateRange.endDate]);
+
+    const handleExport = async (format) => {
+        try {
+            const endpoint = `/reports/export/${reportType}/${format}`;
+            const params = reportType === 'daily' ? { date: dateRange.endDate } : dateRange;
+
+            toast.loading(`Preparing ${format.toUpperCase()} report...`, { id: 'export-toast' });
+
+            const response = await api.get(endpoint, {
+                params,
+                responseType: 'blob'
+            });
+
+            // Extract filename from content-disposition if possible, or generate one
+            const contentDisposition = response.headers['content-disposition'];
+            let fileName = `${reportType}_report_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename=(.+)/);
+                if (fileNameMatch) fileName = fileNameMatch[1];
+            }
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success(`${format.toUpperCase()} report downloaded successfully`, { id: 'export-toast' });
+        } catch (error) {
+            console.error('Export Error:', error);
+            toast.error('Export Protocol Jammed: Authorization required or server error', { id: 'export-toast' });
+        }
+    };
+
+    const tabs = [
+        { id: 'sales', name: 'Sales', icon: TrendingUp },
+        { id: 'staff', name: 'Staff', icon: Users },
+        { id: 'inventory', name: 'Inventory', icon: Package },
+        { id: 'finance', name: 'Financial', icon: DollarSign },
+        { id: 'daily', name: 'Daily Closing', icon: FileText },
+    ];
+
+    const renderContent = () => {
+        if (loading) return (
+            <div className="flex items-center justify-center py-40">
+                <RefreshCcw className="w-10 h-10 text-gold animate-spin" />
+            </div>
+        );
+
+        if (!reportData) return <div className="text-center py-20 text-soft-white/20 uppercase tracking-widest text-xs">No Data Available</div>;
+
+        switch (reportType) {
+            case 'sales':
+                return (
+                    <div className="space-y-10">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <KPI data={reportData.totalSales} label="Total Sales" format="Rs. " color="text-emerald-400" />
+                            <KPI data={reportData.orderCount} label="Orders" color="text-gold" />
+                            <KPI data={Object.keys(reportData.paymentTypes || {}).length} label="Payment Methods" color="text-blue-400" />
+                        </div>
+                        <Table
+                            headers={['Order ID', 'Date', 'Amount', 'Method', 'Status']}
+                            rows={Array.isArray(reportData.orders) ? reportData.orders.map(o => [o.orderNumber, new Date(o.createdAt).toLocaleDateString(), `Rs. ${o.totalPrice}`, o.paymentMethod, o.isPaid ? 'PAID' : 'PENDING']) : []}
+                        />
+                    </div>
+                );
+            case 'staff':
+                return (
+                    <Table
+                        headers={['Name', 'Role', 'Orders', 'Value']}
+                        rows={Array.isArray(reportData) ? reportData.map(s => [s.name, s.role, s.ordersCount, `Rs. ${s.totalValue}`]) : []}
+                    />
+                );
+            case 'inventory':
+                return (
+                    <Table
+                        headers={['Item Name', 'Current Stock', 'Threshold', 'Status']}
+                        rows={Array.isArray(reportData) ? reportData.map(i => [i.name, i.available, i.lowStockThreshold, <span className={i.isLowStock ? 'text-crimson' : 'text-emerald-400'}>{i.status}</span>]) : []}
+                    />
+                );
+            case 'finance':
+                return (
+                    <div className="space-y-10">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <KPI data={reportData.totalIncome} label="Income" format="Rs. " color="text-emerald-400" />
+                            <KPI data={reportData.totalExpenses} label="Expenses" format="Rs. " color="text-crimson" />
+                            <KPI data={reportData.netProfit} label="Profit" format="Rs. " color="text-gold" />
+                        </div>
+                        <Table
+                            headers={['Title', 'Category', 'Amount', 'Date']}
+                            rows={Array.isArray(reportData.expenseItems) ? reportData.expenseItems.map(e => [e.title, e.category, `Rs. ${e.amount}`, new Date(e.date).toLocaleDateString()]) : []}
+                        />
+                    </div>
+                );
+            case 'daily':
+                return (
+                    <div className="space-y-10">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <KPI data={reportData.totalOrders} label="Orders" />
+                            <KPI data={reportData.totalSales} label="Sales" format="Rs. " color="text-emerald-400" />
+                            <KPI data={reportData.totalExpenses} label="Expenses" format="Rs. " color="text-crimson" />
+                            <KPI data={reportData.finalProfit} label="Profit" format="Rs. " color="text-gold" />
+                        </div>
+                        <Table
+                            headers={['Ref Name', 'Financial Value', 'Type']}
+                            rows={[
+                                ...(Array.isArray(reportData.orders) ? reportData.orders.map(o => [o.number, `Rs. ${o.amount}`, 'REVENUE']) : []),
+                                ...(Array.isArray(reportData.expenses) ? reportData.expenses.map(e => [e.title, `Rs. ${e.amount}`, 'EXPENSE']) : [])
+                            ]}
+                        />
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="max-w-6xl mx-auto py-10 px-4 space-y-10">
+            {/* Heading - Left Aligned for consistency */}
+            <div className="text-left space-y-1">
+                <h1 className="text-4xl font-serif font-black tracking-tighter text-soft-white uppercase">REPORTS <span className="text-gold">CENTER</span></h1>
+                <p className="text-soft-white/30 text-[10px] font-bold uppercase tracking-[0.4em] ml-1">Operational Intel & System Data</p>
+            </div>
+
+            {/* Simple Horizontal Tabs */}
+            <div className="flex justify-center flex-wrap gap-2 py-4 border-y border-white/5">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setReportType(tab.id)}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-full text-xs font-bold transition-all ${reportType === tab.id
+                                ? 'bg-gold text-charcoal shadow-lg shadow-gold/20'
+                                : 'bg-white/5 text-soft-white/40 hover:text-soft-white hover:bg-white/10'
+                            }`}
+                    >
+                        <tab.icon className="w-4 h-4" />
+                        {tab.name}
+                    </button>
+                ))}
+            </div>
+
+            {/* Simple Actions Row */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/5 p-6 rounded-3xl border border-white/5">
+                <div className="flex items-center gap-4 flex-wrap">
+                    <button 
+                        onClick={() => setDateRange({ startDate: '', endDate: '' })}
+                        className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${!dateRange.startDate && !dateRange.endDate ? 'bg-gold text-charcoal border-gold' : 'border-white/10 text-soft-white/40 hover:border-gold/30 hover:text-gold'}`}
+                    >
+                        Lifetime Audit
+                    </button>
+                    
+                    <div className="h-4 w-px bg-white/10 hidden md:block" />
+
+                    <div className="flex items-center gap-3">
+                        <Calendar className="w-4 h-4 text-gold/60" />
+                        <input
+                            type="date"
+                            className="bg-transparent text-xs text-soft-white border-b border-white/10 py-1 outline-none focus:border-gold transition-colors"
+                            value={dateRange.startDate}
+                            onChange={e => setDateRange({ ...dateRange, startDate: e.target.value })}
+                        />
+                    </div>
+                    <span className="text-soft-white/20 text-xs">to</span>
+                    <input
+                        type="date"
+                        className="bg-transparent text-xs text-soft-white border-b border-white/10 py-1 outline-none focus:border-gold transition-colors"
+                        value={dateRange.endDate}
+                        onChange={e => setDateRange({ ...dateRange, endDate: e.target.value })}
+                    />
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => handleExport('pdf')}
+                        className="flex items-center gap-2 px-6 py-3 bg-crimson/10 border border-crimson/20 text-crimson rounded-xl text-xs font-bold hover:bg-crimson/20 transition-all"
+                    >
+                        <Download className="w-4 h-4" /> PDF
+                    </button>
+                    <button
+                        onClick={() => handleExport('excel')}
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold hover:bg-emerald-500/20 transition-all"
+                    >
+                        <FileText className="w-4 h-4" /> EXCEL
+                    </button>
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
+                {renderContent()}
+            </div>
+        </div>
+    );
+};
+
+// Reusable KPI Component (Simple & Large)
+const KPI = ({ data, label, format = '', color = 'text-soft-white' }) => (
+    <div className="flex flex-col items-center justify-center p-8 bg-white/5 rounded-3xl border border-white/5">
+        <p className="text-[10px] uppercase tracking-[0.2em] font-black text-soft-white/30 mb-2">{label}</p>
+        <h3 className={`text-4xl font-sans font-bold ${color}`}>
+            {format}{data?.toLocaleString() || '0'}
+        </h3>
+    </div>
+);
+
+// Reusable Simple Table
+const Table = ({ headers, rows }) => (
+    <div className="overflow-x-auto rounded-[32px] border border-white/5 bg-black/40">
+        <table className="w-full text-left">
+            <thead>
+                <tr className="bg-white/5">
+                    {headers.map((h, i) => (
+                        <th key={i} className="px-8 py-6 text-[10px] uppercase tracking-widest font-black text-gold/40">{h}</th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+                {rows.map((row, i) => (
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                        {row.map((cell, j) => (
+                            <td key={j} className="px-8 py-6 text-xs text-soft-white/60">{cell}</td>
+                        ))}
+                    </tr>
+                ))}
+                {rows.length === 0 && (
+                    <tr>
+                        <td colSpan={headers.length} className="px-8 py-10 text-center text-[10px] uppercase font-bold text-soft-white/20">No data found in selected range</td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    </div>
+);
+
+export default ReportManagement;

@@ -4,12 +4,14 @@ const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     image: { type: String, required: true },
     description: { type: String, required: true },
-    category: { 
-        type: String, 
+    category: {
+        type: String,
         required: true
     },
     price: { type: Number, required: true, default: 0 },
     countInStock: { type: Number, required: true, default: 0 },
+    lowStockThreshold: { type: Number, default: 10 },
+    isAvailable: { type: Boolean, default: true },
     isSpecial: { type: Boolean, default: false },
     spicyLevel: { type: Number, default: 0 },
     isVegetarian: { type: Boolean, default: false },

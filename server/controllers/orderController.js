@@ -5,6 +5,8 @@ const LoyaltyTransaction = require('../models/Loyalty');
 const Cart = require('../models/Cart');
 const { generateReceipt } = require('../services/pdfService');
 const { emitEvent } = require('../services/socketService');
+const { deductStock } = require('../services/inventoryService');
+const Transaction = require('../models/Transaction');
 const asyncHandler = require('express-async-handler');
 
 // @desc    Create new order
@@ -103,14 +105,14 @@ const addOrderItems = asyncHandler(async (req, res) => {
     // This allows the client to receive confirmation instantly while we finish bookkeeping
     try {
       const pointsEarned = Math.floor(normalizedTotalPrice * 10);
-      
+
       // req.user is now a full Mongoose Document from authMiddleware
       req.user.loyaltyPoints += pointsEarned;
-      
+
       if (req.user.loyaltyPoints >= 5000) req.user.loyaltyTier = 'Platinum';
       else if (req.user.loyaltyPoints >= 2500) req.user.loyaltyTier = 'Gold';
       else if (req.user.loyaltyPoints >= 1000) req.user.loyaltyTier = 'Silver';
-      
+
       await req.user.save();
 
       await LoyaltyTransaction.create({
@@ -122,10 +124,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
       });
 
       // 📡 Real-time Synchronization
-      // 📡 Real-time Synchronization (Kitchen, Admin, Rider)
+      // 📡 Real-time Synchronization (Staff Alert)
       emitEvent('kitchen', 'NEW_ORDER', createdOrder);
-      emitEvent('admin', 'NEW_ORDER', createdOrder);
-      emitEvent(null, 'NEW_ORDER', createdOrder); // Global fallback
 
       // 🧹 Post-Mission Cleanup (Clear Backend Cart)
       await Cart.findOneAndDelete({ user: req.user._id });
@@ -136,7 +136,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     }
   } catch (error) {
     console.error('System Exception [Order Save]:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: error.name === 'ValidationError' ? 'Database Validation Breach' : 'Internal System Exception',
       details: error.name === 'ValidationError' ? Object.values(error.errors).map(e => e.message) : error.message
     });
@@ -212,6 +212,24 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     const updatedOrder = await order.save();
+
+    // 🏆 ENTERPRISE LOGIC: Stock & Finance Orchestration
+    if (status === 'confirmed' || status === 'preparing') {
+        // Trigger background stock deduction
+        deductStock(order.orderItems).catch(err => console.error('Stock Deduction Failure:', err));
+    }
+
+    if (status === 'delivered') {
+        // Create Income Transaction Ledger Entry
+        Transaction.create({
+            type: 'income',
+            amount: order.totalPrice,
+            category: 'order',
+            description: `Revenue from Order #${order.orderNumber}`,
+            order: order._id,
+            paymentMethod: order.paymentMethod
+        }).catch(err => console.error('Financial Ledger Error:', err));
+    }
 
     // Emit real-time status update to user and admin
     emitEvent(order.user.toString(), 'orderUpdate', {

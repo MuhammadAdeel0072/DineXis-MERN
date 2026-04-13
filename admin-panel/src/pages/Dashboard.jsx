@@ -18,7 +18,7 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchStats();
   }, []);
@@ -26,19 +26,19 @@ const Dashboard = () => {
   useEffect(() => {
     // Debounce multiple socket events to prevent spam
     let debounceTimer = null;
-    
+
     const handleUpdate = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         fetchStats();
       }, 500); // Wait 500ms after last event before fetching
     };
-    
+
     // Listen for real-time updates to refresh analytics (debounced)
     socket.on('orderUpdate', handleUpdate);
     socket.on('incomingOrder', handleUpdate);
     socket.on('reservationUpdated', handleUpdate);
-    
+
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       socket.off('orderUpdate', handleUpdate);
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.1 }
     }
@@ -74,7 +74,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <motion.div 
+    <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -89,8 +89,8 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
         {cards.map((card, idx) => (
-          <motion.div 
-            key={idx} 
+          <motion.div
+            key={idx}
             variants={itemVariants}
             className="glass p-5 md:p-8 rounded-2xl border border-white/5 flex flex-col justify-between h-32 md:h-40 hover:border-gold/30 transition-all duration-500 group"
           >
@@ -107,8 +107,8 @@ const Dashboard = () => {
         <motion.div variants={itemVariants} className="glass p-5 md:p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
           <h2 className="text-lg md:text-xl font-serif font-bold text-gold mb-6 md:mb-8 flex items-center gap-3">
-             <div className="w-1 h-6 bg-gold rounded-full"></div>
-             Popular Items
+            <div className="w-1 h-6 bg-gold rounded-full"></div>
+            Popular Items
           </h2>
           <div className="space-y-6">
             {stats?.popularItems?.map((item, idx) => (
@@ -116,7 +116,7 @@ const Dashboard = () => {
                 <span className="text-soft-white/70 group-hover/item:text-soft-white transition-colors">{item._id}</span>
                 <div className="flex items-center gap-4">
                   <div className="h-1.5 w-24 bg-white/5 rounded-full overflow-hidden">
-                    <motion.div 
+                    <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(item.totalSold / stats.popularItems[0].totalSold) * 100}%` }}
                       transition={{ duration: 1, delay: 0.5 }}
@@ -132,8 +132,8 @@ const Dashboard = () => {
 
         <motion.div variants={itemVariants} className="glass p-8 rounded-3xl border border-white/5 relative overflow-hidden">
           <h2 className="text-xl font-serif font-bold text-gold mb-8 flex items-center gap-3">
-             <div className="w-1 h-6 bg-gold rounded-full"></div>
-             Order Statistics
+            <div className="w-1 h-6 bg-gold rounded-full"></div>
+            Order Statistics
           </h2>
           <div className="space-y-6">
             {stats?.orderStats?.map((stat, idx) => (

@@ -46,7 +46,7 @@ const orderSchema = new mongoose.Schema({
     shippingAddress: {
         fullName: { type: String },
         phoneNumber: { type: String, required: true },
-        address: { type: String, required: true }, 
+        address: { type: String, required: true },
         streetAddress: { type: String },
         city: { type: String },
         area: { type: String },
@@ -86,6 +86,10 @@ const orderSchema = new mongoose.Schema({
     orderNumber: { type: String, unique: true },
     loyaltyPointsEarned: { type: Number, default: 0 },
     rider: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    chef: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },

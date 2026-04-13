@@ -78,6 +78,8 @@ const riderRoutes = require('./routes/riderRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const dealRoutes = require('./routes/dealRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
@@ -91,6 +93,8 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/chef', chefRoutes);
 app.use('/api/rider', riderRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/reports', reportRoutes);
 
 // ======================
 // 🏠 ROOT ROUTE
@@ -141,7 +145,7 @@ const startServer = async () => {
     // Wait for DB to connect before listening
     console.log('🔄 Initializing Database Connection...');
     await connectDB();
-    
+
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`✅ Server running on http://localhost:${PORT}`);
       console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
