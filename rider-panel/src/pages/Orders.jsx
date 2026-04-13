@@ -72,7 +72,7 @@ const Orders = () => {
                    <h1 className="text-4xl font-serif font-black tracking-tighter italic mb-1 uppercase">
                        Order <span className="text-gold ml-1">History</span>
                    </h1>
-                   <p className="label-caps italic tracking-[0.25em]">Your Previous Deliveries</p>
+                   <p className="label-caps italic tracking-[0.25em]">Your Past Deliveries</p>
                 </div>
             </header>
 
@@ -116,7 +116,7 @@ const Orders = () => {
                     
                     <div className="space-y-6">
                         {completedOrders.length === 0 ? (
-                            <p className="label-caps text-center py-10 opacity-20 italic">No historical data available.</p>
+                            <p className="label-caps text-center py-10 opacity-20 italic">No past deliveries found.</p>
                         ) : (
                             completedOrders.map((order) => (
                                 <div key={order._id} className="card-premium p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all">

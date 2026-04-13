@@ -130,14 +130,7 @@ const Navbar = () => {
                       </div>
 
                       <div className="py-2">
-                        <Link
-                          to="/orders"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
-                        >
-                          <ShoppingBag className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
-                          <span>Orders</span>
-                        </Link>
+
                         <Link
                           to="/reservation"
                           onClick={() => setDropdownOpen(false)}

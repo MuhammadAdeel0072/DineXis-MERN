@@ -80,7 +80,7 @@ const ActiveOrders = () => {
         <div className="space-y-10 pb-20">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-serif font-black mb-1 tracking-tighter italic">
+                    <h1 className="text-4xl font-serif font-black mb-1 tracking-tighter">
                         Live <span className="text-gold ml-1">Orders Queue</span>
                     </h1>
                     <p className="text-soft-white/40 tracking-[0.2em] uppercase text-[10px] font-bold italic">Live Kitchen Status</p>

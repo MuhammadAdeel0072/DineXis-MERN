@@ -49,17 +49,17 @@ const Dashboard = () => {
                     <h1 className="text-4xl font-serif font-black tracking-tighter italic mb-1 uppercase">
                         Rider <span className="text-gold ml-1">Dashboard</span>
                     </h1>
-                    <p className="label-caps italic tracking-[0.25em]">Live Order Tracking</p>
+                    <p className="label-caps italic tracking-[0.25em]">Track Your Orders</p>
                 </div>
 
                 <div className="flex items-center gap-8 glass p-6 rounded-2xl border border-white/5">
                     <div className="flex flex-col">
-                        <span className="label-caps mb-1">Earnings</span>
+                        <span className="label-caps mb-1">Money Made</span>
                         <span className="text-2xl font-serif font-black text-white italic tracking-tighter">Rs. {(stats?.completedToday || 0) * 150}</span>
                     </div>
                     <div className="w-px h-10 bg-white/10" />
                     <div className="flex flex-col">
-                        <span className="label-caps mb-1">Success Rate</span>
+                        <span className="label-caps mb-1">Delivery Success</span>
                         <span className="text-2xl font-serif font-black text-gold italic tracking-tighter">98.4%</span>
                     </div>
                 </div>
@@ -70,7 +70,7 @@ const Dashboard = () => {
                 <section className="lg:col-span-7 space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xs font-black uppercase tracking-[0.2em] text-soft-white/60 flex items-center gap-2">
-                            <LayoutDashboard className="w-4 h-4 text-gold" /> Current Order
+                            <LayoutDashboard className="w-4 h-4 text-gold" /> Your Current Delivery
                         </h2>
                     </div>
 
@@ -92,7 +92,7 @@ const Dashboard = () => {
                                     <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
                                         <AlertCircle className="w-8 h-8 text-soft-white/10" />
                                     </div>
-                                    <h3 className="text-xl font-serif text-white/20 uppercase tracking-widest leading-none">No Active Orders</h3>
+                                    <h3 className="text-xl font-serif text-white/20 uppercase tracking-widest leading-none">No Delivery Right Now</h3>
                                     <p className="text-[10px] text-soft-white/10 font-bold uppercase tracking-widest mt-3 italic">Waiting for a new order...</p>
                                 </motion.div>
                             )}
@@ -103,7 +103,7 @@ const Dashboard = () => {
                 {/* Available Queue Section */}
                 <section className="lg:col-span-5 space-y-6">
                     <h2 className="text-xs font-black uppercase tracking-[0.2em] text-soft-white/60 flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 text-gold" /> Available Orders
+                        <ShoppingBag className="w-4 h-4 text-gold" /> New Orders To Take
                     </h2>
 
                     <div className="space-y-4 max-h-[600px] overflow-y-auto no-scrollbar pr-2">
@@ -115,7 +115,7 @@ const Dashboard = () => {
                                     className="p-8 glass rounded-3xl border border-white/5 text-center"
                                 >
                                     <CheckCircle className="w-10 h-10 text-gold/10 mx-auto mb-4" />
-                                    <p className="text-[10px] text-soft-white/30 font-bold uppercase tracking-widest leading-none italic">All clear! No orders pending.</p>
+                                    <p className="text-[10px] text-soft-white/30 font-bold uppercase tracking-widest leading-none italic">No new orders right now.</p>
                                 </motion.div>
                             ) : (
                                 availableOrders.map((order) => (

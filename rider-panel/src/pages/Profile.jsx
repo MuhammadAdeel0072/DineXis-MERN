@@ -10,9 +10,9 @@ const Profile = () => {
 
     const menuItems = [
         { icon: User, label: 'Full Name', value: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'N/A' },
-        { icon: Mail, label: 'Email Terminal', value: user?.email || 'N/A' },
-        { icon: Phone, label: 'Communications', value: '+92 300 1234567' },
-        { icon: Shield, label: 'Access Level', value: 'Authorized Rider', color: 'text-gold' },
+        { icon: Mail, label: 'Email Address', value: user?.email || 'N/A' },
+        { icon: Phone, label: 'Phone Number', value: '+92 300 1234567' },
+        { icon: Shield, label: 'Role', value: 'Delivery Rider', color: 'text-gold' },
     ];
 
     return (
@@ -31,7 +31,7 @@ const Profile = () => {
                 </div>
 
                 <h1 className="text-4xl font-serif font-black tracking-tighter italic mb-1 uppercase">{user?.firstName} <span className="text-gold">{user?.lastName}</span></h1>
-                <p className="label-caps italic tracking-[0.3em]">Logistic Division Station #AK-07</p>
+                <p className="label-caps italic tracking-[0.3em]">AK-7 Delivery Team</p>
 
                 <div className="flex items-center gap-4 mt-8 px-8 py-3 glass rounded-full border border-white/5">
                     <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ const Profile = () => {
                         <span className="text-xs font-black text-white italic">4.9</span>
                     </div>
                     <div className="w-px h-4 bg-white/10" />
-                    <span className="label-caps lowercase">Master Rider</span>
+                    <span className="label-caps lowercase">Top Rider</span>
                 </div>
             </header>
 
@@ -47,7 +47,7 @@ const Profile = () => {
                 {/* Stats Section */}
                 <div className="md:col-span-8 space-y-8">
                     <section className="card-premium p-10">
-                        <h3 className="label-caps mb-10 border-l-2 border-gold pl-4 italic opacity-60">System Credentials</h3>
+                        <h3 className="label-caps mb-10 border-l-2 border-gold pl-4 italic opacity-60">Account Details</h3>
                         <div className="grid grid-cols-1 gap-8">
                             {menuItems.map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-6 group">
@@ -69,26 +69,26 @@ const Profile = () => {
                     <div className="card-premium p-8 flex flex-col items-center">
                         <div className="w-full space-y-4">
                             <button className="w-full py-4 rounded-md bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-charcoal transition-all">
-                                Performance Data
+                                My Stats
                             </button>
                             <button className="w-full py-4 rounded-md bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-charcoal transition-all">
-                                Shift Settings
+                                My Settings
                             </button>
                             <div className="h-px bg-white/5 my-4" />
                             <button
                                 onClick={logout}
                                 className="w-full py-4 rounded-md bg-crimson/10 border border-crimson/20 text-[10px] font-black text-crimson uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-crimson hover:text-white transition-all shadow-lg shadow-crimson/5 group"
                             >
-                                <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> TERMINATE SESSION
+                                <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> SIGN OUT
                             </button>
                         </div>
                     </div>
 
                     <div className="glass-gold p-8 rounded-[2rem] border border-gold/10 text-center">
-                        <h4 className="label-caps mb-4 italic text-gold">Operational Status</h4>
+                        <h4 className="label-caps mb-4 italic text-gold">Current Status</h4>
                         <div className="inline-flex items-center gap-2 px-6 py-2 bg-green-500/10 text-green-500 rounded-full border border-green-500/20 text-[8px] font-black uppercase tracking-widest leading-none">
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                            Deployment Ready
+                            Ready for Orders
                         </div>
                     </div>
                 </div>

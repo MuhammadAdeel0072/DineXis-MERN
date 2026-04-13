@@ -36,10 +36,10 @@ export const BrandLogo = ({
     return (
       <div className={`flex flex-col ${className}`}>
         <div className="inline-flex items-baseline gap-1">
-          <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
+          <span className={`${sizes.ak7} font-serif font-bold text-gold`}>
             AK-7
           </span>
-          <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
+          <span className={`${sizes.rest} font-serif font-bold text-crimson`}>
             REST
           </span>
         </div>

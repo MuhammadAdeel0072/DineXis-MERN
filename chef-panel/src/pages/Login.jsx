@@ -7,7 +7,7 @@ import { ChefHat, Lock, User, Utensils, XCircle } from 'lucide-react';
 const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState('chef@ak7.com');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -54,18 +54,18 @@ const Login = () => {
                         <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1">Chef Identity</label>
                         <div className="relative group/input">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-gold transition-colors" size={20} />
-                            <input 
+                            <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 autoComplete="off"
                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white font-medium placeholder:text-white/10 focus:border-gold/50 focus:bg-white/[0.05] outline-none transition-all"
-                                placeholder="chef@ak7rest.com"
+                                placeholder="chef@ak7.com"
                             />
                             {email && (
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setEmail('')}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-crimson transition-colors"
                                 >
@@ -79,8 +79,9 @@ const Login = () => {
                         <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1">Secret Key</label>
                         <div className="relative group/input">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-gold transition-colors" size={20} />
-                            <input 
-                                type="password"
+                            <input
+                                type="text"
+                                style={{ WebkitTextSecurity: 'disc' }}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -89,8 +90,8 @@ const Login = () => {
                                 placeholder="••••••••"
                             />
                             {password && (
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setPassword('')}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-crimson transition-colors"
                                 >
@@ -100,7 +101,7 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         type="submit"
                         disabled={loading}
                         className="w-full bg-gold hover:bg-yellow-400 text-[#0f1115] py-4 rounded-full font-bold uppercase tracking-widest text-sm transition-all shadow-xl shadow-gold/10 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
@@ -113,7 +114,7 @@ const Login = () => {
                         )}
                     </button>
 
-                    <button 
+                    <button
                         type="button"
                         onClick={handleClear}
                         className="w-full text-xs font-bold text-white/30 uppercase tracking-[0.2em] hover:text-crimson transition-all pt-3 flex items-center justify-center gap-2"

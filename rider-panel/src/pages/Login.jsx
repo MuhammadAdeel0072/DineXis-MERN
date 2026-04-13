@@ -7,7 +7,7 @@ import { Bike, Lock, User, ShieldCheck, XCircle } from 'lucide-react';
 const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState('rider@ak7.com');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -46,26 +46,26 @@ const Login = () => {
                         <Bike className="text-gold" size={32} />
                     </div>
                     <h1 className="text-3xl font-bold text-white tracking-tight mb-2">AK-7 <span className="text-gold">Rider</span></h1>
-                    <p className="text-xs font-medium text-white/40 uppercase tracking-[0.3em]">Logistics Terminal Authorization</p>
+                    <p className="text-xs font-medium text-white/40 uppercase tracking-[0.3em]">Sign In to Continue</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6 relative" autoComplete="off">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1">Rider Identity</label>
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1">Email Address</label>
                         <div className="relative group/input">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-gold transition-colors" size={20} />
-                            <input 
+                            <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 autoComplete="off"
                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white font-medium placeholder:text-white/10 focus:border-gold/50 focus:bg-white/[0.05] outline-none transition-all"
-                                placeholder="rider@ak7rest.com"
+                                placeholder="rider@ak7.com"
                             />
                             {email && (
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setEmail('')}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-crimson transition-colors"
                                 >
@@ -76,11 +76,12 @@ const Login = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1">Personnel Key</label>
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest ml-1">Password</label>
                         <div className="relative group/input">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-gold transition-colors" size={20} />
-                            <input 
-                                type="password"
+                            <input
+                                type="text"
+                                style={{ WebkitTextSecurity: 'disc' }}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -89,8 +90,8 @@ const Login = () => {
                                 placeholder="••••••••"
                             />
                             {password && (
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => setPassword('')}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-crimson transition-colors"
                                 >
@@ -100,33 +101,32 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         type="submit"
                         disabled={loading}
                         className="w-full bg-gold hover:bg-yellow-400 text-[#0f1115] py-4 rounded-full font-bold uppercase tracking-widest text-sm transition-all shadow-xl shadow-gold/10 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
                     >
                         {loading ? <div className="w-5 h-5 border-2 border-[#0f1115]/30 border-t-[#0f1115] rounded-full animate-spin"></div> : (
                             <>
-                                <ShieldCheck size={20} />
-                                Authenticate Identity
+                                Sign In
                             </>
                         )}
                     </button>
 
-                    <button 
+                    <button
                         type="button"
                         onClick={handleClear}
                         className="w-full text-xs font-bold text-white/30 uppercase tracking-[0.2em] hover:text-crimson transition-all pt-3 flex items-center justify-center gap-2"
                     >
                         <XCircle size={14} />
-                        Clear Entries
+                        Clear Form
                     </button>
                 </form>
 
                 <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-center gap-4 text-[9px] font-bold text-white/20 uppercase tracking-widest">
                     <span>V3.0 Secure</span>
                     <span className="w-1 h-1 bg-white/10 rounded-full"></span>
-                    <span>Rider Protocol</span>
+                    <span>Rider App</span>
                 </div>
             </div>
         </div>
