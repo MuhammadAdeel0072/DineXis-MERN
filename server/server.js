@@ -80,6 +80,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const dealRoutes = require('./routes/dealRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const staffRoutes = require('./routes/staffRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
@@ -95,6 +96,7 @@ app.use('/api/chef', chefRoutes);
 app.use('/api/rider', riderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/staff', staffRoutes);
 
 // ======================
 // 🏠 ROOT ROUTE

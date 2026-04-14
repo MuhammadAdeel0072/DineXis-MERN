@@ -22,39 +22,71 @@ const generatePDFReport = (res, title, headers, rows) => {
     doc.fontSize(10).fillColor('#666').text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
     doc.moveDown(2);
 
-    // Simple Table Implementation
+    // Table Implementation
     const startX = 30;
-    let currentY = doc.y;
-    const colWidth = (doc.page.width - 60) / headers.length;
+    const tableWidth = doc.page.width - 60;
+    
+    // Column scaling priorities (more space for names/descriptions)
+    const weights = headers.map(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('customer') || lower.includes('name') || lower.includes('item') || lower.includes('description') || lower.includes('activity')) return 2.5;
+        if (lower.includes('order') || lower.includes('date') || lower.includes('amount') || lower.includes('value') || lower.includes('total') || lower.includes('status') || lower.includes('method') || lower.includes('role')) return 1.2;
+        return 1.5;
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    const colWidths = weights.map(w => (w / totalWeight) * tableWidth);
 
     // Table Headers
-    doc.rect(startX, currentY, doc.page.width - 60, 20).fill('#1a1d23');
-    doc.fillColor('#D4AF37').fontSize(10);
+    let currentY = doc.y;
+    doc.rect(startX, currentY, tableWidth, 25).fill('#1a1d23');
+    doc.fillColor('#D4AF37').fontSize(10).font('Helvetica-Bold');
+    
+    let currentX = startX;
     headers.forEach((h, i) => {
-        doc.text(h, startX + i * colWidth + 5, currentY + 5, { width: colWidth - 10 });
+        doc.text(h, currentX + 8, currentY + 8, { width: colWidths[i] - 16, align: 'left' });
+        currentX += colWidths[i];
     });
 
-    currentY += 20;
-    doc.fillColor('#333');
+    currentY += 25;
+    doc.font('Helvetica').fontSize(9);
 
     // Rows
     rows.forEach((row, rowIndex) => {
-        if (currentY > doc.page.height - 50) {
+        // Calculate dynamic row height based on cell content wrapping
+        let maxHeight = 10; // Minimum row padding
+        row.forEach((cell, i) => {
+            const textHeight = doc.heightOfString(String(cell || ''), { width: colWidths[i] - 16 });
+            if (textHeight > maxHeight) maxHeight = textHeight;
+        });
+        
+        const rowHeight = maxHeight + 14; // Content + Padding
+
+        // Page break handling
+        if (currentY + rowHeight > doc.page.height - 50) {
             doc.addPage();
             currentY = 30;
+            
+            // Re-draw headers on new page? (Optional, but let's keep it simple for now)
+            // For now just continue with rows
         }
 
         // Zebra striping
-        if (rowIndex % 2 === 0) {
-            doc.rect(startX, currentY, doc.page.width - 60, 20).fill('#f9f9f9');
+        if (rowIndex % 2 === 1) {
+            doc.rect(startX, currentY, tableWidth, rowHeight).fill('#f9f9f9');
         }
 
         doc.fillColor('#333');
-        headers.forEach((h, i) => {
-            const val = row[i] !== undefined ? String(row[i]) : '';
-            doc.text(val, startX + i * colWidth + 5, currentY + 5, { width: colWidth - 10 });
+        currentX = startX;
+        row.forEach((cell, i) => {
+            const val = cell !== undefined ? String(cell) : '';
+            doc.text(val, currentX + 8, currentY + 7, { width: colWidths[i] - 16, align: 'left' });
+            currentX += colWidths[i];
         });
-        currentY += 20;
+        
+        currentY += rowHeight;
+
+        // Border line for better separation
+        doc.moveTo(startX, currentY).lineTo(startX + tableWidth, currentY).strokeColor('#eeeeee').lineWidth(0.5).stroke();
     });
 
     doc.end();

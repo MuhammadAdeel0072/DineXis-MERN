@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { getMyOrders } from '../services/orderService';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Clock, ChevronRight, Package } from 'lucide-react';
+import { ShoppingBag, Clock, ChevronRight, Package, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSocket } from '../context/SocketContext';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { siteUpdate } = useSocket();
 
   useEffect(() => {
@@ -42,6 +45,11 @@ const Orders = () => {
       case 'cancelled':        return 'text-red-400 bg-red-400/10 border-red-400/20';
       default:                 return 'text-gray-400 bg-white/5 border-white/10';
     }
+  };
+
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
   };
 
   return (
@@ -109,19 +117,35 @@ const Orders = () => {
                 </div>
               </div>
 
-              {/* View Details */}
-              <Link
-                to={`/order-tracker?id=${order._id}`}
-                className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-gold hover:text-charcoal border border-white/10 hover:border-gold px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
-              >
-                Track Order <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <button
+                  onClick={() => handleViewDetails(order)}
+                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
+                >
+                  <Info className="w-4 h-4" /> Details
+                </button>
+                <Link
+                  to={`/order-tracker?id=${order._id}`}
+                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-gold hover:bg-yellow-400 text-charcoal px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
+                >
+                  Track Order <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Detail Modal */}
+      <OrderDetailModal 
+        order={selectedOrder}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };
 
 export default Orders;
+

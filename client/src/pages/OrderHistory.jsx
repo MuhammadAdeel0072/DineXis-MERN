@@ -1,14 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import { getMyOrders } from '../services/orderService';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Clock, ChevronRight, Package } from 'lucide-react';
+import { ShoppingBag, Clock, ChevronRight, Package, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSocket } from '../context/SocketContext';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
+  const [groupedOrders, setGroupedOrders] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { siteUpdate } = useSocket();
+
+  const groupOrdersByTime = (orders) => {
+    const now = new Date();
+    const groups = {
+      'This Week': [],
+      '1 Week Ago': [],
+      '2 Weeks Ago': [],
+      '3 Weeks Ago': [],
+    };
+
+    orders.forEach(order => {
+      const createdAt = new Date(order.createdAt);
+      const diffTime = Math.abs(now - createdAt);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 7) {
+        groups['This Week'].push(order);
+      } else if (diffDays <= 14) {
+        groups['1 Week Ago'].push(order);
+      } else if (diffDays <= 21) {
+        groups['2 Weeks Ago'].push(order);
+      } else if (diffDays <= 28) {
+        groups['3 Weeks Ago'].push(order);
+      } else {
+        const monthYear = createdAt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        if (!groups[monthYear]) {
+          groups[monthYear] = [];
+        }
+        groups[monthYear].push(order);
+      }
+    });
+
+    // Remove empty standard groups
+    Object.keys(groups).forEach(key => {
+      if (groups[key].length === 0 && ['This Week', '1 Week Ago', '2 Weeks Ago', '3 Weeks Ago'].includes(key)) {
+        delete groups[key];
+      }
+    });
+
+    return groups;
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -18,7 +63,12 @@ const OrderHistory = () => {
         const allOrders = data.orders || data || [];
         // Filter to show only delivered orders
         const deliveredOrders = allOrders.filter(order => order.status === 'delivered');
+        
+        // Sort orders by date descending
+        deliveredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
         setOrders(deliveredOrders);
+        setGroupedOrders(groupOrdersByTime(deliveredOrders));
       } catch (err) {
         console.error('Failed to load order history:', err);
         toast.error('Failed to load order history');
@@ -42,6 +92,11 @@ const OrderHistory = () => {
       case 'cancelled':        return 'text-red-400 bg-red-400/10 border-red-400/20';
       default:                 return 'text-gray-400 bg-white/5 border-white/10';
     }
+  };
+
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
   };
 
   return (
@@ -68,60 +123,82 @@ const OrderHistory = () => {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {orders.map((order) => (
-            <div key={order._id} className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-gold/20 rounded-[2.5rem] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6 transition-all duration-300 group">
-              {/* Item thumbnails */}
-              <div className="flex gap-2 shrink-0">
-                {order.orderItems.slice(0, 3).map((item, idx) => (
-                  <div key={idx} className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 shrink-0">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover shadow-lg" />
+        <div className="space-y-12">
+          {Object.entries(groupedOrders).map(([group, groupOrders]) => (
+            <div key={group} className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="h-px bg-white/10 flex-1"></div>
+                <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gold/40 flex items-center gap-2">
+                  <Calendar size={14} className="opacity-50" /> {group}
+                </h3>
+                <div className="h-px bg-white/10 flex-1"></div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6">
+                {groupOrders.map((order) => (
+                  <div key={order._id} className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-gold/20 rounded-[2.5rem] p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6 transition-all duration-300 group">
+                    {/* Item thumbnails */}
+                    <div className="flex gap-2 shrink-0">
+                      {order.orderItems.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover shadow-lg" />
+                        </div>
+                      ))}
+                      {order.orderItems.length > 3 && (
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xs text-gray-400 font-black shrink-0 shadow-lg">
+                          +{order.orderItems.length - 3}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 w-full">
+                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/50">Order Number</span>
+                        <h3 className="text-lg font-bold text-white">#{order.orderNumber || order._id.slice(-8).toUpperCase()}</h3>
+                        <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-6 text-sm text-gray-400">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-gray-500" />
+                          {new Date(order.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <ShoppingBag className="w-3.5 h-3.5 text-gray-500" />
+                          {order.orderItems.length} Items
+                        </span>
+                        <span className="font-bold text-white">
+                          Total: <span className="text-gold ml-1">Rs. {order.totalPrice?.toFixed(0)}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* View Details */}
+                    <button
+                      onClick={() => handleViewDetails(order)}
+                      className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-gold hover:text-charcoal border border-white/10 hover:border-gold px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
+                    >
+                      Check Details <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
                   </div>
                 ))}
-                {order.orderItems.length > 3 && (
-                  <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xs text-gray-400 font-black shrink-0 shadow-lg">
-                    +{order.orderItems.length - 3}
-                  </div>
-                )}
               </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0 w-full">
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/50">Order Number</span>
-                  <h3 className="text-lg font-bold text-white">#{order.orderNumber || order._id.slice(-8).toUpperCase()}</h3>
-                  <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest ${getStatusColor(order.status)}`}>
-                    {order.status}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-6 text-sm text-gray-400">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-gray-500" />
-                    {new Date(order.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <ShoppingBag className="w-3.5 h-3.5 text-gray-500" />
-                    {order.orderItems.length} Items
-                  </span>
-                  <span className="font-bold text-white">
-                    Total: <span className="text-gold ml-1">Rs. {order.totalPrice?.toFixed(0)}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* View Details */}
-              <Link
-                to={`/order-tracker?id=${order._id}`}
-                className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-gold hover:text-charcoal border border-white/10 hover:border-gold px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
-              >
-                View Details <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
             </div>
           ))}
         </div>
       )}
+
+      {/* Detail Modal */}
+      <OrderDetailModal 
+        order={selectedOrder}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };
 
 export default OrderHistory;
+

@@ -8,6 +8,7 @@ import DealManagement from './pages/DealManagement';
 import OrderManagement from './pages/OrderManagement';
 import ReservationManagement from './pages/ReservationManagement';
 import PaymentManagement from './pages/PaymentManagement';
+import StaffManagement from './pages/StaffManagement';
 import UserManagement from './pages/UserManagement';
 import ReportManagement from './pages/ReportManagement';
 import Login from './pages/Login';
@@ -48,6 +49,7 @@ function App() {
               <Route path="/orders" element={<OrderManagement />} />
               <Route path="/reservations" element={<ReservationManagement />} />
               <Route path="/payments" element={<PaymentManagement />} />
+              <Route path="/staff" element={<StaffManagement />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/reports" element={<ReportManagement />} />
             </Route>

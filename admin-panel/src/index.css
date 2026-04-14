@@ -35,7 +35,7 @@
 }
 
 .btn-gold {
-  @apply bg-gold text-charcoal px-6 py-2 rounded-md font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(212, 175, 55, 0.3)];
+  @apply bg-gold text-charcoal px-6 py-2 rounded-md font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(212,175,55,0.3)];
 }
 
 /* Hide scrollbar globally */

@@ -77,11 +77,6 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="flex items-center gap-3 md:gap-5">
-          {/* Help */}
-          <Link to="/help" className="flex items-center group" title="Help">
-            <HelpCircle className="w-5 h-5 md:w-6 md:h-6 text-gold/60 group-hover:text-gold transition-colors" />
-          </Link>
-
           {/* Cart */}
           <Link to="/cart" className="relative flex items-center gap-2 group">
             <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-gold group-hover:scale-110 transition-transform" />

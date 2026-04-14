@@ -123,8 +123,8 @@ const ReportManagement = () => {
                             <KPI data={Object.keys(reportData.paymentTypes || {}).length} label="Payment Methods" color="text-blue-400" />
                         </div>
                         <Table
-                            headers={['Order ID', 'Date', 'Amount', 'Method', 'Status']}
-                            rows={Array.isArray(reportData.orders) ? reportData.orders.map(o => [o.orderNumber, new Date(o.createdAt).toLocaleDateString(), `Rs. ${o.totalPrice}`, o.paymentMethod, o.isPaid ? 'PAID' : 'PENDING']) : []}
+                            headers={['Order ID', 'Date', 'Customer', 'Amount', 'Method', 'Status']}
+                            rows={Array.isArray(reportData.orders) ? reportData.orders.map(o => [o.orderNumber, new Date(o.createdAt).toLocaleDateString(), o.customerName || 'Guest', `Rs. ${o.totalPrice}`, o.paymentMethod, o.isPaid ? 'PAID' : 'PENDING']) : []}
                         />
                     </div>
                 );
@@ -180,7 +180,7 @@ const ReportManagement = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto py-10 px-4 space-y-10">
+        <div className="max-w-6xl mx-auto pt-2 pb-10 px-4 space-y-10">
             {/* Heading - Left Aligned for consistency */}
             <div className="text-left space-y-1">
                 <h1 className="text-4xl font-serif font-black tracking-tighter text-soft-white uppercase">REPORTS <span className="text-gold">CENTER</span></h1>
@@ -193,7 +193,7 @@ const ReportManagement = () => {
                     <button
                         key={tab.id}
                         onClick={() => setReportType(tab.id)}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-full text-xs font-bold transition-all ${reportType === tab.id
+                        className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all ${reportType === tab.id
                                 ? 'bg-gold text-charcoal shadow-lg shadow-gold/20'
                                 : 'bg-white/5 text-soft-white/40 hover:text-soft-white hover:bg-white/10'
                             }`}
@@ -217,10 +217,10 @@ const ReportManagement = () => {
                     <div className="h-4 w-px bg-white/10 hidden md:block" />
 
                     <div className="flex items-center gap-3">
-                        <Calendar className="w-4 h-4 text-gold/60" />
+                        <Calendar className="w-4 h-4 text-white" />
                         <input
                             type="date"
-                            className="bg-transparent text-xs text-soft-white border-b border-white/10 py-1 outline-none focus:border-gold transition-colors"
+                            className="bg-transparent text-xs text-soft-white border-b border-white/10 py-1 outline-none focus:border-gold transition-colors [color-scheme:dark]"
                             value={dateRange.startDate}
                             onChange={e => setDateRange({ ...dateRange, startDate: e.target.value })}
                         />
@@ -228,7 +228,7 @@ const ReportManagement = () => {
                     <span className="text-soft-white/20 text-xs">to</span>
                     <input
                         type="date"
-                        className="bg-transparent text-xs text-soft-white border-b border-white/10 py-1 outline-none focus:border-gold transition-colors"
+                        className="bg-transparent text-xs text-soft-white border-b border-white/10 py-1 outline-none focus:border-gold transition-colors [color-scheme:dark]"
                         value={dateRange.endDate}
                         onChange={e => setDateRange({ ...dateRange, endDate: e.target.value })}
                     />
@@ -271,20 +271,32 @@ const KPI = ({ data, label, format = '', color = 'text-soft-white' }) => (
 // Reusable Simple Table
 const Table = ({ headers, rows }) => (
     <div className="overflow-x-auto rounded-[32px] border border-white/5 bg-black/40">
-        <table className="w-full text-left">
+        <table className="w-full text-left min-w-max">
             <thead>
                 <tr className="bg-white/5">
-                    {headers.map((h, i) => (
-                        <th key={i} className="px-8 py-6 text-[10px] uppercase tracking-widest font-black text-gold/40">{h}</th>
-                    ))}
+                    {headers.map((h, i) => {
+                        const hLower = String(h).toLowerCase();
+                        const isPrimary = hLower.includes('name') || hLower.includes('title') || hLower.includes('customer') || hLower.includes('item');
+                        return (
+                            <th key={i} className={`px-8 py-6 text-[10px] uppercase tracking-widest font-black text-gold/40 ${!isPrimary ? 'whitespace-nowrap' : 'min-w-[150px]'}`}>
+                                {h}
+                            </th>
+                        );
+                    })}
                 </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
                 {rows.map((row, i) => (
                     <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                        {row.map((cell, j) => (
-                            <td key={j} className="px-8 py-6 text-xs text-soft-white/60">{cell}</td>
-                        ))}
+                        {row.map((cell, j) => {
+                            const hLower = String(headers[j] || '').toLowerCase();
+                            const isPrimary = hLower.includes('name') || hLower.includes('title') || hLower.includes('customer') || hLower.includes('item');
+                            return (
+                                <td key={j} className={`px-8 py-6 text-xs text-soft-white/60 ${!isPrimary ? 'whitespace-nowrap' : 'break-words min-w-[150px] leading-relaxed'}`}>
+                                    {cell}
+                                </td>
+                            );
+                        })}
                     </tr>
                 ))}
                 {rows.length === 0 && (

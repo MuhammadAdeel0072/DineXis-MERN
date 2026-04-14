@@ -49,6 +49,7 @@ const getSalesReport = asyncHandler(async (req, res) => {
         orders: orders.map(o => ({
             id: o._id,
             orderNumber: o.orderNumber,
+            customerName: o.shippingAddress?.fullName || 'Guest',
             totalPrice: o.totalPrice,
             paymentMethod: o.paymentMethod,
             isPaid: o.isPaid,

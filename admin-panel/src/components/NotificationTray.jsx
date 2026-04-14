@@ -4,18 +4,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../services/api';
 
 const NotificationTray = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('admin_notifications');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [unreadCount, setUnreadCount] = useState(() => {
+    const saved = localStorage.getItem('admin_unread_count');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('admin_notifications', JSON.stringify(notifications));
+    localStorage.setItem('admin_unread_count', unreadCount.toString());
+  }, [notifications, unreadCount]);
 
   useEffect(() => {
     // Listen for real-time events from server
     socket.on('NEW_ORDER', (order) => {
+      const customerName = order.shippingAddress?.fullName || 'Valued Customer';
       const newNotif = {
         id: Date.now(),
         type: 'order',
-        title: 'New Mission Received',
-        message: `Order #${order.orderNumber} is awaiting deployment.`,
+        title: 'New Order Received',
+        message: `New Order from ${customerName}. Order #${order.orderNumber} is awaiting deployment.`,
         priority: 'high',
         icon: Package,
         color: 'text-gold'
@@ -78,13 +90,13 @@ const NotificationTray = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-40"
+              className="fixed inset-0 z-[100]"
             />
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute right-0 mt-4 w-80 sm:w-96 bg-[#121418] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.9)] rounded-2xl overflow-hidden z-50 transition-all"
+              className="absolute right-0 mt-4 w-80 sm:w-96 bg-[#121418] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.9)] rounded-2xl overflow-hidden z-[110] transition-all"
             >
               <div className="p-5 border-b border-white/5 flex items-center justify-between bg-gold/5">
                 <div className="flex items-center gap-2">
