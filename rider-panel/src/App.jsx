@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import RiderLayout from './components/RiderLayout';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
+import OrderDetails from './pages/OrderDetails';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import { RiderProvider } from './context/RiderContext';
@@ -24,7 +25,7 @@ const AuthGuard = ({ children }) => {
     if (user?.role !== 'rider' && user?.role !== 'admin') {
         return (
             <div className="h-screen w-full flex flex-col items-center justify-center bg-charcoal text-white p-6 text-center">
-                <h2 className="text-3xl font-serif font-black text-crimson mb-4 uppercase tracking-tighter italic">Access Restricted</h2>
+                <h2 className="text-3xl font-serif font-black text-crimson mb-4 uppercase tracking-tighter">Access Restricted</h2>
                 <p className="text-soft-white/60 max-w-sm mb-8 font-bold text-[10px] uppercase tracking-widest leading-loose">
                     Authentication Failure: This terminal is restricted to authorized logistic personnel.
                 </p>
@@ -65,6 +66,7 @@ function App() {
                 }>
                     <Route index element={<Dashboard />} />
                     <Route path="orders" element={<Orders />} />
+                    <Route path="orders/:id" element={<OrderDetails />} />
                     <Route path="profile" element={<Profile />} />
                 </Route>
 

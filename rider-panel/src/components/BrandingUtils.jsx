@@ -22,10 +22,10 @@ export const BrandLogo = ({
   if (variant === 'minimal') {
     return (
       <div className={`inline-flex items-baseline gap-1 ${className}`}>
-        <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
+        <span className={`${sizes.ak7} font-serif font-black tracking-tighter text-gold`}>
           AK-7
         </span>
-        <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
+        <span className={`${sizes.rest} font-serif font-black tracking-tighter text-crimson`}>
           REST
         </span>
       </div>
@@ -43,7 +43,7 @@ export const BrandLogo = ({
             REST
           </span>
         </div>
-        <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1 italic`}>
+        <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1`}>
           Exquisite Taste, Premium Experience
         </p>
       </div>
@@ -54,15 +54,15 @@ export const BrandLogo = ({
   return (
     <div className={`flex flex-col ${className}`}>
       <div className="inline-flex items-baseline gap-1">
-        <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
+        <span className={`${sizes.ak7} font-serif font-black tracking-tighter text-gold`}>
           AK-7
         </span>
-        <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
+        <span className={`${sizes.rest} font-serif font-black tracking-tighter text-crimson`}>
           REST
         </span>
       </div>
       {showTagline && (
-        <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1 italic`}>
+        <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1`}>
           Culinary Excellence
         </p>
       )}
@@ -73,10 +73,10 @@ export const BrandLogo = ({
 // Typography hooks and utilities
 export const typographyClasses = {
   // Main headers
-  heading1: 'text-5xl md:text-6xl font-serif font-black italic tracking-tighter text-soft-white',
-  heading2: 'text-4xl md:text-5xl font-serif font-black italic tracking-tighter text-soft-white',
-  heading3: 'text-3xl md:text-4xl font-serif font-bold italic tracking-tight text-soft-white',
-  heading4: 'text-2xl md:text-3xl font-serif font-bold italic text-soft-white',
+  heading1: 'text-5xl md:text-6xl font-serif font-black tracking-tighter text-soft-white',
+  heading2: 'text-4xl md:text-5xl font-serif font-black tracking-tighter text-soft-white',
+  heading3: 'text-3xl md:text-4xl font-serif font-bold tracking-tight text-soft-white',
+  heading4: 'text-2xl md:text-3xl font-serif font-bold text-soft-white',
   
   // Section headers
   sectionHead: 'text-lg md:text-xl font-serif font-bold text-gold mb-6 md:mb-8 flex items-center gap-3',

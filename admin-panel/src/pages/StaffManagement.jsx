@@ -6,11 +6,13 @@ import {
   Users, UserPlus, ClipboardList, DollarSign, TrendingUp, Clock, BarChart3,
   Search, Filter, ChevronLeft, ChevronRight, Edit3, Trash2, Eye, X,
   Check, AlertCircle, Calendar, Star, Award, Briefcase, Phone, Mail,
-  CheckCircle, XCircle, AlertTriangle, Save, RefreshCw, Activity
+  CheckCircle, XCircle, AlertTriangle, Save, RefreshCw, Activity, Download,
+  FileText, FileSpreadsheet
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
+import { exportToPDF, exportToExcel } from '../services/exportService';
 
 // ═══════════════════════════════════════════
 // CONSTANTS
@@ -163,8 +165,8 @@ const StaffManagement = () => {
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
       {/* Header */}
       <motion.header variants={itemVariants}>
-        <h1 className="text-4xl md:text-5xl font-serif font-black tracking-tight">
-          <span className="text-gold uppercase">Staff</span> <span className="text-soft-white/80">Management</span>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black tracking-tight">
+          <span className="text-soft-white uppercase">Staff</span> <span className="text-gold">Management</span>
         </h1>
         <p className="text-soft-white/40 tracking-[0.4em] uppercase text-[10px] font-bold mt-2">Team Operations Center</p>
       </motion.header>
@@ -176,8 +178,8 @@ const StaffManagement = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-3 px-6 py-3.5 rounded-xl text-base font-bold transition-all duration-300 border ${activeTab === tab.id
-                ? 'bg-gold/10 text-gold border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.15)]'
-                : 'text-soft-white/50 border-white/5 hover:bg-white/5 hover:text-soft-white/80'
+              ? 'bg-gold/10 text-gold border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.15)]'
+              : 'text-soft-white/50 border-white/5 hover:bg-white/5 hover:text-soft-white/80'
               }`}
           >
             <tab.icon className="w-5 h-5" />
@@ -205,6 +207,7 @@ const StaffManagement = () => {
               onView={s => { setSelectedStaff(s); setShowModal('view'); }}
               onEdit={s => { setSelectedStaff(s); setEditForm({ name: s.name, email: s.email, phone: s.phone, role: s.role, status: s.status }); setShowModal('edit'); }}
               onDelete={s => { setSelectedStaff(s); setShowModal('delete'); }}
+              fetchAllStaff={fetchAllStaff}
             />
           )}
           {activeTab === 'add' && <AddStaffTab onSuccess={() => { fetchStaff(); fetchStats(); setActiveTab('list'); }} />}
@@ -225,7 +228,7 @@ const StaffManagement = () => {
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-black rounded-2xl border border-white/10 p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="glass rounded-2xl border border-white/10 p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               {/* View Modal */}
@@ -320,7 +323,7 @@ const FormField = ({ label, value, onChange, placeholder, type = 'text', error, 
       value={value || ''}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full bg-black border ${error ? 'border-crimson/50' : 'border-white/10'} rounded-xl px-5 py-4 text-soft-white placeholder-soft-white/20 focus:outline-none focus:border-gold/40 transition-colors text-base appearance-none`}
+      className={`w-full bg-charcoal border ${error ? 'border-crimson/50' : 'border-white/10'} rounded-xl px-5 py-4 text-soft-white placeholder-soft-white/20 focus:outline-none focus:border-gold/40 transition-colors text-base appearance-none`}
       style={{ colorScheme: 'dark' }}
     />
     {error && <p className="text-crimson text-sm mt-1.5 flex items-center gap-1.5"><AlertCircle className="w-4 h-4" />{error}</p>}
@@ -340,10 +343,10 @@ const SelectField = ({ label, value, onChange, options, error, icon: Icon }) => 
       <select
         value={value || ''}
         onChange={e => onChange(e.target.value)}
-        className={`w-full bg-black border ${error ? 'border-crimson/50' : 'border-white/10'} rounded-xl ${Icon ? 'pl-12' : 'px-5'} pr-10 py-4 text-white focus:outline-none focus:border-gold/40 transition-all text-base appearance-none cursor-pointer hover:border-white/20`}
-        style={{ 
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, 
-          backgroundRepeat: 'no-repeat', 
+        className={`w-full bg-charcoal border ${error ? 'border-crimson/50' : 'border-white/10'} rounded-xl ${Icon ? 'pl-12' : 'px-5'} pr-10 py-4 text-white focus:outline-none focus:border-gold/40 transition-all text-base appearance-none cursor-pointer hover:border-white/20`}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
           backgroundPosition: 'right 16px center',
           WebkitAppearance: 'none'
         }}
@@ -448,117 +451,186 @@ const DashboardTab = ({ stats }) => {
 // ═══════════════════════════════════════════
 // TAB 2: STAFF LIST
 // ═══════════════════════════════════════════
-const ListTab = ({ staffList, search, setSearch, roleFilter, setRoleFilter, statusFilter, setStatusFilter, page, setPage, totalPages, onView, onEdit, onDelete }) => (
-  <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
-    <motion.div variants={itemVariants} className="flex flex-wrap gap-3 items-end">
-      <div className="relative flex-[3] min-w-[300px] max-w-xl group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/50 group-focus-within:text-gold transition-colors z-10">
-          <Search className="w-full h-full" />
-        </div>
-        <input
-          type="text" value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name, email, or phone..."
-          className="w-full bg-black border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder-soft-white/20 focus:outline-none focus:border-gold/40 focus:ring-4 focus:ring-gold/5 transition-all text-base shadow-lg"
-        />
-      </div>
-      
-      <div className="relative group min-w-[150px]">
-        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/60 group-focus-within:text-gold transition-colors z-10 pointer-events-none" />
-        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-          className="w-full bg-black border border-white/10 rounded-xl pl-11 pr-10 py-4 text-white text-base font-bold focus:outline-none focus:border-gold/40 hover:border-white/20 transition-all cursor-pointer appearance-none"
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, 
-            backgroundRepeat: 'no-repeat', 
-            backgroundPosition: 'right 12px center',
-            WebkitAppearance: 'none'
-          }}
-        >
-          <option value="All" className="bg-black text-white">All Roles</option>
-          {ROLES.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}
-        </select>
-      </div>
+const ListTab = ({ staffList, search, setSearch, roleFilter, setRoleFilter, statusFilter, setStatusFilter, page, setPage, totalPages, onView, onEdit, onDelete, fetchAllStaff }) => {
+  const [exporting, setExporting] = useState(false);
 
-      <div className="relative group min-w-[150px]">
-        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/60 group-focus-within:text-gold transition-colors z-10 pointer-events-none" />
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="w-full bg-black border border-white/10 rounded-xl pl-11 pr-10 py-4 text-white text-base font-bold focus:outline-none focus:border-gold/40 hover:border-white/20 transition-all cursor-pointer appearance-none"
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, 
-            backgroundRepeat: 'no-repeat', 
-            backgroundPosition: 'right 12px center',
-            WebkitAppearance: 'none'
-          }}
-        >
-          <option value="All" className="bg-black text-white">All Status</option>
-          {STATUSES.map(s => <option key={s} value={s} className="bg-black text-white">{s}</option>)}
-        </select>
-      </div>
-    </motion.div>
+  const handleExport = async (type) => {
+    setExporting(true);
+    const allStaff = await fetchAllStaff();
 
-    {/* Table */}
-    <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[0.04]">
-              <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Name</th>
-              <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Role</th>
-              <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Status</th>
-              <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Salary</th>
-              <th className="text-right py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staffList.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-16 text-soft-white/30">No staff found</td></tr>
-            ) : (
-              staffList.map(s => (
-                <tr key={s._id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
-                  <td className="py-4 px-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-xs font-bold text-gold font-serif italic">
-                        {s.name?.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-soft-white group-hover:text-gold transition-colors">{s.name}</p>
-                        <p className="text-[11px] text-soft-white/30">{s.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-5 text-soft-white/70">{s.role}</td>
-                  <td className="py-4 px-5"><StatusBadge status={s.status} /></td>
-                  <td className="py-4 px-5 text-soft-white/70 font-semibold">Rs. {s.salary?.base?.toLocaleString()}</td>
-                  <td className="py-4 px-5">
-                    <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => onView(s)} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="View Profile"><Eye className="w-4 h-4 text-soft-white/40 hover:text-gold" /></button>
-                      <button onClick={() => onEdit(s)} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Edit"><Edit3 className="w-4 h-4 text-soft-white/40 hover:text-blue-400" /></button>
-                      <button onClick={() => onDelete(s)} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4 text-soft-white/40 hover:text-crimson" /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+    // Apply current filters to the exported data
+    const filtered = allStaff.filter(s => {
+      const matchSearch = !search ||
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.email.toLowerCase().includes(search.toLowerCase()) ||
+        s.phone.includes(search);
+      const matchRole = roleFilter === 'All' || s.role === roleFilter;
+      const matchStatus = statusFilter === 'All' || s.status === statusFilter;
+      return matchSearch && matchRole && matchStatus;
+    });
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
-          <span className="text-xs text-soft-white/30">Page {page} of {totalPages}</span>
-          <div className="flex gap-2">
-            <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
-              className="p-2 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-20 transition-all"
-            ><ChevronLeft className="w-4 h-4 text-soft-white/60" /></button>
-            <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
-              className="p-2 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-20 transition-all"
-            ><ChevronRight className="w-4 h-4 text-soft-white/60" /></button>
+    if (type === 'pdf') {
+      exportToPDF({
+        filename: `Staff_List_${new Date().toISOString().split('T')[0]}`,
+        title: 'Staff Directory Report',
+        subtitle: `Filtered by: Role(${roleFilter}), Status(${statusFilter}), Search("${search || 'None'}")`,
+        columns: ['Name', 'Email', 'Role', 'Status', 'Salary', 'Joined'],
+        data: filtered.map(s => [
+          s.name,
+          s.email,
+          s.role,
+          s.status,
+          `Rs. ${s.salary?.base?.toLocaleString()}`,
+          new Date(s.joiningDate).toLocaleDateString()
+        ])
+      });
+    } else {
+      exportToExcel({
+        filename: `Staff_List_${new Date().toISOString().split('T')[0]}`,
+        sheetName: 'Staff',
+        data: filtered.map(s => ({
+          Name: s.name,
+          Email: s.email,
+          Phone: s.phone,
+          Role: s.role,
+          Status: s.status,
+          Salary: s.salary?.base,
+          Joined: new Date(s.joiningDate).toLocaleDateString()
+        }))
+      });
+    }
+    setExporting(false);
+  };
+
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
+      <motion.div variants={itemVariants} className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-[3] min-w-[300px] max-w-xl group">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gold/50 group-focus-within:text-gold transition-colors z-10">
+            <Search className="w-full h-full" />
           </div>
+          <input
+            type="text" value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, email, or phone..."
+            className="w-full bg-charcoal border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder-soft-white/20 focus:outline-none focus:border-gold/40 focus:ring-4 focus:ring-gold/5 transition-all text-base shadow-lg"
+          />
         </div>
-      )}
+
+        <div className="relative group min-w-[150px]">
+          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/60 group-focus-within:text-gold transition-colors z-10 pointer-events-none" />
+          <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+            className="w-full bg-charcoal border border-white/10 rounded-xl pl-11 pr-10 py-4 text-white text-base font-bold focus:outline-none focus:border-gold/40 hover:border-white/20 transition-all cursor-pointer appearance-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 12px center',
+              WebkitAppearance: 'none'
+            }}
+          >
+            <option value="All" className="bg-black text-white">All Roles</option>
+            {ROLES.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}
+          </select>
+        </div>
+
+        <div className="relative group min-w-[150px]">
+          <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/60 group-focus-within:text-gold transition-colors z-10 pointer-events-none" />
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            className="w-full bg-charcoal border border-white/10 rounded-xl pl-11 pr-10 py-4 text-white text-base font-bold focus:outline-none focus:border-gold/40 hover:border-white/20 transition-all cursor-pointer appearance-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 12px center',
+              WebkitAppearance: 'none'
+            }}
+          >
+            <option value="All" className="bg-black text-white">All Status</option>
+            {STATUSES.map(s => <option key={s} value={s} className="bg-black text-white">{s}</option>)}
+          </select>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleExport('pdf')}
+            disabled={exporting}
+            className="flex items-center gap-2 px-6 py-4 bg-crimson/10 border border-crimson/20 text-crimson rounded-xl text-xs font-bold hover:bg-crimson/20 transition-all shadow-lg disabled:opacity-50"
+          >
+            <Download className={`w-4 h-4 ${exporting ? 'animate-pulse' : ''}`} /> PDF
+          </button>
+          <button
+            onClick={() => handleExport('excel')}
+            disabled={exporting}
+            className="flex items-center gap-2 px-6 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold hover:bg-emerald-500/20 transition-all shadow-lg disabled:opacity-50"
+          >
+            <FileText className={`w-4 h-4 ${exporting ? 'animate-pulse' : ''}`} /> EXCEL
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Table */}
+      <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.04]">
+                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Name</th>
+                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Role</th>
+                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Status</th>
+                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Salary</th>
+                <th className="text-right py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffList.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-16 text-soft-white/30">No staff found</td></tr>
+              ) : (
+                staffList.map(s => (
+                  <tr key={s._id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
+                    <td className="py-4 px-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-xs font-bold text-gold font-serif italic">
+                          {s.name?.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-soft-white group-hover:text-gold transition-colors">{s.name}</p>
+                          <p className="text-[11px] text-soft-white/30">{s.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 text-soft-white/70">{s.role}</td>
+                    <td className="py-4 px-5"><StatusBadge status={s.status} /></td>
+                    <td className="py-4 px-5 text-soft-white/70 font-semibold">Rs. {s.salary?.base?.toLocaleString()}</td>
+                    <td className="py-4 px-5">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => onView(s)} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="View Profile"><Eye className="w-4 h-4 text-soft-white/40 hover:text-gold" /></button>
+                        <button onClick={() => onEdit(s)} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Edit"><Edit3 className="w-4 h-4 text-soft-white/40 hover:text-blue-400" /></button>
+                        <button onClick={() => onDelete(s)} className="p-2 hover:bg-white/5 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4 text-soft-white/40 hover:text-crimson" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-4 border-t border-white/5">
+            <span className="text-xs text-soft-white/30">Page {page} of {totalPages}</span>
+            <div className="flex gap-2">
+              <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
+                className="p-2 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-20 transition-all"
+              ><ChevronLeft className="w-4 h-4 text-soft-white/60" /></button>
+              <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
+                className="p-2 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-20 transition-all"
+              ><ChevronRight className="w-4 h-4 text-soft-white/60" /></button>
+            </div>
+          </div>
+        )}
+      </motion.div>
     </motion.div>
-  </motion.div>
-);
+  );
+};
 
 // ═══════════════════════════════════════════
 // TAB 3: ADD STAFF
@@ -736,25 +808,59 @@ const AttendanceTab = ({ fetchAllStaff }) => {
           <Calendar className="w-6 h-6 text-gold" />
           <input
             type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-            className="bg-black border border-white/10 rounded-xl px-5 py-3 text-soft-white text-base font-bold focus:outline-none focus:border-gold/40 appearance-none"
+            className="bg-charcoal border border-white/10 rounded-xl px-5 py-3 text-soft-white text-base font-bold focus:outline-none focus:border-gold/40 appearance-none"
             style={{ colorScheme: 'dark' }}
           />
         </div>
-        <button onClick={saveAttendance} disabled={saving} className="btn-gold flex items-center gap-2 text-sm">
-          {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? 'Saving...' : 'Save Attendance'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              exportToPDF({
+                filename: `Attendance_${selectedDate}`,
+                title: 'Daily Attendance Report',
+                subtitle: `Date: ${selectedDate}`,
+                columns: ['Name', 'Role', 'Status'],
+                data: staff.filter(s => s.status === 'Active').map(s => [s.name, s.role, attendanceMap[s._id] || 'Not Marked'])
+              });
+            }}
+            className="flex items-center gap-2 px-6 py-4 bg-crimson/10 border border-crimson/20 text-crimson rounded-xl text-xs font-bold hover:bg-crimson/20 transition-all shadow-lg"
+            title="Export PDF"
+          >
+            <Download className="w-4 h-4" /> PDF
+          </button>
+          <button
+            onClick={() => {
+              exportToExcel({
+                filename: `Attendance_${selectedDate}`,
+                sheetName: 'Attendance',
+                data: staff.filter(s => s.status === 'Active').map(s => ({
+                  Name: s.name,
+                  Role: s.role,
+                  Status: attendanceMap[s._id] || 'Not Marked'
+                }))
+              });
+            }}
+            className="flex items-center gap-2 px-6 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold hover:bg-emerald-500/20 transition-all shadow-lg"
+            title="Export Excel"
+          >
+            <FileText className="w-4 h-4" /> EXCEL
+          </button>
+          <button onClick={saveAttendance} disabled={saving} className="btn-gold flex items-center gap-2 text-sm px-6">
+            {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? 'Saving...' : 'Save Attendance'}
+          </button>
+        </div>
       </motion.div>
 
       <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-            <tr className="border-b border-white/10 bg-white/[0.04]">
-              <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Staff Member</th>
-              <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Role</th>
-              <th className="text-center py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Attendance Status</th>
-            </tr>
+              <tr className="border-b border-white/10 bg-black">
+                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Staff Member</th>
+                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Role</th>
+                <th className="text-center py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Attendance Status</th>
+              </tr>
             </thead>
             <tbody>
               {staff.filter(s => s.status === 'Active').map(s => (
@@ -836,19 +942,74 @@ const SalariesTab = ({ fetchAllStaff }) => {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
+      <motion.div variants={itemVariants} className="flex justify-end gap-2">
+        <button
+          onClick={() => {
+            exportToPDF({
+              filename: `Salaries_${new Date().toISOString().split('T')[0]}`,
+              title: 'Monthly Salary Report',
+              subtitle: `Generated on: ${new Date().toLocaleDateString()}`,
+              columns: ['Name', 'Base', 'Bonus', 'Deductions', 'Final', 'Status'],
+              data: staff.map(s => {
+                const base = s.salary?.base || 0;
+                const bonus = s.salary?.bonus || 0;
+                const deductions = s.salary?.deductions || 0;
+                return [
+                  s.name,
+                  `Rs. ${base.toLocaleString()}`,
+                  `+${bonus.toLocaleString()}`,
+                  `-${deductions.toLocaleString()}`,
+                  `Rs. ${(base + bonus - deductions).toLocaleString()}`,
+                  s.salary?.isPaid ? 'Paid' : 'Pending'
+                ];
+              })
+            });
+          }}
+          className="flex items-center gap-2 px-6 py-4 bg-crimson/10 border border-crimson/20 text-crimson rounded-xl text-xs font-bold hover:bg-crimson/20 transition-all shadow-lg"
+          title="Export PDF"
+        >
+          <Download className="w-4 h-4" /> PDF
+        </button>
+        <button
+          onClick={() => {
+            exportToExcel({
+              filename: `Salaries_${new Date().toISOString().split('T')[0]}`,
+              sheetName: 'Salaries',
+              data: staff.map(s => {
+                const base = s.salary?.base || 0;
+                const bonus = s.salary?.bonus || 0;
+                const deductions = s.salary?.deductions || 0;
+                return {
+                  Name: s.name,
+                  Role: s.role,
+                  'Base Salary': base,
+                  Bonus: bonus,
+                  Deductions: deductions,
+                  'Final Salary': base + bonus - deductions,
+                  Status: s.salary?.isPaid ? 'Paid' : 'Pending'
+                };
+              })
+            });
+          }}
+          className="flex items-center gap-2 px-6 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold hover:bg-emerald-500/20 transition-all shadow-lg"
+          title="Export Excel"
+        >
+          <FileText className="w-4 h-4" /> EXCEL
+        </button>
+      </motion.div>
       <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-            <tr className="border-b border-white/10 bg-white/[0.02]">
-              <th className="text-left py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90">Staff Member</th>
-              <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Base</th>
-              <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Bonus</th>
-              <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Deductions</th>
-              <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Final Salary</th>
-              <th className="text-center py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Status</th>
-              <th className="text-right py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90">Actions</th>
-            </tr>
+              <tr className="border-b border-white/10 bg-black">
+                <th className="text-left py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90">Staff Member</th>
+                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Base</th>
+                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Bonus</th>
+                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Deductions</th>
+                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Final Salary</th>
+                <th className="text-center py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Status</th>
+                <th className="text-right py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90">Actions</th>
+              </tr>
             </thead>
             <tbody>
               {staff.map(s => {
@@ -865,7 +1026,7 @@ const SalariesTab = ({ fetchAllStaff }) => {
                         <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-xs font-bold text-gold font-serif italic">{s.name?.charAt(0)}</div>
                         <div>
                           <p className="font-semibold text-soft-white">{s.name}</p>
-                          <p className="text-[10px] text-soft-white/30">{s.role}</p>
+                          <p className="text-[12px] text-soft-white/40">{s.role}</p>
                         </div>
                       </div>
                     </td>
@@ -873,13 +1034,13 @@ const SalariesTab = ({ fetchAllStaff }) => {
                     <td className="text-right py-4 px-4">
                       {isEditing ? (
                         <input type="number" value={salaryForm.bonus} onChange={e => setSalaryForm(p => ({ ...p, bonus: e.target.value }))}
-                          className="w-20 bg-white/5 border border-gold/30 rounded-lg px-2 py-1 text-right text-emerald-400 text-sm focus:outline-none" />
+                          className="w-20 bg-charcoal border border-gold/30 rounded-lg px-2 py-1 text-right text-emerald-400 text-sm focus:outline-none" />
                       ) : <span className="text-emerald-400 font-mono">+{bonus.toLocaleString()}</span>}
                     </td>
                     <td className="text-right py-4 px-4">
                       {isEditing ? (
                         <input type="number" value={salaryForm.deductions} onChange={e => setSalaryForm(p => ({ ...p, deductions: e.target.value }))}
-                          className="w-20 bg-white/5 border border-crimson/30 rounded-lg px-2 py-1 text-right text-crimson text-sm focus:outline-none" />
+                          className="w-20 bg-charcoal border border-crimson/30 rounded-lg px-2 py-1 text-right text-crimson text-sm focus:outline-none" />
                       ) : <span className="text-crimson font-mono">-{deductions.toLocaleString()}</span>}
                     </td>
                     <td className="text-right py-4 px-4 text-gold font-bold font-mono">Rs. {finalSalary.toLocaleString()}</td>
@@ -976,12 +1137,12 @@ const PerformanceTab = ({ fetchAllStaff }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {staff.map(s => (
-            <motion.div key={s._id} variants={itemVariants} className="bg-[#0b0b0b] p-5 rounded-2xl border border-white/5 hover:border-gold/10 transition-all shadow-lg">
+            <motion.div key={s._id} variants={itemVariants} className="bg-black p-5 rounded-2xl border border-white/5 hover:border-gold/10 transition-all shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-sm font-bold text-gold font-serif italic">{s.name?.charAt(0)}</div>
                 <div>
                   <p className="font-semibold text-soft-white">{s.name}</p>
-                  <p className="text-[10px] text-soft-white/30 font-bold uppercase tracking-wider">{s.role}</p>
+                  <p className="text-[12px] text-soft-white/40 font-bold uppercase tracking-wider">{s.role}</p>
                 </div>
               </div>
 
@@ -1079,13 +1240,13 @@ const ShiftsTab = ({ fetchAllStaff }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-            <tr className="border-b border-white/10 bg-white/[0.02]">
-              <th className="text-left py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90 sticky left-0 bg-[#121212] z-10">Staff Member</th>
-              {DAYS.map(d => (
-                <th key={d} className="text-center py-5 px-2 text-xs font-bold uppercase tracking-widest text-gold/90 min-w-[110px]">{d.slice(0, 3)}</th>
-              ))}
-              <th className="text-center py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Actions</th>
-            </tr>
+              <tr className="border-b border-white/10 bg-[#121212]">
+                <th className="text-left py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90 sticky left-0 bg-[#121212] z-10">Staff Member</th>
+                {DAYS.map(d => (
+                  <th key={d} className="text-center py-5 px-2 text-xs font-bold uppercase tracking-widest text-gold/90 min-w-[110px]">{d.slice(0, 3)}</th>
+                ))}
+                <th className="text-center py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Actions</th>
+              </tr>
             </thead>
             <tbody>
               {staff.filter(s => s.status === 'Active').map(s => (
@@ -1095,7 +1256,7 @@ const ShiftsTab = ({ fetchAllStaff }) => {
                       <div className="w-7 h-7 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-[10px] font-bold text-gold font-serif italic">{s.name?.charAt(0)}</div>
                       <div>
                         <p className="font-semibold text-soft-white text-xs">{s.name}</p>
-                        <p className="text-[9px] text-soft-white/30">{s.role}</p>
+                        <p className="text-[11px] text-soft-white/40 font-medium">{s.role}</p>
                       </div>
                     </div>
                   </td>
@@ -1105,7 +1266,7 @@ const ShiftsTab = ({ fetchAllStaff }) => {
                         value={shiftMap[s._id]?.[day] || 'Off'}
                         onChange={e => handleShiftChange(s._id, day, e.target.value)}
                         className={`w-full text-xs font-bold px-2 py-2 rounded-lg border cursor-pointer focus:outline-none focus:ring-1 focus:ring-gold/30 appearance-none text-center ${shiftColors[shiftMap[s._id]?.[day] || 'Off']}`}
-                        style={{ backgroundColor: 'black', colorScheme: 'dark' }}
+                        style={{ backgroundColor: '#121212', colorScheme: 'dark' }}
                       >
                         {SHIFTS.map(sh => <option key={sh} value={sh} className="bg-black text-white">{sh}</option>)}
                       </select>

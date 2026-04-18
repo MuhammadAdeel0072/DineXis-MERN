@@ -38,10 +38,11 @@ const orderSchema = new mongoose.Schema({
     },
     priority: {
         type: String,
-        enum: ['normal', 'urgent', 'vip'],
+        enum: ['normal', 'urgent', 'vip', 'NORMAL', 'URGENT'],
         default: 'normal'
     },
     specialInstructions: { type: String },
+    chefFeedback: { type: String },
     estimatedPrepTime: { type: Number, default: 20 }, // in minutes
     shippingAddress: {
         fullName: { type: String },
@@ -70,7 +71,7 @@ const orderSchema = new mongoose.Schema({
     paidAt: { type: Date },
     status: {
         type: String,
-        enum: ['placed', 'confirmed', 'preparing', 'ready', 'picked-up', 'out-for-delivery', 'delivered', 'cancelled'],
+        enum: ['placed', 'confirmed', 'preparing', 'ready', 'picked-up', 'out-for-delivery', 'delivered', 'cancelled', 'PLACED', 'CONFIRMED', 'PREPARING', 'READY', 'DISPATCHED', 'DELIVERED', 'CANCELLED'],
         default: 'placed'
     },
     statusHistory: [

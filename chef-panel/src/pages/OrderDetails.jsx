@@ -66,7 +66,7 @@ const OrderDetails = () => {
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
                 <div>
-                    <h1 className="text-4xl font-serif font-black tracking-tighter">Order <span className="text-gold">Breakdown</span></h1>
+                    <h1 className="text-4xl font-serif font-black tracking-tighter">Order <span className="text-gold ml-1">Breakdown</span></h1>
                     <p className="text-soft-white/40 tracking-[0.2em] uppercase text-[10px] font-bold">In-depth Culinary Specification</p>
                 </div>
             </header>

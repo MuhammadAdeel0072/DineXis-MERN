@@ -7,7 +7,8 @@ import {
   X, 
   CheckCircle, 
   Bell,
-  Settings
+  Settings,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';

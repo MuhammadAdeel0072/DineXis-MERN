@@ -5,18 +5,22 @@ import {
     ShoppingBag, 
     ArrowRight, 
     CheckCircle, 
-    Navigation 
+    Navigation,
+    Truck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 const OrderCard = ({ order, onAction, actionLoading }) => {
+    if (!order || !order._id) return null;
     
     const getStatusConfig = (status) => {
-        switch (status) {
+        const s = status?.toLowerCase() || 'pending';
+        switch (s) {
             case 'ready': return { color: 'text-gold', bg: 'bg-gold/10', label: 'READY' };
             case 'accepted': return { color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'ACCEPTED' };
-            case 'picked-up': return { color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'ON WAY' };
+            case 'picked-up': return { color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'PICKED UP' };
+            case 'out-for-delivery': return { color: 'text-orange-400', bg: 'bg-orange-400/10', label: 'DELIVERING' };
             case 'delivered': return { color: 'text-green-400', bg: 'bg-green-400/10', label: 'DELIVERED' };
-            default: return { color: 'text-soft-white', bg: 'bg-white/5', label: status };
+            default: return { color: 'text-soft-white', bg: 'bg-white/5', label: s.toUpperCase() };
         }
     };
 
@@ -36,7 +40,7 @@ const OrderCard = ({ order, onAction, actionLoading }) => {
                         <ShoppingBag className="w-6 h-6 text-gold" />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-white uppercase tracking-wider italic">
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             Order <span className="text-gold">#{order._id.slice(-6)}</span>
                         </h4>
                         <div className="flex items-center gap-3 mt-1">
@@ -52,8 +56,8 @@ const OrderCard = ({ order, onAction, actionLoading }) => {
                 </div>
                 
                 <div className="text-right">
-                    <p className="text-[10px] font-bold text-soft-white/20 uppercase tracking-widest mb-1 italic">Order Total</p>
-                    <p className="text-lg font-serif font-black text-white italic">Rs. {order.totalPrice}</p>
+                    <p className="text-[10px] font-bold text-soft-white/20 uppercase tracking-widest mb-1">Order Total</p>
+                    <p className="text-lg font-serif font-black text-white">Rs. {order.totalPrice}</p>
                 </div>
             </div>
 
@@ -66,7 +70,7 @@ const OrderCard = ({ order, onAction, actionLoading }) => {
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-soft-white/20 uppercase tracking-widest leading-none mb-1">Pick Up From</p>
-                            <p className="text-xs font-bold text-white tracking-tight uppercase tracking-wider italic">AK-7 REST — Main Kitchen</p>
+                            <p className="text-xs font-bold text-white tracking-tight uppercase tracking-wider">AK-7 REST — Main Kitchen</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
@@ -75,7 +79,7 @@ const OrderCard = ({ order, onAction, actionLoading }) => {
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-soft-white/20 uppercase tracking-widest leading-none mb-1">Deliver To</p>
-                            <p className="text-xs font-bold text-white tracking-tight uppercase tracking-wider italic">{order.address?.street || 'Customer Location'}</p>
+                            <p className="text-xs font-bold text-white tracking-tight uppercase tracking-wider">{order.shippingAddress?.address || 'Customer Location'}</p>
                         </div>
                     </div>
                 </div>
@@ -83,12 +87,12 @@ const OrderCard = ({ order, onAction, actionLoading }) => {
                 <div className="flex items-center justify-end">
                     <div className="flex flex-col items-end gap-2">
                          <div className="flex -space-x-2">
-                             {order.items.slice(0, 3).map((item, idx) => (
+                             {order.orderItems?.slice(0, 3).map((item, idx) => (
                                  <img key={idx} src={item.image} className="w-10 h-10 rounded-full border-2 border-charcoal object-cover" alt="food" />
                              ))}
-                             {order.items.length > 3 && (
+                             {(order.orderItems?.length || 0) > 3 && (
                                  <div className="w-10 h-10 rounded-full border-2 border-charcoal bg-white/5 flex items-center justify-center text-[10px] font-bold text-soft-white/40">
-                                     +{order.items.length - 3}
+                                     +{(order.orderItems?.length || 0) - 3}
                                  </div>
                              )}
                          </div>
@@ -96,34 +100,53 @@ const OrderCard = ({ order, onAction, actionLoading }) => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
                 {order.status === 'ready' && (
-                    <button 
-                        onClick={() => onAction(order._id, 'accept')}
-                        disabled={actionLoading}
-                        className="btn-gold flex-1 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-gold/20"
-                    >
-                        ACCEPT ORDER <Navigation className="w-4 h-4" />
-                    </button>
+                    <>
+                        <button 
+                            onClick={() => onAction(order._id, 'accept')}
+                            disabled={actionLoading}
+                            className="btn-gold flex-1 w-full flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-gold/20"
+                        >
+                            ACCEPT MISSION <Navigation className="w-4 h-4" />
+                        </button>
+                        <button 
+                            onClick={() => onAction(order._id, 'reject')}
+                            disabled={actionLoading}
+                            className="px-6 py-4 rounded-xl border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 hover:text-crimson transition-all"
+                        >
+                            REJECT
+                        </button>
+                    </>
                 )}
                 
                 {order.status === 'accepted' && (
                     <button 
                         onClick={() => onAction(order._id, 'picked-up')}
                         disabled={actionLoading}
-                        className="btn-gold flex-1 flex items-center justify-center gap-3 active:scale-95 transition-all"
+                        className="btn-gold flex-1 w-full flex items-center justify-center gap-3 active:scale-95 transition-all"
                     >
-                        START DELIVERY <ArrowRight className="w-4 h-4" />
+                        START PICKUP <ArrowRight className="w-4 h-4" />
                     </button>
                 )}
 
                 {order.status === 'picked-up' && (
                     <button 
+                        onClick={() => onAction(order._id, 'out-for-delivery')}
+                        disabled={actionLoading}
+                        className="btn-gold flex-1 w-full flex items-center justify-center gap-3 active:scale-95 transition-all"
+                    >
+                        START DELIVERY <Truck className="w-4 h-4" />
+                    </button>
+                )}
+
+                {order.status === 'out-for-delivery' && (
+                    <button 
                         onClick={() => onAction(order._id, 'delivered')}
                         disabled={actionLoading}
-                        className="btn-gold flex-1 flex items-center justify-center gap-3 active:scale-95 transition-all"
+                        className="btn-gold flex-1 w-full flex items-center justify-center gap-3 active:scale-95 transition-all"
                     >
-                        MARK DELIVERED <CheckCircle className="w-4 h-4" />
+                        COMPLETE DELIVERY <CheckCircle className="w-4 h-4" />
                     </button>
                 )}
             </div>

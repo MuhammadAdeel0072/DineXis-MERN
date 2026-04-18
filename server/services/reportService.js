@@ -17,10 +17,12 @@ const generatePDFReport = (res, title, headers, rows) => {
     
     doc.pipe(res);
 
-    // Title
-    doc.fillColor('#D4AF37').fontSize(20).text(title, { align: 'center' });
-    doc.fontSize(10).fillColor('#666').text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
-    doc.moveDown(2);
+    // Premium Header Logo/Title Part
+    doc.fillColor('#D4AF37').fontSize(24).font('Helvetica-Bold').text('AK-7 RESTAURANT', { align: 'center' });
+    doc.fillColor('#666666').fontSize(14).font('Helvetica').text(title.toUpperCase(), { align: 'center', characterSpacing: 2 });
+    doc.moveDown(0.5);
+    doc.fontSize(8).fillColor('#999999').text(`INTEL SOURCE: SYSTEM ADMINISTRATION | GENERATED: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown(1.5);
 
     // Table Implementation
     const startX = 30;
@@ -101,7 +103,8 @@ const generatePDFReport = (res, title, headers, rows) => {
  */
 const generateExcelReport = async (res, title, headers, rows) => {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet(title);
+    const safeTitle = title.replace(/[*?:\/\[\]\\]/g, '-').substring(0, 31);
+    const worksheet = workbook.addWorksheet(safeTitle);
 
     worksheet.columns = headers.map(h => ({ header: h, key: h.toLowerCase().replace(/ /g, '_'), width: 20 }));
 
@@ -113,9 +116,25 @@ const generateExcelReport = async (res, title, headers, rows) => {
         worksheet.addRow(rowData);
     });
 
-    // Formatting
-    worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1D23' } };
+    // Premium Formatting
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFD4AF25' }, size: 12 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A1D23' } };
+    headerRow.height = 25;
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Standardize all cells
+    worksheet.eachRow((row, rowNumber) => {
+        row.eachCell((cell) => {
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FFEEEEEE' } },
+                left: { style: 'thin', color: { argb: 'FFEEEEEE' } },
+                bottom: { style: 'thin', color: { argb: 'FFEEEEEE' } },
+                right: { style: 'thin', color: { argb: 'FFEEEEEE' } }
+            };
+        });
+    });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename=${title.toLowerCase().replace(/ /g, '_')}.xlsx`);

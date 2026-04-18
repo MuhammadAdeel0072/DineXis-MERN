@@ -54,20 +54,36 @@ const acceptOrder = asyncHandler(async (req, res) => {
 
     order.rider = req.user._id;
     order.acceptedAt = Date.now();
+    order.status = 'accepted';
     order.statusHistory.push({
-        status: 'accepted-by-rider',
+        status: 'accepted',
         timestamp: Date.now()
     });
 
     const updatedOrder = await order.save();
 
-    // Notify ALL relevant parties
+    // Notify ALL relevant parties using the requested event protocol
     emitEvent('kitchen', 'orderUpdate', updatedOrder);
     emitEvent('admin', 'orderUpdate', updatedOrder);
     emitEvent(order.user.toString(), 'orderUpdate', updatedOrder);
-    emitEvent('riders', 'orderUpdate', updatedOrder);
+    emitEvent('riders', 'order:assigned-to-rider', {
+        orderId: updatedOrder._id,
+        rider: req.user.firstName + ' ' + (req.user.lastName || ''),
+        status: updatedOrder.status
+    });
 
     res.json(updatedOrder);
+});
+
+// @desc    Reject an order for delivery
+// @route   PATCH /api/rider/reject
+// @access  Private/Rider
+const rejectOrder = asyncHandler(async (req, res) => {
+    const { orderId } = req.body;
+    
+    // In a real system, you might track who rejected it to avoid re-offering
+    // For now, we'll just broadcast that it's still available or was rejected
+    res.json({ success: true, message: 'Order rejected from your queue' });
 });
 
 // @desc    Update delivery status
@@ -148,12 +164,17 @@ const updateLocation = asyncHandler(async (req, res) => {
 
     await order.save();
 
-    // Emit live location to the specific customer
-    emitEvent(order.user.toString(), 'riderLocationUpdate', {
+    // Emit live location update to the specific customer and admin
+    const locationPayload = {
         orderId: order._id,
         lat,
-        lng
-    });
+        lng,
+        riderName: req.user.firstName,
+        timestamp: Date.now()
+    };
+
+    emitEvent(order.user.toString(), 'rider:location-update', locationPayload);
+    emitEvent('admin', 'rider:location-update', locationPayload);
 
     res.json({ success: true, lat, lng });
 });
@@ -192,6 +213,7 @@ module.exports = {
     getAvailableOrders,
     getMyOrders,
     acceptOrder,
+    rejectOrder,
     updateDeliveryStatus,
     updateLocation,
     getRiderStats

@@ -29,8 +29,7 @@ const ReportManagement = () => {
         
         try {
             const endpoint = `/reports/${reportType === 'daily' ? 'daily-closing' : reportType}`;
-            const params = reportType === 'daily' ? { date: dateRange.endDate } : dateRange;
-            const { data } = await api.get(endpoint, { params });
+            const { data } = await api.get(endpoint, { params: dateRange });
             setReportData(data);
         } catch (error) {
             console.error('Fetch Error:', error);
@@ -62,7 +61,7 @@ const ReportManagement = () => {
     const handleExport = async (format) => {
         try {
             const endpoint = `/reports/export/${reportType}/${format}`;
-            const params = reportType === 'daily' ? { date: dateRange.endDate } : dateRange;
+            const params = dateRange;
 
             toast.loading(`Preparing ${format.toUpperCase()} report...`, { id: 'export-toast' });
 
@@ -120,8 +119,24 @@ const ReportManagement = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <KPI data={reportData.totalSales} label="Total Sales" format="Rs. " color="text-emerald-400" />
                             <KPI data={reportData.orderCount} label="Orders" color="text-gold" />
-                            <KPI data={Object.keys(reportData.paymentTypes || {}).length} label="Payment Methods" color="text-blue-400" />
+                            <KPI data={Object.keys(reportData.paymentBreakdown || {}).length} label="Payment Methods" color="text-blue-400" />
                         </div>
+
+                        {/* Payment Breakdown */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {Object.entries(reportData.paymentBreakdown || {}).map(([method, stats]) => (
+                                <div key={method} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] uppercase font-black text-soft-white/30">{method}</p>
+                                        <p className="text-sm font-bold text-soft-white">{stats.count} Orders</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs font-bold text-emerald-400">Rs. {stats.total.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
                         <Table
                             headers={['Order ID', 'Date', 'Customer', 'Amount', 'Method', 'Status']}
                             rows={Array.isArray(reportData.orders) ? reportData.orders.map(o => [o.orderNumber, new Date(o.createdAt).toLocaleDateString(), o.customerName || 'Guest', `Rs. ${o.totalPrice}`, o.paymentMethod, o.isPaid ? 'PAID' : 'PENDING']) : []}
@@ -131,15 +146,28 @@ const ReportManagement = () => {
             case 'staff':
                 return (
                     <Table
-                        headers={['Name', 'Role', 'Orders', 'Value']}
-                        rows={Array.isArray(reportData) ? reportData.map(s => [s.name, s.role, s.ordersCount, `Rs. ${s.totalValue}`]) : []}
+                        headers={['Name', 'Role', 'Orders', 'Value', 'Present', 'Absent', 'Late']}
+                        rows={Array.isArray(reportData) ? reportData.map(s => [
+                            s.name, 
+                            s.role?.toUpperCase(), 
+                            s.ordersCount, 
+                            `Rs. ${s.totalValue.toLocaleString()}`,
+                            <span className="text-emerald-400">{s.attendance?.Present || 0}</span>,
+                            <span className="text-crimson">{s.attendance?.Absent || 0}</span>,
+                            <span className="text-gold">{s.attendance?.Late || 0}</span>
+                        ]) : []}
                     />
                 );
             case 'inventory':
                 return (
                     <Table
-                        headers={['Item Name', 'Current Stock', 'Threshold', 'Status']}
-                        rows={Array.isArray(reportData) ? reportData.map(i => [i.name, i.available, i.lowStockThreshold, <span className={i.isLowStock ? 'text-crimson' : 'text-emerald-400'}>{i.status}</span>]) : []}
+                        headers={['Item Name', 'In Stock', 'Used Stock', 'Status']}
+                        rows={Array.isArray(reportData) ? reportData.map(i => [
+                            i.name, 
+                            i.available, 
+                            i.used,
+                            <span className={i.isLowStock ? 'text-crimson' : 'text-emerald-400'}>{i.status}</span>
+                        ]) : []}
                     />
                 );
             case 'finance':

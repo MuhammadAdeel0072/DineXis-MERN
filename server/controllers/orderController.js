@@ -126,6 +126,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
       // 📡 Real-time Synchronization
       // 📡 Real-time Synchronization (Staff Alert)
       emitEvent('kitchen', 'NEW_ORDER', createdOrder);
+      // 🔥 Adding new wildcard event globally as requested
+      emitEvent(null, 'newOrder', createdOrder);
 
       // 🧹 Post-Mission Cleanup (Clear Backend Cart)
       await Cart.findOneAndDelete({ user: req.user._id });
@@ -257,11 +259,76 @@ const getMyOrders = asyncHandler(async (req, res) => {
 
 // @desc    Get all orders
 // @route   GET /api/orders
-// @access  Private/Admin
+// @access  Private/Admin or Chef
 const getOrders = asyncHandler(async (req, res) => {
-  console.log('Order Route Hit (Admin Orders)');
-  const orders = await Order.find({}).populate('user', 'firstName lastName').sort({ createdAt: -1 }).lean();
+  console.log('Order Route Hit (Admin/Chef Orders)');
+  const filter = {};
+  if (req.query.status) {
+    filter.status = req.query.status;
+  }
+  
+  const orders = await Order.find(filter).populate('user', 'firstName lastName').sort({ createdAt: -1 }).lean();
   res.json(orders);
+});
+
+// @desc    Start cooking (Chef)
+// @route   PUT /api/orders/:id/start
+// @access  Private
+const startCooking = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (order) {
+    order.status = 'PREPARING';
+    order.statusHistory.push({ status: 'PREPARING', timestamp: Date.now() });
+    order.preparationStartTime = Date.now();
+    const updatedOrder = await order.save();
+    emitEvent(null, 'orderUpdated', updatedOrder);
+    res.json(updatedOrder);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+});
+
+// @desc    Mark ready (Chef)
+// @route   PUT /api/orders/:id/ready
+// @access  Private
+const markReady = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (order) {
+    order.status = 'READY';
+    order.statusHistory.push({ status: 'READY', timestamp: Date.now() });
+    order.readyAt = Date.now();
+    order.preparationEndTime = Date.now();
+    const updatedOrder = await order.save();
+    emitEvent(null, 'orderUpdated', updatedOrder);
+    emitEvent('riders', 'order:ready-for-delivery', updatedOrder);
+    res.json(updatedOrder);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+});
+
+// @desc    Dispatch order (Chef)
+// @route   PUT /api/orders/:id/dispatch
+// @access  Private
+const dispatchOrder = asyncHandler(async (req, res) => {
+  const { chefFeedback } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (order) {
+    order.status = 'DISPATCHED';
+    order.statusHistory.push({ status: 'DISPATCHED', timestamp: Date.now() });
+    order.pickedUpAt = Date.now();
+    if (chefFeedback) {
+      order.chefFeedback = chefFeedback;
+    }
+    const updatedOrder = await order.save();
+    emitEvent(null, 'orderUpdated', updatedOrder);
+    res.json(updatedOrder);
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
 });
 
 module.exports = {
@@ -271,5 +338,8 @@ module.exports = {
   updateOrderStatus,
   getMyOrders,
   getOrders,
-  getOrderReceipt
+  getOrderReceipt,
+  startCooking,
+  markReady,
+  dispatchOrder
 };

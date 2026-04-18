@@ -31,4 +31,16 @@ router.route('/:id/pay')
 router.route('/:id/status')
   .put(protect, admin, updateOrderStatus);
 
+// Chef Action APIs
+const { startCooking, markReady, dispatchOrder } = require('../controllers/orderController');
+
+router.route('/:id/start')
+  .put(protect, startCooking);
+
+router.route('/:id/ready')
+  .put(protect, markReady);
+
+router.route('/:id/dispatch')
+  .put(protect, dispatchOrder);
+
 module.exports = router;

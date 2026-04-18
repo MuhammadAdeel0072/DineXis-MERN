@@ -7,8 +7,10 @@ import ReadyQueue from "./pages/ReadyQueue";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+
 import { AlertProvider } from "./context/AlertContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { OrderProvider } from "./context/OrderContext";
 import { Toaster } from "react-hot-toast";
 
 const ProtectedRoute = ({ children }) => {
@@ -43,12 +45,15 @@ function App() {
         <Route element={
           <ProtectedRoute>
             <AlertProvider>
-              <ChefLayout />
+              <OrderProvider>
+                <ChefLayout />
+              </OrderProvider>
             </AlertProvider>
           </ProtectedRoute>
         }>
           <Route path="/" element={<Dashboard />} />
           <Route path="/orders" element={<ActiveOrders />} />
+
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/ready" element={<ReadyQueue />} />
           <Route path="/alerts" element={<Alerts />} />

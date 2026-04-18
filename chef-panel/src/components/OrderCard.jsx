@@ -10,12 +10,11 @@ import {
     Info,
     Timer
 } from 'lucide-react';
-import { updateOrderStatus, updateItemStatus } from '../services/api';
+import { updateItemStatus } from '../services/api';
 import toast from 'react-hot-toast';
 
-const OrderCard = ({ order, onUpdate }) => {
+const OrderCard = ({ order, onMainAction, actionText, isActionDisabled, isUpdating, children }) => {
     const [elapsed, setElapsed] = useState(0);
-    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         const calculateElapsed = () => {
@@ -42,37 +41,16 @@ const OrderCard = ({ order, onUpdate }) => {
 
     const handleItemToggle = async (itemId, currentStatus) => {
         if (isUpdating) return;
-        setIsUpdating(true);
         const nextStatus = currentStatus === 'ready' ? 'preparing' : 'ready';
         const loadingToast = toast.loading(`Updating item status...`);
         try {
             await updateItemStatus(order._id, itemId, nextStatus);
             toast.dismiss(loadingToast);
             toast.success(`Item marked as ${nextStatus.toUpperCase()} 👨‍🍳`);
-            onUpdate();
+            // We use global socket updates now, no need for onUpdate
         } catch (error) {
             toast.dismiss(loadingToast);
             toast.error(error.response?.data?.message || 'Failed to update item status ❌');
-        } finally {
-            setIsUpdating(false);
-        }
-    };
-
-    const handleMainAction = async () => {
-        if (isUpdating) return;
-        setIsUpdating(true);
-        const nextStatus = order.status === 'preparing' ? 'ready' : 'preparing';
-        const loadingToast = toast.loading('Updating order status...');
-        try {
-            await updateOrderStatus(order._id, nextStatus);
-            toast.dismiss(loadingToast);
-            toast.success(`Order #${order.orderNumber || '...'} ${nextStatus.toUpperCase()} 👨‍🍳`);
-            onUpdate();
-        } catch (error) {
-            toast.dismiss(loadingToast);
-            toast.error(error.response?.data?.message || 'Failed to update order status ❌');
-        } finally {
-            setIsUpdating(false);
         }
     };
 
@@ -161,24 +139,32 @@ const OrderCard = ({ order, onUpdate }) => {
                     ))}
                 </div>
 
+                {children && (
+                    <div className="pt-2 pb-1">
+                        {children}
+                    </div>
+                )}
+
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={handleMainAction}
-                        disabled={isUpdating}
-                        className={`flex-1 relative font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg group/btn  ${
-                            order.status === 'ready' 
-                                ? 'bg-green-500 text-white cursor-default' 
-                                : order.status === 'preparing' 
-                                    ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                                    : 'bg-gold text-charcoal hover:bg-gold/90'
-                        }`}
-                    >
-                        {isUpdating && <div className="absolute inset-0 bg-black/20 flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>}
-                        {order.status === 'ready' ? <CheckCircle className="w-5 h-5" /> : <ChefHat className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />}
-                        <span className="text-[10px] tracking-[0.2em] uppercase">
-                            {order.status === 'ready' ? 'Ready' : order.status === 'preparing' ? 'Mark as Ready' : 'Start Cooking'}
-                        </span>
-                    </button>
+                    {onMainAction && (
+                        <button 
+                            onClick={onMainAction}
+                            disabled={isUpdating || isActionDisabled}
+                            className={`flex-1 relative font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg group/btn  ${
+                                isActionDisabled 
+                                    ? 'bg-white/10 text-white/40 cursor-not-allowed border border-white/5' 
+                                    : actionText === 'Start Cooking' ? 'bg-gold text-charcoal hover:bg-gold/90 active:scale-95'
+                                    : actionText === 'Mark as Ready' ? 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
+                                    : 'bg-green-500 text-white hover:bg-green-600 active:scale-95'
+                            }`}
+                        >
+                            {isUpdating && <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-2xl"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>}
+                            <ChefHat className={`w-5 h-5 ${!isActionDisabled && 'group-hover/btn:rotate-12'} transition-transform`} />
+                            <span className="text-[10px] tracking-[0.2em] uppercase">
+                                {actionText}
+                            </span>
+                        </button>
+                    )}
                     
                     <button className="w-14 h-14 bg-white/5 border border-white/5 hover:border-gold/30 hover:bg-gold/10 text-gold flex items-center justify-center rounded-2xl transition-all shadow-lg active:scale-95">
                         <Info className="w-5 h-5" />

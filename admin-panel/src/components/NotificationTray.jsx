@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Package, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../services/api';
+import toast from 'react-hot-toast';
 
 const NotificationTray = () => {
   const [notifications, setNotifications] = useState(() => {
@@ -21,20 +22,36 @@ const NotificationTray = () => {
 
   useEffect(() => {
     // Listen for real-time events from server
-    socket.on('NEW_ORDER', (order) => {
+    const handleNewOrder = (order) => {
       const customerName = order.shippingAddress?.fullName || 'Valued Customer';
+      
+      // Immediate Toast Notification
+      toast.success(`🔥 New Order Received from ${customerName}!`, {
+        icon: '🛎️',
+        duration: 5000,
+      });
+
       const newNotif = {
         id: Date.now(),
         type: 'order',
         title: 'New Order Received',
         message: `New Order from ${customerName}. Order #${order.orderNumber} is awaiting deployment.`,
         priority: 'high',
-        icon: Package,
+        icon: 'Package',
         color: 'text-gold'
       };
-      setNotifications(prev => [newNotif, ...prev].slice(0, 10));
+      
+      setNotifications(prev => {
+        // Prevent duplicate notifications in the tray
+        const exists = prev.find(n => n.message.includes(order.orderNumber));
+        if (exists) return prev;
+        return [newNotif, ...prev].slice(0, 10);
+      });
       setUnreadCount(prev => prev + 1);
-    });
+    };
+
+    socket.on('NEW_ORDER', handleNewOrder);
+    socket.on('newOrder', handleNewOrder);
 
     socket.on('inventoryAlert', (alert) => {
       const newNotif = {
@@ -43,7 +60,7 @@ const NotificationTray = () => {
         title: 'Resource Depletion',
         message: `${alert.name} levels are critical: ${alert.currentStock} remaining.`,
         priority: 'urgent',
-        icon: AlertTriangle,
+        icon: 'AlertTriangle',
         color: 'text-crimson'
       };
       setNotifications(prev => [newNotif, ...prev].slice(0, 10));
@@ -52,6 +69,7 @@ const NotificationTray = () => {
 
     return () => {
       socket.off('NEW_ORDER');
+      socket.off('newOrder');
       socket.off('inventoryAlert');
     };
   }, []);
@@ -116,11 +134,13 @@ const NotificationTray = () => {
                   </div>
                 ) : (
                   <div className="divide-y divide-white/5">
-                    {notifications.map((notif) => (
+                    {notifications.map((notif) => {
+                      const IconComponent = { Package, AlertTriangle }[notif.icon] || Bell;
+                      return (
                       <div key={notif.id} className="p-4 hover:bg-white/[0.02] transition-colors relative group">
                         <div className="flex gap-4">
                           <div className={`mt-1 p-2 rounded-lg bg-[#1a1d23] border border-white/5 ${notif.color}`}>
-                            <notif.icon className="w-4 h-4" />
+                            <IconComponent className="w-4 h-4" />
                           </div>
                           <div className="flex-1 space-y-1">
                             <h4 className="text-[11px] font-bold text-soft-white">{notif.title}</h4>
@@ -137,7 +157,7 @@ const NotificationTray = () => {
                           </button>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>

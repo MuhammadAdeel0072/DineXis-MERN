@@ -12,6 +12,23 @@ const userSchema = new mongoose.Schema({
         enum: ['customer', 'admin', 'chef', 'rider'],
         default: 'customer'
     },
+    // Rider specific fields
+    phone: { type: String },
+    vehicleType: {
+        type: String,
+        enum: ['bike', 'car', 'van'],
+        default: 'bike'
+    },
+    status: {
+        type: String,
+        enum: ['online', 'offline'],
+        default: 'offline'
+    },
+    location: {
+        lat: { type: Number },
+        lng: { type: Number },
+        updatedAt: { type: Date }
+    },
     addresses: [
         {
             street: String,

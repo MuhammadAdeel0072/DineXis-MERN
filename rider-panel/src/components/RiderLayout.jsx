@@ -50,36 +50,34 @@ const RiderLayout = () => {
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <div className="flex flex-col h-full p-8">
-                    {/* Synchronized Logo - Matching Reference Image */}
                     <div className="mb-12">
                         <BrandLogo size="md" />
-                        <span className={`${typographyClasses.labelSmall} block mt-2`}>Rider Dashboard</span>
+                        <span className={`${typographyClasses.labelSmall} block mt-2 font-black tracking-[0.2em]`}>RIDER TERMINAL</span>
                     </div>
 
-                    <nav className="flex-1 space-y-3">
+                    <nav className="flex-1 space-y-4">
                         {navItems.map((item) => (
                             <NavLink
                                 key={item.path}
                                 to={item.path}
                                 onClick={() => setIsSidebarOpen(false)}
                                 className={({ isActive }) =>
-                                    `flex items-center space-x-4 px-5 py-4 rounded-xl transition-all duration-300 group ${
+                                    `flex items-center space-x-4 px-6 py-5 rounded-xl transition-all duration-300 group ${
                                         isActive 
                                             ? 'bg-gold/10 text-gold border border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.1)]' 
                                             : 'text-soft-white/60 hover:bg-white/5 hover:text-soft-white border border-transparent'
                                     }`
                                 }
                             >
-                                <item.icon className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
-                                <span className="font-semibold tracking-wide">{item.label}</span>
+                                <item.icon className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+                                <span className="text-base font-black uppercase tracking-widest">{item.label}</span>
                             </NavLink>
                         ))}
                     </nav>
 
-                    {/* Stats Card - Aligned with Card Premium */}
                     <div className="mt-auto p-4 glass rounded-2xl border border-white/5 text-center mb-4">
                         <p className="text-[10px] text-soft-white/20 font-bold uppercase tracking-widest mb-2">My Stats Today</p>
-                        <p className="text-3xl font-serif font-black text-gold italic leading-none">{stats?.completedToday || 0}</p>
+                        <p className="text-3xl font-serif font-black text-gold leading-none">{stats?.completedToday || 0}</p>
                         <p className="text-[10px] font-bold text-soft-white/40 uppercase tracking-widest mt-1">Deliveries Completed</p>
                     </div>
 

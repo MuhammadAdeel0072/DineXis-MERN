@@ -34,6 +34,21 @@ export const updateItemStatus = async (orderId, itemId, status) => {
     return data;
 };
 
+export const startCookingOrder = async (id) => {
+    const { data } = await api.put(`/orders/${id}/start`);
+    return data;
+};
+
+export const markOrderReady = async (id) => {
+    const { data } = await api.put(`/orders/${id}/ready`);
+    return data;
+};
+
+export const dispatchOrder = async (id, chefFeedback) => {
+    const { data } = await api.put(`/orders/${id}/dispatch`, { chefFeedback });
+    return data;
+};
+
 export const getKitchenStats = async () => {
     const { data } = await api.get('/chef/stats');
     return data;

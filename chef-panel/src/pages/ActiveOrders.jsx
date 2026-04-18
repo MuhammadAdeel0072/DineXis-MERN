@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import { getActiveOrders } from "../services/api";
-import socket from "../services/socket";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { useOrderContext } from "../context/OrderContext";
+import { startCookingOrder, markOrderReady } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChefHat, 
@@ -10,56 +11,39 @@ import {
 import OrderCard from "../components/OrderCard";
 
 const ActiveOrders = () => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { orders, loading, error } = useOrderContext();
     const [filter, setFilter] = useState('all');
 
-    const fetchOrders = async () => {
+    // Live Queue shows CONFIRMED, PLACED, and PREPARING
+    const validStatuses = ['CONFIRMED', 'PLACED', 'confirmed', 'placed', 'PREPARING', 'preparing'];
+    const activeOrders = orders.filter(o => validStatuses.includes(o.status));
+
+    const filteredOrders = activeOrders.filter(o => {
+        if (filter === 'all') return true;
+        if (filter === 'progress') return o.status === 'PREPARING' || o.status === 'preparing';
+        if (filter === 'urgent') return o.priority === 'urgent' || o.priority === 'URGENT' || o.priority === 'vip' || o.priority === 'VIP';
+        return true;
+    });
+
+    const handleStartCooking = async (id) => {
         try {
-            setError(null);
-            const data = await getActiveOrders();
-            setOrders(Array.isArray(data) ? data : []);
+            await startCookingOrder(id);
+            toast.success("Cooking Started! 🔥");
         } catch (error) {
-            console.error("Failed to fetch active orders", error);
-            setError("Failed to fetch active orders");
-        } finally {
-            setLoading(false);
+            toast.error("Failed to start cooking.");
+            console.error(error);
         }
     };
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    useEffect(() => {
-        if (socket) {
-            let debounceTimer = null;
-            
-            const handleUpdate = () => {
-                if (debounceTimer) clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    fetchOrders();
-                }, 500);
-            };
-            
-            socket.on('orderUpdate', handleUpdate);
-            socket.on('incomingOrder', handleUpdate);
-            
-            return () => {
-                if (debounceTimer) clearTimeout(debounceTimer);
-                socket.off('orderUpdate', handleUpdate);
-                socket.off('incomingOrder', handleUpdate);
-            };
+    const handleMarkReady = async (id) => {
+        try {
+            await markOrderReady(id);
+            toast.success("Successfully Order is Ready! ✅");
+        } catch (error) {
+            toast.error("Failed to mark order as ready.");
+            console.error(error);
         }
-    }, []);
-
-    const filteredOrders = orders.filter(o => {
-        if (filter === 'all') return true;
-        if (filter === 'urgent') return o.priority === 'urgent' || o.priority === 'vip';
-        if (filter === 'preparing') return o.status === 'preparing';
-        return true;
-    });
+    };
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-[50vh]">
@@ -72,7 +56,6 @@ const ActiveOrders = () => {
             <AlertCircle className="w-12 h-12 text-crimson mx-auto mb-2" />
             <p className="text-crimson font-bold uppercase tracking-widest text-xs">Operation Error</p>
             <p className="text-soft-white/60">{error}</p>
-            <button onClick={fetchOrders} className="btn-gold scale-90">REFRESH PAGE</button>
         </div>
     );
 
@@ -83,14 +66,14 @@ const ActiveOrders = () => {
                     <h1 className="text-4xl font-serif font-black mb-1 tracking-tighter">
                         Live <span className="text-gold ml-1">Orders Queue</span>
                     </h1>
-                    <p className="text-soft-white/40 tracking-[0.2em] uppercase text-[10px] font-bold italic">Live Kitchen Status</p>
+                    <p className="text-soft-white/40 tracking-[0.2em] uppercase text-[10px] font-bold italic">Awaiting Preparation</p>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-4">
                     <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
                         {[
                             { id: 'all', label: 'All Orders' },
-                            { id: 'preparing', label: 'Cooking' },
+                            { id: 'progress', label: 'Progress' },
                             { id: 'urgent', label: 'Urgent' }
                         ].map(f => (
                             <button
@@ -107,7 +90,7 @@ const ActiveOrders = () => {
 
                     <div className="flex items-center gap-2 px-4 py-2 bg-gold/10 text-gold rounded-xl border border-gold/20 text-[10px] font-bold uppercase tracking-widest">
                         <Activity className="w-4 h-4 animate-pulse" />
-                        Queue: {orders?.length || 0}
+                        Queue: {filteredOrders?.length || 0}
                     </div>
                 </div>
             </header>
@@ -129,7 +112,8 @@ const ActiveOrders = () => {
                             <OrderCard 
                                 key={order._id} 
                                 order={order} 
-                                onUpdate={fetchOrders} 
+                                actionText={(order.status === 'PREPARING' || order.status === 'preparing') ? "Mark as Ready" : "Start Cooking"}
+                                onMainAction={() => (order.status === 'PREPARING' || order.status === 'preparing') ? handleMarkReady(order._id) : handleStartCooking(order._id)}
                             />
                         ))
                     )}
