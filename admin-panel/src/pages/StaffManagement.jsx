@@ -234,9 +234,9 @@ const StaffManagement = () => {
               {/* View Modal */}
               {showModal === 'view' && selectedStaff && (
                 <>
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-6 sticky top-0 bg-charcoal z-20 py-4 -mt-4 -mx-6 px-6 border-b border-white/5 rounded-t-2xl">
                     <h3 className="text-xl font-serif font-bold text-gold">Staff Profile</h3>
-                    <button onClick={() => setShowModal(null)} className="p-2 hover:bg-white/5 rounded-lg transition-colors"><X className="w-5 h-5 text-soft-white/60" /></button>
+                    <button onClick={() => setShowModal(null)} className="btn-close-gold"><X className="w-5 h-5" /></button>
                   </div>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4 mb-6">
@@ -263,9 +263,9 @@ const StaffManagement = () => {
               {/* Edit Modal */}
               {showModal === 'edit' && selectedStaff && (
                 <>
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-6 sticky top-0 bg-charcoal z-20 py-4 -mt-4 -mx-6 px-6 border-b border-white/5 rounded-t-2xl">
                     <h3 className="text-xl font-serif font-bold text-gold">Edit Staff</h3>
-                    <button onClick={() => setShowModal(null)} className="p-2 hover:bg-white/5 rounded-lg transition-colors"><X className="w-5 h-5 text-soft-white/60" /></button>
+                    <button onClick={() => setShowModal(null)} className="btn-close-gold"><X className="w-5 h-5" /></button>
                   </div>
                   <div className="space-y-4">
                     <FormField label="Name" value={editForm.name} onChange={v => setEditForm(p => ({ ...p, name: v }))} placeholder="Full name" />
@@ -407,7 +407,7 @@ const DashboardTab = ({ stats }) => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Role Distribution */}
-        <motion.div variants={itemVariants} className="glass p-6 rounded-2xl border border-white/5">
+        <motion.div variants={itemVariants} className="bg-[#1A1A1A] p-6 rounded-[2rem] border border-white/5 shadow-2xl">
           <h3 className="text-lg font-serif font-bold text-gold mb-4 flex items-center gap-2">
             <div className="w-1 h-5 bg-gold rounded-full" /> Role Distribution
           </h3>
@@ -425,7 +425,7 @@ const DashboardTab = ({ stats }) => {
         </motion.div>
 
         {/* Attendance Overview */}
-        <motion.div variants={itemVariants} className="glass p-6 rounded-2xl border border-white/5">
+        <motion.div variants={itemVariants} className="bg-[#1A1A1A] p-6 rounded-[2rem] border border-white/5 shadow-2xl">
           <h3 className="text-lg font-serif font-bold text-gold mb-4 flex items-center gap-2">
             <div className="w-1 h-5 bg-gold rounded-full" /> Attendance This Week
           </h3>
@@ -567,16 +567,16 @@ const ListTab = ({ staffList, search, setSearch, roleFilter, setRoleFilter, stat
       </motion.div>
 
       {/* Table */}
-      <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
+      <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-white/10 bg-white/[0.04]">
-                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Name</th>
-                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Role</th>
-                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Status</th>
-                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Salary</th>
-                <th className="text-right py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Actions</th>
+              <tr className="border-b border-white/5 bg-[#1A1A1A]">
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tl-2xl">Name</th>
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold">Role</th>
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold">Status</th>
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold">Salary</th>
+                <th className="text-right py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tr-2xl">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -679,7 +679,7 @@ const AddStaffTab = ({ onSuccess }) => {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-xl mx-auto">
-      <motion.div variants={itemVariants} className="bg-black rounded-2xl border border-white/5 p-6 md:p-8 shadow-xl">
+      <motion.div variants={itemVariants} className="bg-[#1A1A1A] rounded-[2rem] border border-white/5 p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold/10">
         <h3 className="text-2xl font-serif font-black text-gold mb-8 flex items-center gap-3">
           <div className="w-1.5 h-7 bg-gold rounded-full" /> Add Professional Staff Member
         </h3>
@@ -787,14 +787,14 @@ const AttendanceTab = ({ fetchAllStaff }) => {
   const attendanceBtn = (staffId, status) => {
     const isActive = attendanceMap[staffId] === status;
     const colors = {
-      Present: isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'border-white/10 text-soft-white/30 hover:border-emerald-500/30 hover:text-emerald-400',
-      Absent: isActive ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'border-white/10 text-soft-white/30 hover:border-red-500/30 hover:text-red-400',
-      Late: isActive ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'border-white/10 text-soft-white/30 hover:border-yellow-500/30 hover:text-yellow-400',
+      Present: isActive ? 'bg-emerald-500 text-charcoal shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'border-emerald-500/20 text-emerald-500/60 hover:bg-emerald-500/10 hover:text-emerald-400',
+      Absent: isActive ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'border-red-500/20 text-red-500/60 hover:bg-red-500/10 hover:text-red-400',
+      Late: isActive ? 'bg-yellow-500 text-charcoal shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'border-yellow-500/20 text-yellow-500/60 hover:bg-yellow-500/10 hover:text-yellow-400',
     };
     return (
       <button
         onClick={() => handleMark(staffId, status)}
-        className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${colors[status]}`}
+        className={`px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${colors[status]}`}
       >{status}</button>
     );
   };
@@ -854,12 +854,12 @@ const AttendanceTab = ({ fetchAllStaff }) => {
 
       <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-white/10 bg-black">
-                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Staff Member</th>
-                <th className="text-left py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Role</th>
-                <th className="text-center py-6 px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold">Attendance Status</th>
+              <tr className="border-b border-white/5 bg-[#1A1A1A]">
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tl-2xl">Staff Member</th>
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold">Role</th>
+                <th className="text-center py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tr-2xl">Attendance Status</th>
               </tr>
             </thead>
             <tbody>
@@ -889,10 +889,10 @@ const AttendanceTab = ({ fetchAllStaff }) => {
       </motion.div>
 
       {/* Legend */}
-      <motion.div variants={itemVariants} className="flex items-center gap-6 text-xs text-soft-white/30">
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400" /> Present</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400" /> Late</span>
-        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400" /> Absent</span>
+      <motion.div variants={itemVariants} className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-widest text-soft-white/40 bg-white/5 p-4 rounded-xl border border-white/5">
+        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Present</span>
+        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> Late</span>
+        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> Absent</span>
       </motion.div>
     </motion.div>
   );
@@ -999,16 +999,16 @@ const SalariesTab = ({ fetchAllStaff }) => {
       </motion.div>
       <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-white/10 bg-black">
-                <th className="text-left py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90">Staff Member</th>
-                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Base</th>
-                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Bonus</th>
-                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Deductions</th>
-                <th className="text-right py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Final Salary</th>
-                <th className="text-center py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Status</th>
-                <th className="text-right py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90">Actions</th>
+              <tr className="border-b border-white/5 bg-[#1A1A1A]">
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tl-2xl">Staff Member</th>
+                <th className="text-right py-6 px-4 text-sm font-black uppercase tracking-[0.2em] text-gold">Base</th>
+                <th className="text-right py-6 px-4 text-sm font-black uppercase tracking-[0.2em] text-gold">Bonus</th>
+                <th className="text-right py-6 px-4 text-sm font-black uppercase tracking-[0.2em] text-gold">Deductions</th>
+                <th className="text-right py-6 px-4 text-sm font-black uppercase tracking-[0.2em] text-gold">Final Salary</th>
+                <th className="text-center py-6 px-4 text-sm font-black uppercase tracking-[0.2em] text-gold">Status</th>
+                <th className="text-right py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tr-2xl">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -1137,7 +1137,7 @@ const PerformanceTab = ({ fetchAllStaff }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {staff.map(s => (
-            <motion.div key={s._id} variants={itemVariants} className="bg-black p-5 rounded-2xl border border-white/5 hover:border-gold/10 transition-all shadow-lg">
+            <motion.div key={s._id} variants={itemVariants} className="bg-[#1A1A1A] p-6 rounded-[2rem] border border-white/5 hover:border-gold/20 transition-all duration-500 shadow-2xl group">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-sm font-bold text-gold font-serif italic">{s.name?.charAt(0)}</div>
                 <div>
@@ -1238,14 +1238,14 @@ const ShiftsTab = ({ fetchAllStaff }) => {
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
       <motion.div variants={itemVariants} className="glass rounded-2xl border border-white/5 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-white/10 bg-[#121212]">
-                <th className="text-left py-5 px-6 text-xs font-bold uppercase tracking-widest text-gold/90 sticky left-0 bg-[#121212] z-10">Staff Member</th>
+              <tr className="border-b border-white/5 bg-[#1A1A1A]">
+                <th className="text-left py-6 px-6 text-sm font-black uppercase tracking-[0.2em] text-gold sticky left-0 bg-[#1A1A1A] z-10 rounded-tl-2xl">Staff Member</th>
                 {DAYS.map(d => (
-                  <th key={d} className="text-center py-5 px-2 text-xs font-bold uppercase tracking-widest text-gold/90 min-w-[110px]">{d.slice(0, 3)}</th>
+                  <th key={d} className="text-center py-6 px-2 text-sm font-black uppercase tracking-[0.2em] text-gold min-w-[110px]">{d.slice(0, 3)}</th>
                 ))}
-                <th className="text-center py-5 px-4 text-xs font-bold uppercase tracking-widest text-gold/90">Actions</th>
+                <th className="text-center py-6 px-4 text-sm font-black uppercase tracking-[0.2em] text-gold rounded-tr-2xl">Actions</th>
               </tr>
             </thead>
             <tbody>

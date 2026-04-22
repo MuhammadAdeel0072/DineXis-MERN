@@ -26,7 +26,7 @@ const ReportManagement = () => {
     const fetchReportData = async () => {
         setLoading(true);
         // Do not reset reportData here to avoid flickering during real-time updates
-        
+
         try {
             const endpoint = `/reports/${reportType === 'daily' ? 'daily-closing' : reportType}`;
             const { data } = await api.get(endpoint, { params: dateRange });
@@ -148,9 +148,9 @@ const ReportManagement = () => {
                     <Table
                         headers={['Name', 'Role', 'Orders', 'Value', 'Present', 'Absent', 'Late']}
                         rows={Array.isArray(reportData) ? reportData.map(s => [
-                            s.name, 
-                            s.role?.toUpperCase(), 
-                            s.ordersCount, 
+                            s.name,
+                            s.role?.toUpperCase(),
+                            s.ordersCount,
                             `Rs. ${s.totalValue.toLocaleString()}`,
                             <span className="text-emerald-400">{s.attendance?.Present || 0}</span>,
                             <span className="text-crimson">{s.attendance?.Absent || 0}</span>,
@@ -163,8 +163,8 @@ const ReportManagement = () => {
                     <Table
                         headers={['Item Name', 'In Stock', 'Used Stock', 'Status']}
                         rows={Array.isArray(reportData) ? reportData.map(i => [
-                            i.name, 
-                            i.available, 
+                            i.name,
+                            i.available,
                             i.used,
                             <span className={i.isLowStock ? 'text-crimson' : 'text-emerald-400'}>{i.status}</span>
                         ]) : []}
@@ -222,8 +222,8 @@ const ReportManagement = () => {
                         key={tab.id}
                         onClick={() => setReportType(tab.id)}
                         className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all ${reportType === tab.id
-                                ? 'bg-gold text-charcoal shadow-lg shadow-gold/20'
-                                : 'bg-white/5 text-soft-white/40 hover:text-soft-white hover:bg-white/10'
+                            ? 'bg-gold text-charcoal shadow-lg shadow-gold/20'
+                            : 'bg-white/5 text-soft-white/40 hover:text-soft-white hover:bg-white/10'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -235,13 +235,13 @@ const ReportManagement = () => {
             {/* Simple Actions Row */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/5 p-6 rounded-3xl border border-white/5">
                 <div className="flex items-center gap-4 flex-wrap">
-                    <button 
+                    <button
                         onClick={() => setDateRange({ startDate: '', endDate: '' })}
                         className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${!dateRange.startDate && !dateRange.endDate ? 'bg-gold text-charcoal border-gold' : 'border-white/10 text-soft-white/40 hover:border-gold/30 hover:text-gold'}`}
                     >
                         All Time
                     </button>
-                    
+
                     <div className="h-4 w-px bg-white/10 hidden md:block" />
 
                     <div className="flex items-center gap-3">
@@ -298,15 +298,18 @@ const KPI = ({ data, label, format = '', color = 'text-soft-white' }) => (
 
 // Reusable Simple Table
 const Table = ({ headers, rows }) => (
-    <div className="overflow-x-auto rounded-[32px] border border-white/5 bg-black/40">
-        <table className="w-full text-left min-w-max">
+    <div className="overflow-x-auto glass rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
+        <table className="w-full text-left min-w-max border-separate border-spacing-0">
             <thead>
-                <tr className="bg-white/5 border-b border-white/10">
+                <tr className="bg-[#1A1A1A]">
                     {headers.map((h, i) => {
                         const hLower = String(h).toLowerCase();
                         const isPrimary = hLower.includes('name') || hLower.includes('title') || hLower.includes('customer') || hLower.includes('item');
                         return (
-                            <th key={i} className={`text-left py-6 px-4 sm:px-6 text-[13px] font-black uppercase tracking-[0.15em] text-gold ${!isPrimary ? 'whitespace-nowrap' : 'min-w-[150px]'}`}>
+                            <th 
+                                key={i} 
+                                className={`text-left py-6 px-8 text-sm font-black uppercase tracking-[0.2em] text-gold border-b border-white/5 ${i === 0 ? 'rounded-tl-2xl' : ''} ${i === headers.length - 1 ? 'rounded-tr-2xl' : ''} ${!isPrimary ? 'whitespace-nowrap' : 'min-w-[150px]'}`}
+                            >
                                 {h}
                             </th>
                         );
@@ -315,12 +318,12 @@ const Table = ({ headers, rows }) => (
             </thead>
             <tbody className="divide-y divide-white/5">
                 {rows.map((row, i) => (
-                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
                         {row.map((cell, j) => {
                             const hLower = String(headers[j] || '').toLowerCase();
                             const isPrimary = hLower.includes('name') || hLower.includes('title') || hLower.includes('customer') || hLower.includes('item');
                             return (
-                                <td key={j} className={`px-8 py-6 text-xs text-soft-white/60 ${!isPrimary ? 'whitespace-nowrap' : 'break-words min-w-[150px] leading-relaxed'}`}>
+                                <td key={j} className={`px-8 py-6 text-[13px] font-medium text-soft-white group-hover:text-gold transition-colors ${!isPrimary ? 'whitespace-nowrap' : 'break-words min-w-[150px] leading-relaxed'}`}>
                                     {cell}
                                 </td>
                             );
@@ -329,7 +332,7 @@ const Table = ({ headers, rows }) => (
                 ))}
                 {rows.length === 0 && (
                     <tr>
-                        <td colSpan={headers.length} className="px-8 py-10 text-center text-[10px] uppercase font-bold text-soft-white/20">No data found in selected range</td>
+                        <td colSpan={headers.length} className="px-8 py-16 text-center text-xs uppercase font-black tracking-[0.3em] text-soft-white/10">No data found in selected range</td>
                     </tr>
                 )}
             </tbody>

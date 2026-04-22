@@ -151,7 +151,7 @@ const NotificationTray = () => {
                               e.stopPropagation();
                               removeNotification(notif.id);
                             }}
-                            className="p-1 h-fit opacity-0 group-hover:opacity-100 text-soft-white/20 hover:text-crimson transition-all"
+                            className="btn-close-gold !p-1.5 opacity-0 group-hover:opacity-100"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>

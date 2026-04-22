@@ -124,9 +124,9 @@ const ReservationManagement = () => {
                       </button>
                       <button 
                         onClick={() => updateStatus(res._id, 'Cancelled')}
-                        className="px-4 py-3 bg-white/5 hover:bg-crimson/10 text-soft-white/40 hover:text-crimson rounded-xl border border-white/10 hover:border-crimson/20 transition-all"
+                        className="btn-close-gold p-3"
                       >
-                        <X className="w-5 h-5 transition-transform group-hover:scale-110" />
+                        <X className="w-5 h-5" />
                       </button>
                     </div>
                   )}

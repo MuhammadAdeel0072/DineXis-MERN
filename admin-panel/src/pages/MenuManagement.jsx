@@ -397,11 +397,11 @@ const MenuManagement = () => {
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
               className="glass rounded-[32px] w-full max-w-4xl max-h-full overflow-y-auto relative z-10 shadow-[0_32px_128px_rgba(0,0,0,0.5)] border border-white/10"
             >
-              <div className="sticky top-0 bg-charcoal/80 backdrop-blur-xl p-5 md:p-8 border-b border-white/5 flex items-center justify-between z-20">
+              <div className="sticky top-0 bg-charcoal p-5 md:p-8 border-b border-white/5 flex items-center justify-between z-20">
                 <h2 className="text-xl md:text-3xl font-serif font-bold text-gold tracking-tighter">
                   {editingItem ? 'Edit Menu Item' : 'New Menu Item'}
                 </h2>
-                <button onClick={handleCloseModal} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-soft-white/50 hover:text-soft-white">
+                <button onClick={handleCloseModal} className="btn-close-gold">
                   <X className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
               </div>
@@ -516,7 +516,7 @@ const MenuManagement = () => {
                   </div>
                 </div>
 
-                <div className="pt-10 flex flex-col-reverse sm:flex-row justify-end gap-4 md:gap-6 sticky bottom-0 bg-charcoal/90 backdrop-blur-md p-5 md:p-8 border-t border-white/5">
+                <div className="pt-10 flex flex-col-reverse sm:flex-row justify-end gap-4 md:gap-6 sticky bottom-0 bg-charcoal p-5 md:p-8 border-t border-white/5">
                   <button 
                     type="button"
                     onClick={handleCloseModal}
@@ -556,16 +556,16 @@ const MenuManagement = () => {
               exit={{ scale: 0.9, opacity: 0, y: 50 }}
               className="glass rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_32px_128px_rgba(0,0,0,0.5)] border border-white/10"
             >
-              <div className="bg-charcoal/80 backdrop-blur-xl p-5 md:p-8 border-b border-white/5 flex items-center justify-between sticky top-0">
+              <div className="bg-charcoal p-5 md:p-8 border-b border-white/5 flex items-center justify-between sticky top-0 z-20">
                 <h2 className="text-xl md:text-2xl font-serif font-bold text-gold tracking-tighter">
                   Manage Categories
                 </h2>
-                <button 
+                  <button 
                   onClick={() => {
                     setIsCategoryModalOpen(false);
                     setEditingCategoryId(null);
                   }} 
-                  className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-soft-white/50 hover:text-soft-white"
+                  className="btn-close-gold"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -643,7 +643,7 @@ const MenuManagement = () => {
                                       setEditingCategoryId(null);
                                       setEditingCategoryName('');
                                     }}
-                                    className="p-2 bg-white/5 hover:bg-white/10 text-soft-white/50 rounded-lg transition-all"
+                                    className="btn-close-gold"
                                     title="Cancel"
                                   >
                                     <X className="w-4 h-4" />

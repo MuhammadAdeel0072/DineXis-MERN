@@ -46,10 +46,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       <div className="p-8 border-b border-white/5 flex items-center justify-between">
         <BrandLogo size="md" className="flex-1" />
         {/* Mobile Close Button */}
-        <button
-          onClick={onClose}
-          className="lg:hidden p-2 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
-        >
+        <button onClick={onClose} className="btn-close-gold lg:hidden">
           <X className="w-6 h-6" />
         </button>
       </div>
