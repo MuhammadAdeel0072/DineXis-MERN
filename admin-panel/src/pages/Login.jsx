@@ -108,7 +108,7 @@ const Login = () => {
                         )}
                     </button>
 
-                    
+
                 </form>
 
                 <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-center gap-4 text-[9px] font-bold text-white/20 uppercase tracking-widest">

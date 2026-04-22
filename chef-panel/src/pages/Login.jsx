@@ -11,12 +11,6 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleClear = () => {
-        setEmail('');
-        setPassword('');
-        toast.success('Inputs cleared');
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -109,18 +103,9 @@ const Login = () => {
                         {loading ? <div className="w-5 h-5 border-2 border-[#0f1115]/30 border-t-[#0f1115] rounded-full animate-spin"></div> : (
                             <>
                                 <Utensils size={20} />
-                                Authenticate Station
+                                LOGIN
                             </>
                         )}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleClear}
-                        className="w-full text-xs font-bold text-white/30 uppercase tracking-[0.2em] hover:text-crimson transition-all pt-3 flex items-center justify-center gap-2"
-                    >
-                        <XCircle size={14} />
-                        Clear Entries
                     </button>
                 </form>
 

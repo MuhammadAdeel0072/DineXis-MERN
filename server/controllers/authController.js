@@ -347,6 +347,41 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Change Password (Logged In)
+// @route   POST /api/auth/change-password
+// @access  Private
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    res.status(400);
+    throw new Error('Please provide current and new password');
+  }
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Check current password
+  const isMatch = await user.matchPassword(currentPassword);
+  if (!isMatch) {
+    res.status(401);
+    throw new Error('Incorrect current password');
+  }
+
+  // Set new password (will be hashed by pre-save hook)
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password updated successfully'
+  });
+});
+
 module.exports = {
   registerUser,
   authUser,
@@ -358,6 +393,7 @@ module.exports = {
   deleteUserAccount,
   clearCart,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  changePassword
 };
 

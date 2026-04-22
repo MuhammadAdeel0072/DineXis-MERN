@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -7,8 +8,8 @@
   --color-soft-white: #E0E0E0;
   --color-crimson: #dc143c;
   
-  --font-sans: 'Times New Roman', Times, serif;
-  --font-serif: 'Times New Roman', Times, serif;
+  --font-sans: 'Outfit', sans-serif;
+  --font-serif: 'Playfair Display', serif;
 }
 
 @layer base {

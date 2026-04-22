@@ -70,14 +70,14 @@ const SignUp = () => {
                 {(loading || authLoading) && (
                     <div className="absolute inset-0 bg-charcoal/95 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in duration-300">
                         <Loader2 className="w-16 h-16 text-gold animate-spin mb-6" />
-                        <p className="text-xl font-bold text-gold tracking-wider font-serif">Creating Identity...</p>
-                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2">Initializing Membership</p>
+                        <p className="text-xl font-bold text-gold tracking-wider font-serif">Creating your account...</p>
+                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2">Please wait</p>
                     </div>
                 )}
 
                 <div className="p-8 border-b border-white/10 text-center">
                     <h2 className="text-4xl font-serif font-black text-gold tracking-wider">SIGN <span className="text-crimson">UP</span></h2>
-                    <p className="text-xs text-soft-white/60 font-bold uppercase tracking-widest mt-1">Join the AK-7 Inner Circle</p>
+                    <p className="text-xs text-soft-white/60 font-bold uppercase tracking-widest mt-1">Join AK-7 Restaurant</p>
                 </div>
 
                 <div className="p-8">
@@ -118,7 +118,7 @@ const SignUp = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Email Terminal</label>
+                            <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Email Address</label>
                             <div className="relative">
                                 <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isValidEmail ? 'text-green-400' : 'text-gray-500'}`} size={20} />
                                 <input
@@ -133,7 +133,7 @@ const SignUp = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Security Key</label>
+                             <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                                 <input
@@ -155,14 +155,14 @@ const SignUp = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Confirm Key</label>
+                             <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Confirm Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                                 <input
                                     type="password"
                                     required
                                     className={`w-full pl-12 pr-4 py-4 bg-white/5 border rounded-2xl outline-none transition-all font-bold text-white ${password && confirmPassword && password !== confirmPassword ? 'border-crimson' : 'border-white/10 focus:border-gold'}`}
-                                    placeholder="Repeat security key"
+                                     placeholder="Repeat password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                 />
@@ -174,7 +174,7 @@ const SignUp = () => {
                             disabled={loading || !firstName || !isValidEmail || !password || password !== confirmPassword}
                             className={`w-full py-4 mt-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-xl ${(loading || !firstName || !isValidEmail || !password || password !== confirmPassword) ? 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gold hover:bg-yellow-400 text-charcoal hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-[0.98]'}`}
                         >
-                            Initiate Membership
+                            Sign Up
                             <ArrowRight size={20} />
                         </button>
                     </form>
@@ -191,7 +191,7 @@ const SignUp = () => {
 
                 <div className="bg-white/5 p-4 border-t border-white/10 flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-500 px-8">
                     <span className="flex items-center gap-2 text-gold"><span className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse shadow-[0_0_5px_currentColor]"></span> Identity Secured</span>
-                    <span>AK-7 Guest Protocol</span>
+                    <span>AK-7 Restaurant</span>
                 </div>
             </div>
         </div>

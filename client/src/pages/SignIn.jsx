@@ -91,17 +91,17 @@ const SignIn = () => {
                 {(loading || authLoading) && (
                     <div className="absolute inset-0 bg-charcoal/95 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in duration-300">
                         <Loader2 className="w-16 h-16 text-gold animate-spin mb-6" />
-                        <p className="text-xl font-bold text-gold tracking-wider font-serif">Processing Protocol...</p>
-                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2">Identity terminal active</p>
+                        <p className="text-xl font-bold text-gold tracking-wider font-serif">Signing you in...</p>
+                        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2">Please wait</p>
                     </div>
                 )}
 
                 <div className="p-8 border-b border-white/10 text-center">
                     <h2 className="text-4xl font-serif font-black text-gold tracking-wider uppercase">
-                        {view === 'login' ? <>SIGN <span className="text-crimson">IN</span></> : <>RESET <span className="text-crimson">KEY</span></>}
+                        {view === 'login' ? <>SIGN <span className="text-crimson">IN</span></> : <>RESET <span className="text-crimson">PASSWORD</span></>}
                     </h2>
                     <p className="text-xs text-soft-white/60 font-bold uppercase tracking-widest mt-1">
-                        {view === 'login' ? 'Welcome back to AK-7 Executive' : 'Security Recovery Terminal'}
+                        {view === 'login' ? 'Welcome back to AK-7' : 'Reset Your Password'}
                     </p>
                 </div>
 
@@ -110,7 +110,7 @@ const SignIn = () => {
                     {view === 'login' && (
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label htmlFor="email-input" className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Email Identity</label>
+                                <label htmlFor="email-input" className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Email Address</label>
                                 <div className="relative">
                                     <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isValidEmail ? 'text-green-400' : 'text-gray-500'}`} size={20} />
                                     <input
@@ -132,13 +132,13 @@ const SignIn = () => {
 
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center ml-1">
-                                    <label htmlFor="password-input" className="text-[10px] font-black text-gold uppercase tracking-widest">Security Key</label>
+                                    <label htmlFor="password-input" className="text-[10px] font-black text-gold uppercase tracking-widest">Password</label>
                                     <button 
                                         type="button"
                                         onClick={() => setView('forgot')}
                                         className="text-[10px] font-bold text-gray-500 hover:text-gold uppercase tracking-widest transition-colors"
                                     >
-                                        Forgot Key?
+                                        Forgot Password?
                                     </button>
                                 </div>
                                 <div className="relative">
@@ -168,7 +168,7 @@ const SignIn = () => {
                                 disabled={!isValidEmail || !password || loading}
                                 className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-xl ${(!isValidEmail || !password || loading) ? 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10' : 'bg-gold hover:bg-yellow-400 text-charcoal hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-[0.98]'}`}
                             >
-                                Authorize Access
+                                Sign In
                                 <ArrowRight size={20} />
                             </button>
                         </form>
@@ -180,7 +180,7 @@ const SignIn = () => {
                             {recoveryStep === 1 ? (
                                 <form onSubmit={handleRequestOTP} className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Registered Email</label>
+                                        <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Your Email</label>
                                         <div className="relative">
                                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                                             <input
@@ -197,20 +197,20 @@ const SignIn = () => {
                                         type="submit"
                                         className="w-full py-4 bg-gold text-charcoal rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                                     >
-                                        Get OTP Key
+                                        Send Reset Code
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={() => setView('login')}
                                         className="w-full text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
                                     >
-                                        Back to Login
+                                        Back to Sign In
                                     </button>
                                 </form>
                             ) : (
                                 <form onSubmit={handleResetPassword} className="space-y-6 animate-in slide-in-from-right duration-500">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Authentication OTP</label>
+                                        <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">Enter Code</label>
                                         <div className="relative">
                                             <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                                             <input
@@ -226,7 +226,7 @@ const SignIn = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">New Terminal Key</label>
+                                        <label className="text-[10px] font-black text-gold uppercase tracking-widest ml-1">New Password</label>
                                         <div className="relative">
                                             <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                                             <input
@@ -234,7 +234,7 @@ const SignIn = () => {
                                                 required
                                                 autoComplete="new-password"
                                                 className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-gold transition-all font-bold text-white"
-                                                placeholder="New Security Key"
+                                                placeholder="Enter new password"
                                                 value={newPassword}
                                                 onChange={(e) => setNewPassword(e.target.value)}
                                             />
@@ -245,10 +245,10 @@ const SignIn = () => {
                                         type="submit"
                                         className="w-full py-4 bg-crimson text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-crimson/20"
                                     >
-                                        Initialize Reset
+                                        Update Password
                                     </button>
                                     <p className="text-[10px] text-center text-soft-white/40 uppercase tracking-widest px-4 leading-relaxed">
-                                        Check your server console for the 6-digit key to authorize this terminal.
+                                        Check your email for the 6-digit code.
                                     </p>
                                 </form>
                             )}
@@ -260,7 +260,7 @@ const SignIn = () => {
                             <p className="text-gray-400 text-sm font-medium">
                                 Don't have an account?{' '}
                                 <Link to="/signup" className="text-gold font-bold hover:underline underline-offset-4">
-                                    Join Executive Club
+                                    Sign Up
                                 </Link>
                             </p>
                         </div>
@@ -272,7 +272,7 @@ const SignIn = () => {
                         <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_5px_currentColor]"></span>
                         Secure Connection
                     </span>
-                    <span>Midnight Gourmet System</span>
+                    <span>AK-7 Restaurant</span>
                 </div>
             </div>
         </div>

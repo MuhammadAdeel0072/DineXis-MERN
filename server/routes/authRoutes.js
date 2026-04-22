@@ -8,7 +8,8 @@ const {
   getLoyaltyStatus, 
   deleteUserAccount,
   forgotPassword,
-  resetPassword 
+  resetPassword,
+  changePassword 
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -25,6 +26,7 @@ router.get('/profile', getUserProfile);
 router.put('/profile', updateUserProfile);
 
 router.get('/loyalty', getLoyaltyStatus);
+router.post('/change-password', changePassword);
 router.delete('/delete', deleteUserAccount);
 
 module.exports = router;
