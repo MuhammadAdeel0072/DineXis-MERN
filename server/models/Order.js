@@ -54,6 +54,8 @@ const orderSchema = new mongoose.Schema({
         postalCode: { type: String },
         landmark: { type: String },
         country: { type: String, default: 'Pakistan' },
+        lat: { type: Number },
+        lng: { type: Number },
     },
     paymentMethod: { type: String, required: true },
     paymentReference: { type: String },
@@ -71,8 +73,18 @@ const orderSchema = new mongoose.Schema({
     paidAt: { type: Date },
     status: {
         type: String,
-        enum: ['placed', 'confirmed', 'preparing', 'ready', 'picked-up', 'out-for-delivery', 'delivered', 'cancelled', 'PLACED', 'CONFIRMED', 'PREPARING', 'READY', 'DISPATCHED', 'DELIVERED', 'CANCELLED'],
-        default: 'placed'
+        enum: [
+            'PENDING', 
+            'PREPARING', 
+            'READY_FOR_DELIVERY', 
+            'ASSIGNED', 
+            'ACCEPTED', 
+            'PICKED_UP', 
+            'ARRIVED', 
+            'DELIVERED', 
+            'CANCELLED'
+        ],
+        default: 'PENDING'
     },
     statusHistory: [
         {
@@ -83,9 +95,20 @@ const orderSchema = new mongoose.Schema({
     preparationStartTime: { type: Date },
     preparationEndTime: { type: Date },
     readyAt: { type: Date },
+    assignedAt: { type: Date },
+    acceptedAt: { type: Date },
+    pickedUpAt: { type: Date },
+    arrivedAt: { type: Date },
     deliveredAt: { type: Date },
     orderNumber: { type: String, unique: true },
     loyaltyPointsEarned: { type: Number, default: 0 },
+    // --- Smart Batching Fields ---
+    routeGroupId: { type: String },
+    sequenceNumber: { type: Number, default: 0 },
+    deliveryClusterId: { type: String },
+    estimatedDistance: { type: Number }, // in km
+    estimatedTime: { type: Number }, // in minutes
+    // ----------------------------
     rider: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -94,8 +117,6 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    acceptedAt: { type: Date },
-    pickedUpAt: { type: Date },
     riderLocation: {
         lat: { type: Number },
         lng: { type: Number },

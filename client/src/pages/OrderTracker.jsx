@@ -108,12 +108,14 @@ const OrderTracker = () => {
   }, [socket, id]);
 
   const steps = [
-    { status: 'placed', label: 'Order Received', icon: Package, desc: 'We have received your order.' },
-    { status: 'preparing', label: 'Preparing', icon: Clock, desc: 'Our chefs are cooking your meal.' },
-    { status: 'ready', label: 'Ready', icon: CheckCircle, desc: 'Order is ready for pickup.' },
-    { status: 'picked-up', label: 'Picked by Rider', icon: Bike, desc: 'Rider has picked up your order.' },
-    { status: 'out-for-delivery', label: 'Out for Delivery', icon: Navigation, desc: 'Rider is on the way.' },
-    { status: 'delivered', label: 'Delivered', icon: MapPin, desc: 'Order delivered.' },
+    { status: 'PENDING', label: 'Order Received', icon: Package, desc: 'We have received your order.' },
+    { status: 'PREPARING', label: 'Preparing', icon: Clock, desc: 'Our chefs are cooking your meal.' },
+    { status: 'READY_FOR_DELIVERY', label: 'Ready', icon: CheckCircle, desc: 'Order is ready for pickup.' },
+    { status: 'ASSIGNED', label: 'Rider Assigned', icon: User, desc: 'A rider is being assigned.' },
+    { status: 'ACCEPTED', label: 'Rider Accepted', icon: Bike, desc: 'A rider has accepted your mission.' },
+    { status: 'PICKED_UP', label: 'Picked Up', icon: Navigation, desc: 'Rider has picked up your order.' },
+    { status: 'ARRIVED', label: 'Rider Arrived', icon: Truck, desc: 'Rider is at your location.' },
+    { status: 'DELIVERED', label: 'Delivered', icon: MapPin, desc: 'Order delivered.' },
   ];
 
   const currentStep = steps.findIndex(s => s.status === order?.status);

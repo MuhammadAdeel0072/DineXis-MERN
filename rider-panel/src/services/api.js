@@ -13,9 +13,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-
+// Basic Queries
 export const getAvailableOrders = async () => {
     const { data } = await api.get('/rider/available');
+    return data;
+};
+
+export const getNearbyOrders = async (lat, lng) => {
+    const { data } = await api.get('/rider/nearby-orders', { params: { lat, lng } });
     return data;
 };
 
@@ -24,23 +29,40 @@ export const getMyOrders = async () => {
     return data;
 };
 
-export const acceptOrder = async (orderId) => {
-    const { data } = await api.patch('/rider/accept', { orderId });
-    return data;
-};
-
-export const updateDeliveryStatus = async (orderId, status) => {
-    const { data } = await api.patch('/rider/status', { orderId, status });
-    return data;
-};
-
-export const updateLocationData = async (orderId, lat, lng) => {
-    const { data } = await api.patch('/rider/location', { orderId, lat, lng });
-    return data;
-};
-
 export const getRiderStats = async () => {
     const { data } = await api.get('/rider/stats');
+    return data;
+};
+
+// Workflow Methods
+export const claimOrder = async (orderId) => {
+    const { data } = await api.post(`/rider/claim/${orderId}`);
+    return data;
+};
+
+export const acceptOrder = async (orderId) => {
+    const { data } = await api.post(`/rider/accept/${orderId}`);
+    return data;
+};
+
+export const pickupOrder = async (orderId) => {
+    const { data } = await api.post(`/rider/pickup/${orderId}`);
+    return data;
+};
+
+export const arrivedAtDestination = async (orderId) => {
+    const { data } = await api.post(`/rider/arrived/${orderId}`);
+    return data;
+};
+
+export const confirmDelivery = async (orderId) => {
+    const { data } = await api.post(`/rider/delivered/${orderId}`);
+    return data;
+};
+
+// Smart Batching
+export const addToRoute = async (orderId) => {
+    const { data } = await api.post(`/rider/add-to-route/${orderId}`);
     return data;
 };
 

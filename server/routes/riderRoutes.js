@@ -2,11 +2,14 @@ const express = require('express');
 const router = express.Router();
 const {
     getAvailableOrders,
+    getNearbyOrders,
     getMyOrders,
+    addToRoute,
+    claimOrder,
     acceptOrder,
-    rejectOrder,
-    updateDeliveryStatus,
-    updateLocation,
+    pickupOrder,
+    arrivedAtDestination,
+    confirmDelivery,
     getRiderStats
 } = require('../controllers/riderController');
 const { protect } = require('../middleware/authMiddleware');
@@ -16,11 +19,18 @@ router.use(protect);
 router.use(riderMiddleware);
 
 router.get('/available', getAvailableOrders);
+router.get('/nearby-orders', getNearbyOrders);
 router.get('/my-orders', getMyOrders);
-router.patch('/accept', acceptOrder);
-router.patch('/reject', rejectOrder);
-router.patch('/status', updateDeliveryStatus);
-router.patch('/location', updateLocation);
 router.get('/stats', getRiderStats);
+
+// Workflow Step-by-Step
+router.post('/claim/:orderId', claimOrder);
+router.post('/accept/:orderId', acceptOrder);
+router.post('/pickup/:orderId', pickupOrder);
+router.post('/arrived/:orderId', arrivedAtDestination);
+router.post('/delivered/:orderId', confirmDelivery);
+
+// Smart Batching
+router.post('/add-to-route/:orderId', addToRoute);
 
 module.exports = router;

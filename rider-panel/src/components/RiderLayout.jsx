@@ -12,6 +12,7 @@ import {
 import { Toaster } from 'react-hot-toast';
 import { useRider } from '../context/RiderContext';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { BrandLogo, typographyClasses } from './BrandingUtils';
 
 const RiderLayout = () => {
@@ -20,6 +21,17 @@ const RiderLayout = () => {
     const location = useLocation();
     const { stats } = useRider();
     const { user, logout } = useAuth();
+    const { t, i18n } = useTranslation();
+
+    const toggleLanguage = () => {
+        const newLang = i18n.language === 'en' ? 'ur' : 'en';
+        i18n.changeLanguage(newLang);
+        document.documentElement.dir = newLang === 'ur' ? 'rtl' : 'ltr';
+    };
+
+    useEffect(() => {
+        document.documentElement.dir = i18n.language === 'ur' ? 'rtl' : 'ltr';
+    }, [i18n.language]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -27,9 +39,9 @@ const RiderLayout = () => {
     }, []);
 
     const navItems = [
-        { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/orders', label: 'Deliveries', icon: Truck },
-        { path: '/profile', label: 'Profile', icon: UserIcon },
+        { path: '/', label: t('dashboard'), icon: LayoutDashboard },
+        { path: '/orders', label: t('deliveries'), icon: Truck },
+        { path: '/profile', label: 'Profile', icon: UserIcon }, // Translation for Profile missing in i18n.js, I'll add it or use default
     ];
 
     return (
@@ -75,11 +87,7 @@ const RiderLayout = () => {
                         ))}
                     </nav>
 
-                    <div className="mt-auto p-4 glass rounded-2xl border border-white/5 text-center mb-4">
-                        <p className="text-[10px] text-soft-white/20 font-bold uppercase tracking-widest mb-2">My Stats Today</p>
-                        <p className="text-3xl font-serif font-black text-gold leading-none">{stats?.completedToday || 0}</p>
-                        <p className="text-[10px] font-bold text-soft-white/40 uppercase tracking-widest mt-1">Deliveries Completed</p>
-                    </div>
+
 
                     {/* Standardized Logout - Matching Admin/Chef */}
                     <button
@@ -105,20 +113,12 @@ const RiderLayout = () => {
                         <div className="flex items-center gap-4 pl-6 border-l border-white/5">
                             <div className="text-right">
                                 <p className="text-xs font-bold text-white leading-none">{user?.firstName}</p>
-                                <p className="text-[10px] font-bold text-gold/40 uppercase tracking-widest mt-1">Online</p>
                             </div>
                             {user?.avatar
                                 ? <img src={user.avatar} className="w-10 h-10 rounded-md border border-white/10 object-cover" alt="avatar" />
                                 : <div className="w-10 h-10 rounded-md border border-white/10 bg-white/5 flex items-center justify-center"><UserIcon className="w-5 h-5 text-gold/40" /></div>
                             }
                         </div>
-                        <button
-                            onClick={logout}
-                            className="p-2 text-crimson/60 hover:text-crimson hover:bg-crimson/5 rounded-lg transition-all ml-2"
-                            title="Logout"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </button>
                     </div>
                 </header>
 

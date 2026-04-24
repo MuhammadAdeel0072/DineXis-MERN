@@ -20,7 +20,7 @@ const Orders = () => {
         const data = await getMyOrders();
         const allOrders = data.orders || data || [];
         // Filter to show only active orders (not delivered)
-        const activeOrders = allOrders.filter(order => order.status !== 'delivered');
+        const activeOrders = allOrders.filter(order => order.status !== 'DELIVERED');
         setOrders(activeOrders);
       } catch (err) {
         console.error('Failed to load orders:', err);
@@ -35,14 +35,15 @@ const Orders = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'delivered':        return 'text-green-400 bg-green-400/10 border-green-400/20';
-      case 'out-for-delivery': return 'text-gold bg-gold/10 border-gold/20';
-      case 'ready':            return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
-      case 'preparing':        return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
-      case 'placed':           return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
-      case 'confirmed':        return 'text-blue-300 bg-blue-300/10 border-blue-300/20';
-      case 'picked-up':        return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-      case 'cancelled':        return 'text-red-400 bg-red-400/10 border-red-400/20';
+      case 'DELIVERED':        return 'text-green-400 bg-green-400/10 border-green-400/20';
+      case 'ARRIVED':          return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+      case 'PICKED_UP':        return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
+      case 'ACCEPTED':         return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+      case 'ASSIGNED':         return 'text-blue-300 bg-blue-300/10 border-blue-300/20';
+      case 'READY_FOR_DELIVERY': return 'text-gold bg-gold/10 border-gold/20';
+      case 'PREPARING':        return 'text-orange-300 bg-orange-300/10 border-orange-300/20';
+      case 'PENDING':          return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
+      case 'CANCELLED':        return 'text-red-400 bg-red-400/10 border-red-400/20';
       default:                 return 'text-gray-400 bg-white/5 border-white/10';
     }
   };

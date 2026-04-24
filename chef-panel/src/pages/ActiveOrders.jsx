@@ -14,13 +14,13 @@ const ActiveOrders = () => {
     const { orders, loading, error } = useOrderContext();
     const [filter, setFilter] = useState('all');
 
-    // Live Queue shows CONFIRMED, PLACED, and PREPARING
-    const validStatuses = ['CONFIRMED', 'PLACED', 'confirmed', 'placed', 'PREPARING', 'preparing'];
+    // Live Queue shows PENDING and PREPARING
+    const validStatuses = ['PENDING', 'PREPARING'];
     const activeOrders = orders.filter(o => validStatuses.includes(o.status));
 
     const filteredOrders = activeOrders.filter(o => {
         if (filter === 'all') return true;
-        if (filter === 'progress') return o.status === 'PREPARING' || o.status === 'preparing';
+        if (filter === 'progress') return o.status === 'PREPARING';
         if (filter === 'urgent') return o.priority === 'urgent' || o.priority === 'URGENT' || o.priority === 'vip' || o.priority === 'VIP';
         return true;
     });
@@ -70,7 +70,7 @@ const ActiveOrders = () => {
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
                         {[
                             { id: 'all', label: 'All Orders' },
                             { id: 'progress', label: 'Progress' },
@@ -112,8 +112,8 @@ const ActiveOrders = () => {
                             <OrderCard 
                                 key={order._id} 
                                 order={order} 
-                                actionText={(order.status === 'PREPARING' || order.status === 'preparing') ? "Mark as Ready" : "Start Cooking"}
-                                onMainAction={() => (order.status === 'PREPARING' || order.status === 'preparing') ? handleMarkReady(order._id) : handleStartCooking(order._id)}
+                                actionText={order.status === 'PREPARING' ? "Mark as Ready" : "Start Cooking"}
+                                onMainAction={() => order.status === 'PREPARING' ? handleMarkReady(order._id) : handleStartCooking(order._id)}
                             />
                         ))
                     )}

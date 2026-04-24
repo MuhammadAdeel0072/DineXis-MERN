@@ -92,8 +92,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
       isPaid: req.body.isPaid || false,
       paidAt: (req.body.isPaid || paymentMethod !== 'cod' && req.body.isPaid) ? Date.now() : null,
       orderNumber,
-      status: 'placed',
-      statusHistory: [{ status: 'placed', timestamp: Date.now() }]
+      status: 'PENDING',
+      statusHistory: [{ status: 'PENDING', timestamp: Date.now() }]
     });
 
     const createdOrder = await order.save();
@@ -295,13 +295,13 @@ const startCooking = asyncHandler(async (req, res) => {
 const markReady = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (order) {
-    order.status = 'READY';
-    order.statusHistory.push({ status: 'READY', timestamp: Date.now() });
+    order.status = 'READY_FOR_DELIVERY';
+    order.statusHistory.push({ status: 'READY_FOR_DELIVERY', timestamp: Date.now() });
     order.readyAt = Date.now();
     order.preparationEndTime = Date.now();
     const updatedOrder = await order.save();
     emitEvent(null, 'orderUpdated', updatedOrder);
-    emitEvent('riders', 'order:ready-for-delivery', updatedOrder);
+    emitEvent('rider', 'order:ready', updatedOrder);
     res.json(updatedOrder);
   } else {
     res.status(404);
@@ -316,14 +316,15 @@ const dispatchOrder = asyncHandler(async (req, res) => {
   const { chefFeedback } = req.body;
   const order = await Order.findById(req.params.id);
   if (order) {
-    order.status = 'DISPATCHED';
-    order.statusHistory.push({ status: 'DISPATCHED', timestamp: Date.now() });
+    order.status = 'READY_FOR_DELIVERY';
+    order.statusHistory.push({ status: 'READY_FOR_DELIVERY', timestamp: Date.now() });
     order.pickedUpAt = Date.now();
     if (chefFeedback) {
       order.chefFeedback = chefFeedback;
     }
     const updatedOrder = await order.save();
     emitEvent(null, 'orderUpdated', updatedOrder);
+    emitEvent('rider', 'order:ready', updatedOrder);
     res.json(updatedOrder);
   } else {
     res.status(404);

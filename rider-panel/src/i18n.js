@@ -29,7 +29,15 @@ i18n
           "earnings": "Earnings",
           "customer": "Customer",
           "address": "Address",
-          "phone": "Phone"
+          "phone": "Phone",
+          "profile": "Profile",
+          "online": "Online",
+          "active_delivery": "Active Delivery",
+          "account_details": "Account Details",
+          "signin_to_continue": "Sign In to Continue",
+          "login_button": "LOGIN",
+          "track_orders": "Track Your Orders",
+          "reject": "REJECT"
         }
       },
       ur: {
@@ -54,7 +62,15 @@ i18n
           "earnings": "آمدنی",
           "customer": "گاہک",
           "address": "پتہ",
-          "phone": "فون"
+          "phone": "فون",
+          "profile": "پروفائل",
+          "online": "آن لائن",
+          "active_delivery": "فعال ڈیلیوری",
+          "account_details": "اکاؤنٹ کی تفصیلات",
+          "signin_to_continue": "جاری رکھنے کے لیے سائن ان کریں",
+          "login_button": "لاگ ان کریں",
+          "track_orders": "اپنے آرڈرز ٹریک کریں",
+          "reject": "مسترد کریں"
         }
       }
     },

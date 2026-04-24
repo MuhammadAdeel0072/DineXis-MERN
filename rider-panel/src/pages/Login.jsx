@@ -3,8 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Bike, Lock, User, ShieldCheck, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+    const { t } = useTranslation();
     const { login } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('rider@ak7.com');
@@ -40,7 +42,7 @@ const Login = () => {
                         <Bike className="text-gold" size={32} />
                     </div>
                     <h1 className="text-3xl font-bold text-white tracking-tight mb-2">AK-7 <span className="text-gold">Rider</span></h1>
-                    <p className="text-xs font-medium text-white/40 uppercase tracking-[0.3em]">Sign In to Continue</p>
+                    <p className="text-xs font-medium text-white/40 uppercase tracking-[0.3em]">{t('signin_to_continue') || 'Sign In to Continue'}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6 relative" autoComplete="off">
@@ -103,7 +105,7 @@ const Login = () => {
                         {loading ? <div className="w-5 h-5 border-2 border-[#0f1115]/30 border-t-[#0f1115] rounded-full animate-spin"></div> : (
                             <>
                                 <ShieldCheck size={20} />
-                                LOGIN
+                                {t('login_button') || 'LOGIN'}
                             </>
                         )}
                     </button>

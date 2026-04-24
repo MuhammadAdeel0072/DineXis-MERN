@@ -50,8 +50,20 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const updateProfile = async (profileData) => {
+        try {
+            const { data } = await api.put('/auth/profile', profileData);
+            setUser(data);
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const refreshProfile = () => fetchProfile();
+
     return (
-        <AuthContext.Provider value={{ user, isLoaded, isSignedIn: !!user, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoaded, isSignedIn: !!user, login, logout, updateProfile, refreshProfile }}>
             {children}
         </AuthContext.Provider>
     );

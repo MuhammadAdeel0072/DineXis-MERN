@@ -32,10 +32,10 @@ const OrderCard = ({ order, onMainAction, actionText, isActionDisabled, isUpdati
     const isCloseToDelay = elapsed > estimatedLimit * 0.75;
 
     const getStatusColor = () => {
-        if (order.status === 'ready') return 'border-green-500/30 bg-green-500/5';
+        if (order.status === 'READY_FOR_DELIVERY') return 'border-green-500/30 bg-green-500/5';
         if (isDelayed) return 'border-crimson/40 bg-crimson/5 shadow-[0_0_50px_rgba(220,38,38,0.1)]';
         if (isCloseToDelay) return 'border-gold/30 bg-gold/5';
-        if (order.status === 'preparing') return 'border-blue-400/30 bg-blue-400/5';
+        if (order.status === 'PREPARING') return 'border-blue-400/30 bg-blue-400/5';
         return 'border-white/10 bg-white/5';
     };
 

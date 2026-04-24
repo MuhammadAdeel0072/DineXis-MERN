@@ -14,8 +14,8 @@ const ReadyQueue = () => {
     const { orders, loading, error } = useOrderContext();
     const [feedbacks, setFeedbacks] = useState({});
 
-    // Ready Queue only shows READY
-    const validStatuses = ['READY', 'ready'];
+    // Ready Queue only shows READY_FOR_DELIVERY
+    const validStatuses = ['READY_FOR_DELIVERY'];
     const filteredOrders = orders.filter(o => validStatuses.includes(o.status));
 
     const handleDispatch = async (id) => {

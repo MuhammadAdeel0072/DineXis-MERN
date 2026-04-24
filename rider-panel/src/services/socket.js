@@ -6,7 +6,7 @@ const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
 });
 
 export const joinRiders = () => {
-  socket.emit('joinKitchen'); // Riders also join the 'kitchen' room to get 'ready' notifications
+  socket.emit('joinRider');
 };
 
 export const joinUser = (userId) => {

@@ -1,5 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { getAvailableOrders, getMyOrders, getRiderStats, updateLocationData as apiUpdateLocation } from '../services/api';
+import { 
+    getAvailableOrders, 
+    getMyOrders, 
+    getRiderStats, 
+    getNearbyOrders,
+    claimOrder as apiClaimOrder,
+    acceptOrder as apiAcceptOrder,
+    pickupOrder as apiPickupOrder,
+    arrivedAtDestination as apiArrivedOrder,
+    confirmDelivery as apiDeliveredOrder,
+    addToRoute as apiAddToRoute
+} from '../services/api';
 import socket, { joinRiders } from '../services/socket';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -17,107 +28,127 @@ export const useRider = () => {
 export const RiderProvider = ({ children }) => {
     const { user } = useAuth();
     const [availableOrders, setAvailableOrders] = useState([]);
+    const [nearbyOrders, setNearbyOrders] = useState([]);
     const [myOrders, setMyOrders] = useState([]);
-    const [activeOrder, setActiveOrder] = useState(null);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const locationInterval = useRef(null);
+    const [location, setLocation] = useState(null);
+    
+    const refreshTimer = useRef(null);
 
     const fetchData = useCallback(async () => {
+        if (!user) return;
         try {
-            const [available, mine, currentStats] = await Promise.all([
-                getAvailableOrders(),
+            const [mine, currentStats] = await Promise.all([
                 getMyOrders(),
                 getRiderStats()
             ]);
-            setAvailableOrders(available);
             setMyOrders(mine);
             setStats(currentStats);
-            
-            // Auto-detect active order
-            const active = mine.find(o => ['ready', 'picked-up', 'out-for-delivery'].includes(o.status));
-            setActiveOrder(active || null);
+
+            // Fetch location-based data if location is available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    setLocation({ lat, lng });
+                    const nearby = await getNearbyOrders(lat, lng);
+                    setNearbyOrders(nearby);
+                }, () => {
+                    // Fallback to regular available orders if GPS denied
+                    getAvailableOrders().then(setAvailableOrders);
+                });
+            } else {
+                getAvailableOrders().then(setAvailableOrders);
+            }
         } catch (error) {
             console.error("Failed to fetch rider data:", error);
         } finally {
             setLoading(false);
         }
-    }, [getMyOrders, getAvailableOrders, getRiderStats]);
+    }, [user]);
 
     useEffect(() => {
         if (user) {
             fetchData();
             joinRiders();
 
-            // Handle New Orders
-            const handleNewOrder = (order) => {
-                setAvailableOrders(prev => [order, ...prev]);
-                toast.success('New delivery available! 📦', {
-                    duration: 5000,
+            // Background refresh every 30s
+            refreshTimer.current = setInterval(fetchData, 30000);
+
+            const handleRefresh = () => fetchData();
+
+            socket.on('order:ready', (newOrder) => {
+                fetchData();
+                toast.success('New mission available nearby! 📦', {
+                    duration: 6000,
                     style: { background: '#121212', color: '#D4AF37', border: '1px solid #D4AF37' }
                 });
-                // Sound alert could be added here
                 const audio = new Audio('/notification.mp3');
                 audio.play().catch(() => {});
-            };
-
-            // Handle Assignment
-            const handleAssignment = (data) => {
-                fetchData();
-                if (data.status === 'out-for-delivery') {
-                    toast.success('Course plotted: Delivery in progress.');
-                }
-            };
-
-            socket.on('order:ready-for-delivery', handleNewOrder);
-            socket.on('order:assigned-to-rider', handleAssignment);
-            socket.on('orderUpdate', fetchData);
+            });
+            
+            socket.on('orderUpdate', handleRefresh);
 
             return () => {
-                socket.off('order:ready-for-delivery', handleNewOrder);
-                socket.off('order:assigned-to-rider', handleAssignment);
-                socket.off('orderUpdate', fetchData);
+                socket.off('order:ready');
+                socket.off('orderUpdate');
+                if (refreshTimer.current) clearInterval(refreshTimer.current);
             };
         }
     }, [user, fetchData]);
 
-    // Location Tracking Logic
-    useEffect(() => {
-        if (activeOrder && activeOrder.status === 'out-for-delivery') {
-            const startTracking = () => {
-                if ("geolocation" in navigator) {
-                    locationInterval.current = setInterval(() => {
-                        navigator.geolocation.getCurrentPosition(async (position) => {
-                            const { latitude, longitude } = position.coords;
-                            try {
-                                await apiUpdateLocation(activeOrder._id, latitude, longitude);
-                            } catch (err) {
-                                console.error("Location leak blocked:", err);
-                            }
-                        });
-                    }, 15000); // 15 seconds
-                }
-            };
-            startTracking();
-        } else {
-            if (locationInterval.current) {
-                clearInterval(locationInterval.current);
-                locationInterval.current = null;
-            }
-        }
+    // Workflow Actions
+    const claim = async (id) => {
+        const res = await apiClaimOrder(id);
+        await fetchData();
+        return res;
+    };
 
-        return () => {
-            if (locationInterval.current) clearInterval(locationInterval.current);
-        };
-    }, [activeOrder]);
+    const accept = async (id) => {
+        const res = await apiAcceptOrder(id);
+        await fetchData();
+        return res;
+    };
+
+    const pickup = async (id) => {
+        const res = await apiPickupOrder(id);
+        await fetchData();
+        return res;
+    };
+
+    const arrive = async (id) => {
+        const res = await apiArrivedOrder(id);
+        await fetchData();
+        return res;
+    };
+
+    const deliver = async (id) => {
+        const res = await apiDeliveredOrder(id);
+        await fetchData();
+        return res;
+    };
+
+    const batchToRoute = async (id) => {
+        const res = await apiAddToRoute(id);
+        await fetchData();
+        return res;
+    };
 
     const value = {
-        availableOrders,
+        availableOrders: nearbyOrders.length > 0 ? nearbyOrders : availableOrders,
+        nearbyOrders,
         myOrders,
-        activeOrder,
         stats,
         loading,
-        refreshData: fetchData
+        location,
+        refreshData: fetchData,
+        claim,
+        accept,
+        pickup,
+        arrive,
+        deliver,
+        batchToRoute
     };
 
     return (
