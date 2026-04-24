@@ -160,7 +160,7 @@ const OrderCard = ({ order, onMainAction, actionText, isActionDisabled, isUpdati
                         >
                             {isUpdating && <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-2xl"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>}
                             <ChefHat className={`w-5 h-5 ${!isActionDisabled && 'group-hover/btn:rotate-12'} transition-transform`} />
-                            <span className="text-[10px] tracking-[0.2em] uppercase">
+                            <span className="text-sm tracking-[0.15em] uppercase">
                                 {actionText}
                             </span>
                         </button>

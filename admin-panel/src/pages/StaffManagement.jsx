@@ -731,10 +731,15 @@ const AttendanceTab = ({ fetchAllStaff }) => {
   const [attendanceMap, setAttendanceMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]); // IDs of unmarked staff
+  const [showValidationBanner, setShowValidationBanner] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setValidationErrors([]);
+      setShowValidationBanner(false);
       const allStaff = await fetchAllStaff();
       setStaff(allStaff);
 
@@ -745,44 +750,85 @@ const AttendanceTab = ({ fetchAllStaff }) => {
       const dateEnd = new Date(selectedDate);
       dateEnd.setHours(23, 59, 59, 999);
 
+      let hasExistingRecords = false;
       allStaff.forEach(s => {
         const record = s.attendance?.find(a => {
           const d = new Date(a.date);
           return d >= dateStart && d <= dateEnd;
         });
         map[s._id] = record?.status || '';
+        if (record?.status) hasExistingRecords = true;
       });
       setAttendanceMap(map);
+      setIsLocked(hasExistingRecords);
       setLoading(false);
     };
     load();
   }, [selectedDate]);
 
   const handleMark = (staffId, status) => {
+    if (isLocked) return; // Prevent changes on locked dates
     setAttendanceMap(prev => ({ ...prev, [staffId]: prev[staffId] === status ? '' : status }));
+    // Clear validation error for this staff member when they get marked
+    setValidationErrors(prev => prev.filter(id => id !== staffId));
   };
 
   const saveAttendance = async () => {
+    // Client-side validation: check ALL active staff are marked
+    const activeStaff = staff.filter(s => s.status === 'Active');
+    const unmarkedStaff = activeStaff.filter(s => !attendanceMap[s._id]);
+
+    if (unmarkedStaff.length > 0) {
+      setValidationErrors(unmarkedStaff.map(s => s._id));
+      setShowValidationBanner(true);
+      toast.error(`Please mark attendance for all ${activeStaff.length} employees. ${unmarkedStaff.length} remaining.`, {
+        duration: 5000,
+        icon: '⚠️'
+      });
+      // Scroll to first unmarked row
+      const firstUnmarked = document.getElementById(`attendance-row-${unmarkedStaff[0]._id}`);
+      if (firstUnmarked) {
+        firstUnmarked.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    setValidationErrors([]);
+    setShowValidationBanner(false);
     setSaving(true);
+
     try {
       const records = Object.entries(attendanceMap)
         .filter(([_, status]) => status)
         .map(([staffId, status]) => ({ staffId, status }));
 
-      if (records.length === 0) {
-        toast.error('Please mark attendance for at least one staff member');
-        setSaving(false);
-        return;
-      }
-
       await api.post('/staff/attendance/bulk', { date: selectedDate, records });
-      toast.success('Attendance saved successfully!');
+      toast.success('Attendance saved & locked successfully!', { icon: '🔒', duration: 4000 });
+      setIsLocked(true);
     } catch (err) {
-      toast.error('Failed to save attendance');
+      const code = err.response?.data?.code;
+      const message = err.response?.data?.message;
+
+      if (code === 'ATTENDANCE_LOCKED') {
+        toast.error('This date\'s attendance is already saved and locked.', { icon: '🔒', duration: 5000 });
+        setIsLocked(true);
+      } else if (code === 'INCOMPLETE_ATTENDANCE') {
+        const missingIds = err.response?.data?.missingStaff?.map(s => s._id) || [];
+        setValidationErrors(missingIds);
+        setShowValidationBanner(true);
+        toast.error(message || 'Incomplete attendance', { icon: '⚠️', duration: 5000 });
+      } else {
+        toast.error(message || 'Failed to save attendance');
+      }
     } finally {
       setSaving(false);
     }
   };
+
+  const activeStaff = staff.filter(s => s.status === 'Active');
+  const markedCount = activeStaff.filter(s => attendanceMap[s._id]).length;
+  const totalCount = activeStaff.length;
+  const allMarked = markedCount === totalCount && totalCount > 0;
 
   const attendanceBtn = (staffId, status) => {
     const isActive = attendanceMap[staffId] === status;
@@ -794,7 +840,8 @@ const AttendanceTab = ({ fetchAllStaff }) => {
     return (
       <button
         onClick={() => handleMark(staffId, status)}
-        className={`px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${colors[status]}`}
+        disabled={isLocked}
+        className={`px-4 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${colors[status]} ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
       >{status}</button>
     );
   };
@@ -803,6 +850,45 @@ const AttendanceTab = ({ fetchAllStaff }) => {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
+      {/* Locked Banner */}
+      {isLocked && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 px-5 py-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400"
+        >
+          <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+            <Check className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-sm font-bold">Attendance Locked</p>
+            <p className="text-xs text-blue-400/70">Attendance for <strong>{selectedDate}</strong> has been saved and cannot be modified.</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Validation Error Banner */}
+      <AnimatePresence>
+        {showValidationBanner && validationErrors.length > 0 && !isLocked && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -10, height: 0 }}
+            className="flex items-start gap-3 px-5 py-4 rounded-xl bg-crimson/10 border border-crimson/30"
+          >
+            <div className="w-8 h-8 rounded-full bg-crimson/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <AlertTriangle className="w-4 h-4 text-crimson" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-crimson">Attendance Incomplete — {validationErrors.length} employee{validationErrors.length > 1 ? 's' : ''} unmarked</p>
+              <p className="text-xs text-crimson/70 mt-1">
+                {activeStaff.filter(s => validationErrors.includes(s._id)).map(s => s.name).join(', ')}
+              </p>
+            </div>
+            <button onClick={() => setShowValidationBanner(false)} className="p-1 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0">
+              <X className="w-4 h-4 text-crimson/50" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <Calendar className="w-6 h-6 text-gold" />
@@ -811,6 +897,25 @@ const AttendanceTab = ({ fetchAllStaff }) => {
             className="bg-charcoal border border-white/10 rounded-xl px-5 py-3 text-soft-white text-base font-bold focus:outline-none focus:border-gold/40 appearance-none"
             style={{ colorScheme: 'dark' }}
           />
+          {/* Progress indicator */}
+          <div className="flex items-center gap-2">
+            <div className="w-32 h-2 bg-white/5 rounded-full overflow-hidden">
+              <motion.div
+                className={`h-full rounded-full ${allMarked ? 'bg-emerald-500' : markedCount > 0 ? 'bg-yellow-500' : 'bg-white/10'}`}
+                initial={{ width: 0 }}
+                animate={{ width: totalCount > 0 ? `${(markedCount / totalCount) * 100}%` : '0%' }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+              />
+            </div>
+            <span className={`text-xs font-bold ${allMarked ? 'text-emerald-400' : 'text-soft-white/40'}`}>
+              {markedCount}/{totalCount}
+            </span>
+            {allMarked && !isLocked && (
+              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-emerald-400">
+                <CheckCircle className="w-4 h-4" />
+              </motion.span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
           <button
@@ -845,10 +950,25 @@ const AttendanceTab = ({ fetchAllStaff }) => {
           >
             <FileText className="w-4 h-4" /> EXCEL
           </button>
-          <button onClick={saveAttendance} disabled={saving} className="btn-gold flex items-center gap-2 text-sm px-6">
-            {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? 'Saving...' : 'Save Attendance'}
-          </button>
+          {!isLocked && (
+            <button
+              onClick={saveAttendance}
+              disabled={saving}
+              className={`flex items-center gap-2 text-sm px-6 transition-all duration-300 ${
+                allMarked
+                  ? 'btn-gold shadow-[0_0_20px_rgba(212,175,55,0.3)]'
+                  : 'btn-gold opacity-70'
+              }`}
+            >
+              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? 'Saving...' : 'Save Attendance'}
+            </button>
+          )}
+          {isLocked && (
+            <div className="flex items-center gap-2 text-sm px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-soft-white/40 font-bold cursor-not-allowed">
+              <Check className="w-4 h-4" /> Saved & Locked
+            </div>
+          )}
         </div>
       </motion.div>
 
@@ -863,26 +983,53 @@ const AttendanceTab = ({ fetchAllStaff }) => {
               </tr>
             </thead>
             <tbody>
-              {staff.filter(s => s.status === 'Active').map(s => (
-                <tr key={s._id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 px-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-xs font-bold text-gold font-serif italic">
-                        {s.name?.charAt(0)}
+              {activeStaff.map(s => {
+                const hasError = validationErrors.includes(s._id);
+                return (
+                  <motion.tr
+                    key={s._id}
+                    id={`attendance-row-${s._id}`}
+                    animate={hasError ? { x: [0, -4, 4, -4, 4, 0] } : {}}
+                    transition={hasError ? { duration: 0.4 } : {}}
+                    className={`border-b transition-all duration-300 ${
+                      hasError
+                        ? 'border-crimson/40 bg-crimson/[0.06]'
+                        : 'border-white/5 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    <td className="py-4 px-5">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-serif italic transition-all duration-300 ${
+                          hasError
+                            ? 'bg-crimson/10 border-2 border-crimson/40 text-crimson'
+                            : 'bg-gold/10 border border-gold/20 text-gold'
+                        }`}>
+                          {s.name?.charAt(0)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-soft-white">{s.name}</span>
+                          {hasError && (
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }}
+                              className="text-[10px] font-bold text-crimson bg-crimson/10 border border-crimson/20 px-2 py-0.5 rounded-full flex items-center gap-1"
+                            >
+                              <AlertCircle className="w-3 h-3" /> Not Marked
+                            </motion.span>
+                          )}
+                        </div>
                       </div>
-                      <span className="font-semibold text-soft-white">{s.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-5 text-soft-white/50">{s.role}</td>
-                  <td className="py-4 px-5">
-                    <div className="flex items-center justify-center gap-2">
-                      {attendanceBtn(s._id, 'Present')}
-                      {attendanceBtn(s._id, 'Late')}
-                      {attendanceBtn(s._id, 'Absent')}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-4 px-5 text-soft-white/50">{s.role}</td>
+                    <td className="py-4 px-5">
+                      <div className="flex items-center justify-center gap-2">
+                        {attendanceBtn(s._id, 'Present')}
+                        {attendanceBtn(s._id, 'Late')}
+                        {attendanceBtn(s._id, 'Absent')}
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

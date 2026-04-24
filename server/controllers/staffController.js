@@ -235,24 +235,44 @@ const bulkMarkAttendance = async (req, res) => {
     const { date, records } = req.body; // records = [{ staffId, status }]
     const attendanceDate = new Date(date);
     attendanceDate.setHours(0, 0, 0, 0);
+    const attendanceDateEnd = new Date(date);
+    attendanceDateEnd.setHours(23, 59, 59, 999);
+
+    // Get all active staff
+    const activeStaff = await Staff.find({ isDeleted: { $ne: true }, status: 'Active' });
+
+    // Check if attendance for this date is already saved (locked)
+    const alreadySaved = activeStaff.some(s =>
+      s.attendance.some(a => {
+        const aDate = new Date(a.date);
+        aDate.setHours(0, 0, 0, 0);
+        return aDate.getTime() === attendanceDate.getTime();
+      })
+    );
+    if (alreadySaved) {
+      return res.status(400).json({
+        message: 'Attendance for this date has already been saved and cannot be modified.',
+        code: 'ATTENDANCE_LOCKED'
+      });
+    }
+
+    // Validate all active staff are included
+    const submittedIds = new Set(records.map(r => r.staffId));
+    const missingStaff = activeStaff.filter(s => !submittedIds.has(s._id.toString()));
+    if (missingStaff.length > 0) {
+      return res.status(400).json({
+        message: `Attendance is missing for ${missingStaff.length} employee(s): ${missingStaff.map(s => s.name).join(', ')}`,
+        code: 'INCOMPLETE_ATTENDANCE',
+        missingStaff: missingStaff.map(s => ({ _id: s._id, name: s.name }))
+      });
+    }
 
     const results = [];
     for (const record of records) {
       const staff = await Staff.findOne({ _id: record.staffId, isDeleted: { $ne: true } });
       if (!staff) continue;
 
-      const existingIdx = staff.attendance.findIndex(a => {
-        const aDate = new Date(a.date);
-        aDate.setHours(0, 0, 0, 0);
-        return aDate.getTime() === attendanceDate.getTime();
-      });
-
-      if (existingIdx >= 0) {
-        staff.attendance[existingIdx].status = record.status;
-      } else {
-        staff.attendance.push({ date: attendanceDate, status: record.status });
-      }
-
+      staff.attendance.push({ date: attendanceDate, status: record.status });
       await staff.save();
       results.push({ staffId: staff._id, name: staff.name, status: record.status });
     }
