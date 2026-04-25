@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingBag, Clock, CheckCircle, Truck, PackageCheck, Search, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Clock, CheckCircle, Truck, PackageCheck, Search, ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
     fetchOrders();
@@ -52,6 +54,14 @@ const OrderManagement = () => {
   const filteredOrders = filter === 'all' 
     ? orders 
     : orders.filter(order => order.status === filter);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, limit, orders.length]);
+
+  const totalRecords = filteredOrders.length;
+  const totalPages = Math.ceil(totalRecords / limit) || 1;
+  const currentOrders = filteredOrders.slice((page - 1) * limit, page * limit);
 
   const stats = {
     pending: orders.filter(o => o.status === 'placed').length,
@@ -122,7 +132,7 @@ const OrderManagement = () => {
                 <tr><td colSpan="5" className="px-8 py-20 text-center text-soft-white/30 italic">No orders currently in this state.</td></tr>
               ) : (
                 <AnimatePresence mode="popLayout">
-                  {filteredOrders.map((order) => (
+                  {currentOrders.map((order) => (
                     <motion.tr 
                       layout
                       initial={{ opacity: 0 }}
@@ -174,6 +184,80 @@ const OrderManagement = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalRecords > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-white/5 gap-4 bg-[#1A1A1A]">
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-bold text-soft-white/40 uppercase tracking-widest">Show</span>
+              <div className="relative group">
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gold/60 pointer-events-none" />
+                <select 
+                  value={limit} 
+                  onChange={e => setLimit(Number(e.target.value))}
+                  className="bg-charcoal border border-white/10 rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-gold/40 hover:border-white/20 transition-all cursor-pointer appearance-none"
+                >
+                  {[5, 10, 25, 50].map(size => (
+                    <option key={size} value={size} className="bg-black text-white">{size}</option>
+                  ))}
+                </select>
+              </div>
+              <span className="text-[11px] font-bold text-soft-white/40 uppercase tracking-widest">entries</span>
+            </div>
+            
+            <div className="text-[11px] font-bold text-soft-white/40 uppercase tracking-widest">
+              Showing {Math.min((page - 1) * limit + 1, totalRecords)}–{Math.min(page * limit, totalRecords)} of <span className="text-white">{totalRecords}</span> entries
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button 
+                disabled={page <= 1} 
+                onClick={() => setPage(p => p - 1)}
+                className="flex items-center justify-center h-8 px-3 rounded-lg border border-white/10 text-[11px] font-bold uppercase tracking-wider text-soft-white/70 hover:bg-white/5 disabled:opacity-20 disabled:hover:bg-transparent transition-all"
+              >
+                Prev
+              </button>
+              
+              <div className="flex items-center px-2 gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                  if (
+                    pageNum === 1 || 
+                    pageNum === totalPages || 
+                    (pageNum >= page - 1 && pageNum <= page + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPage(pageNum)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                          pageNum === page 
+                            ? 'bg-gold text-charcoal' 
+                            : 'text-soft-white/60 hover:bg-white/5 hover:text-white'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  } else if (
+                    pageNum === page - 2 || 
+                    pageNum === page + 2
+                  ) {
+                    return <span key={pageNum} className="text-soft-white/30 text-xs px-1">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button 
+                disabled={page >= totalPages} 
+                onClick={() => setPage(p => p + 1)}
+                className="flex items-center justify-center h-8 px-3 rounded-lg border border-white/10 text-[11px] font-bold uppercase tracking-wider text-soft-white/70 hover:bg-white/5 disabled:opacity-20 disabled:hover:bg-transparent transition-all"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

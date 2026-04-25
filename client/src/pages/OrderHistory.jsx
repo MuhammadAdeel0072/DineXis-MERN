@@ -63,10 +63,10 @@ const OrderHistory = () => {
         const allOrders = data.orders || data || [];
         // Filter to show only delivered orders
         const deliveredOrders = allOrders.filter(order => order.status === 'DELIVERED');
-        
+
         // Sort orders by date descending
         deliveredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
+
         setOrders(deliveredOrders);
         setGroupedOrders(groupOrdersByTime(deliveredOrders));
       } catch (err) {
@@ -82,16 +82,16 @@ const OrderHistory = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'DELIVERED':        return 'text-green-400 bg-green-400/10 border-green-400/20';
-      case 'ARRIVED':          return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
-      case 'PICKED_UP':        return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
-      case 'ACCEPTED':         return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-      case 'ASSIGNED':         return 'text-blue-300 bg-blue-300/10 border-blue-300/20';
+      case 'DELIVERED': return 'text-green-400 bg-green-400/10 border-green-400/20';
+      case 'ARRIVED': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+      case 'PICKED_UP': return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
+      case 'ACCEPTED': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+      case 'ASSIGNED': return 'text-blue-300 bg-blue-300/10 border-blue-300/20';
       case 'READY_FOR_DELIVERY': return 'text-gold bg-gold/10 border-gold/20';
-      case 'PREPARING':        return 'text-orange-300 bg-orange-300/10 border-orange-300/20';
-      case 'PENDING':          return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
-      case 'CANCELLED':        return 'text-red-400 bg-red-400/10 border-red-400/20';
-      default:                 return 'text-gray-400 bg-white/5 border-white/10';
+      case 'PREPARING': return 'text-orange-300 bg-orange-300/10 border-orange-300/20';
+      case 'PENDING': return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
+      case 'CANCELLED': return 'text-red-400 bg-red-400/10 border-red-400/20';
+      default: return 'text-gray-400 bg-white/5 border-white/10';
     }
   };
 
@@ -192,7 +192,7 @@ const OrderHistory = () => {
       )}
 
       {/* Detail Modal */}
-      <OrderDetailModal 
+      <OrderDetailModal
         order={selectedOrder}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
