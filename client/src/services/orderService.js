@@ -33,3 +33,14 @@ export const createPaymentIntent = async (amount) => {
 export const getOrderReceiptUrl = (id) => {
   return `${import.meta.env.VITE_API_URL}/orders/${id}/receipt`;
 };
+
+// Reorder feature
+export const getUserOrderHistory = async () => {
+  const response = await apiClient.get('/orders/user-history');
+  return response.data;
+};
+
+export const reorderItems = async (orderId) => {
+  const response = await apiClient.post('/orders/reorder', { orderId });
+  return response.data;
+};

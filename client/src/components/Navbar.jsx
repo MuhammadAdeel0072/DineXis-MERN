@@ -66,7 +66,7 @@ const Navbar = () => {
       <nav className="bg-charcoal/80 backdrop-blur-md border-b border-gold/30 sticky top-0 z-50 px-4 md:px-8 py-4 flex justify-between items-center transition-all duration-300">
         {/* Logo */}
         <Link to="/" className="text-2xl md:text-3xl font-serif font-bold text-gold tracking-wider z-50">
-          AK-7 <span className="text-crimson">REST</span>
+          Dine<span className="text-crimson">Xis</span>
         </Link>
 
         {/* Desktop Nav links */}

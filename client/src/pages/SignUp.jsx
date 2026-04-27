@@ -77,7 +77,7 @@ const SignUp = () => {
 
                 <div className="p-8 border-b border-white/10 text-center">
                     <h2 className="text-4xl font-serif font-black text-gold tracking-wider">SIGN <span className="text-crimson">UP</span></h2>
-                    <p className="text-xs text-soft-white/60 font-bold uppercase tracking-widest mt-1">Join AK-7 Restaurant</p>
+                    <p className="text-xs text-soft-white/60 font-bold uppercase tracking-widest mt-1">Join DineXis</p>
                 </div>
 
                 <div className="p-8">
@@ -191,7 +191,7 @@ const SignUp = () => {
 
                 <div className="bg-white/5 p-4 border-t border-white/10 flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-500 px-8">
                     <span className="flex items-center gap-2 text-gold"><span className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse shadow-[0_0_5px_currentColor]"></span> Identity Secured</span>
-                    <span>AK-7 Restaurant</span>
+                    <span>DineXis</span>
                 </div>
             </div>
         </div>

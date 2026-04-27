@@ -1,9 +1,9 @@
 /**
- * AK-7 REST Branding Component
+ * DineXis Branding Component
  * Implements consistent typography and logo across all panels
  */
 
-// Logo component - renders AK-7 REST branding
+// Logo component - renders DineXis branding
 export const BrandLogo = ({ 
   size = 'md', 
   showTagline = false, 
@@ -23,10 +23,10 @@ export const BrandLogo = ({
     return (
       <div className={`inline-flex items-baseline gap-1 ${className}`}>
         <span className={`${sizes.ak7} font-serif font-black tracking-tighter text-gold`}>
-          AK-7
+          Dine
         </span>
         <span className={`${sizes.rest} font-serif font-black tracking-tighter text-crimson`}>
-          REST
+          Xis
         </span>
       </div>
     );
@@ -37,10 +37,10 @@ export const BrandLogo = ({
       <div className={`flex flex-col ${className}`}>
         <div className="inline-flex items-baseline gap-1">
           <span className={`${sizes.ak7} font-serif font-bold text-gold`}>
-            AK-7
+            Dine
           </span>
           <span className={`${sizes.rest} font-serif font-bold text-crimson`}>
-            REST
+            Xis
           </span>
         </div>
         <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1`}>
@@ -55,10 +55,10 @@ export const BrandLogo = ({
     <div className={`flex flex-col ${className}`}>
       <div className="inline-flex items-baseline gap-1">
         <span className={`${sizes.ak7} font-serif font-black tracking-tighter text-gold`}>
-          AK-7
+          Dine
         </span>
         <span className={`${sizes.rest} font-serif font-black tracking-tighter text-crimson`}>
-          REST
+          Xis
         </span>
       </div>
       {showTagline && (

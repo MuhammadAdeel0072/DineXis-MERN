@@ -18,7 +18,7 @@ const generatePDFReport = (res, title, headers, rows) => {
     doc.pipe(res);
 
     // Premium Header Logo/Title Part
-    doc.fillColor('#D4AF37').fontSize(24).font('Helvetica-Bold').text('AK-7 RESTAURANT', { align: 'center' });
+    doc.fillColor('#D4AF37').fontSize(24).font('Helvetica-Bold').text('DINEXIS', { align: 'center' });
     doc.fillColor('#666666').fontSize(14).font('Helvetica').text(title.toUpperCase(), { align: 'center', characterSpacing: 2 });
     doc.moveDown(0.5);
     doc.fontSize(8).fillColor('#999999').text(`INTEL SOURCE: SYSTEM ADMINISTRATION | GENERATED: ${new Date().toLocaleString()}`, { align: 'center' });

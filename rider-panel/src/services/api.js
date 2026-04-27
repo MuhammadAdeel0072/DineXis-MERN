@@ -24,8 +24,8 @@ export const getNearbyOrders = async (lat, lng) => {
     return data;
 };
 
-export const getMyOrders = async () => {
-    const { data } = await api.get('/rider/my-orders');
+export const getMyOrders = async (lat, lng) => {
+    const { data } = await api.get('/rider/my-orders', { params: { lat, lng } });
     return data;
 };
 
@@ -61,8 +61,8 @@ export const confirmDelivery = async (orderId) => {
 };
 
 // Smart Batching
-export const addToRoute = async (orderId) => {
-    const { data } = await api.post(`/rider/add-to-route/${orderId}`);
+export const addToRoute = async (orderId, location) => {
+    const { data } = await api.post(`/rider/add-to-route/${orderId}`, location);
     return data;
 };
 

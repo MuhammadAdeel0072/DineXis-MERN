@@ -302,7 +302,7 @@ const Settings = () => {
                     <ShieldCheck className="w-8 h-8 text-green-500/40" />
                     <div>
                         <p className="text-white font-bold tracking-tight">System Identity</p>
-                        <p className="text-[10px] text-soft-white/20 uppercase font-black tracking-widest">AK-7 KITCHEN STATION ALPHA</p>
+                        <p className="text-[10px] text-soft-white/20 uppercase font-black tracking-widest">DINEXIS KITCHEN STATION ALPHA</p>
                     </div>
                 </div>
                 <button

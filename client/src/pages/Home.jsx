@@ -1,7 +1,34 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Coffee, Utensils, Pizza, Cake } from 'lucide-react';
+import { ArrowRight, Coffee, Utensils, Pizza, Cake, RotateCcw, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { getUserOrderHistory } from '../services/orderService';
+import useReorder from '../hooks/useReorder';
+import { useState, useEffect } from 'react';
 
 const Home = () => {
+  const { isSignedIn } = useAuth();
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const { handleReorder, reordering } = useReorder();
+
+  // Lazy-load recent orders for signed-in users
+  useEffect(() => {
+    if (isSignedIn) {
+      const fetchOrders = async () => {
+        setLoadingOrders(true);
+        try {
+          const data = await getUserOrderHistory();
+          setRecentOrders((data.orders || []).slice(0, 3));
+        } catch (err) {
+          console.error('Failed to load recent orders:', err);
+        } finally {
+          setLoadingOrders(false);
+        }
+      };
+      fetchOrders();
+    }
+  }, [isSignedIn]);
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -28,6 +55,88 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Reorder Your Favorites Section */}
+      {isSignedIn && (
+        <section className="py-16 bg-charcoal px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-4 mb-10">
+              <div className="h-px bg-gold/20 flex-1"></div>
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-center flex items-center gap-3">
+                <RotateCcw className="w-7 h-7 text-gold" />
+                <span>Reorder Your <span className="text-gold">Favorites</span></span>
+              </h2>
+              <div className="h-px bg-gold/20 flex-1"></div>
+            </div>
+
+            {loadingOrders ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-48 bg-white/[0.03] rounded-3xl animate-pulse border border-white/5" />
+                ))}
+              </div>
+            ) : recentOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-sm">No previous orders to reorder. <Link to="/menu" className="text-gold font-bold hover:underline">Browse the menu</Link></p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {recentOrders.map((order) => (
+                  <div
+                    key={order._id}
+                    className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-gold/20 rounded-3xl p-6 transition-all duration-300 group backdrop-blur-sm"
+                  >
+                    {/* Item thumbnails */}
+                    <div className="flex gap-2 mb-4">
+                      {order.orderItems.slice(0, 4).map((item, idx) => (
+                        <div key={idx} className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                          <img src={item.currentImage || item.image} alt={item.name} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                      {order.orderItems.length > 4 && (
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xs text-gray-400 font-black shrink-0">
+                          +{order.orderItems.length - 4}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Order info */}
+                    <div className="mb-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/50 mb-1">
+                        {order.orderNumber || `#${order._id.slice(-8).toUpperCase()}`}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(order.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1 truncate">
+                        {order.orderItems.map(i => i.name).join(', ')}
+                      </p>
+                      <p className="text-lg font-bold text-gold mt-2">Rs. {order.totalPrice?.toFixed(0)}</p>
+                    </div>
+
+                    {/* Availability indicators */}
+                    {order.orderItems.some(i => !i.isAvailable) && (
+                      <p className="text-[10px] text-crimson/70 font-bold mb-3 uppercase tracking-widest">
+                        ⚠ Some items may be unavailable
+                      </p>
+                    )}
+
+                    {/* Reorder button */}
+                    <button
+                      onClick={() => handleReorder(order._id)}
+                      disabled={reordering}
+                      className="w-full flex items-center justify-center gap-2 bg-gold/10 hover:bg-gold hover:text-charcoal border border-gold/20 hover:border-gold text-gold px-4 py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {reordering ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                      Reorder
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Categories */}
       <section className="py-20 bg-charcoal px-6">

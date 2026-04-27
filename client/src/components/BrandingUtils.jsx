@@ -1,146 +1,74 @@
 /**
- * AK-7 REST Branding Component
- * Implements consistent typography and logo across all panels
+ * DineXis Branding Component
+ * Centralized logo/branding for consistent rendering
  */
 
-// Logo component - renders AK-7 REST branding
-export const BrandLogo = ({ 
-  size = 'md', 
-  showTagline = false, 
-  className = '',
-  variant = 'default' // 'default', 'minimal', 'full'
-}) => {
-  const sizeMap = {
-    sm: { ak7: 'text-lg', rest: 'text-lg', tag: 'text-[6px]' },
-    md: { ak7: 'text-2xl md:text-3xl', rest: 'text-2xl md:text-3xl', tag: 'text-[8px] md:text-[10px]' },
-    lg: { ak7: 'text-4xl md:text-5xl', rest: 'text-4xl md:text-5xl', tag: 'text-[10px] md:text-[12px]' },
-    xl: { ak7: 'text-5xl md:text-6xl', rest: 'text-5xl md:text-6xl', tag: 'text-[12px] md:text-[14px]' },
-  };
+// Logo component - renders DineXis branding
+export const Logo = ({ size = 'md', className = '' }) => {
+    const sizes = {
+        sm: { brand: 'text-lg', tag: 'text-[6px]' },
+        md: { brand: 'text-2xl md:text-3xl', tag: 'text-[8px] md:text-[10px]' },
+        lg: { brand: 'text-4xl md:text-5xl', tag: 'text-[10px] md:text-[12px]' },
+        xl: { brand: 'text-5xl md:text-6xl', tag: 'text-[12px] md:text-[14px]' },
+    };
 
-  const sizes = sizeMap[size];
+    const s = sizes[size] || sizes.md;
 
-  if (variant === 'minimal') {
     return (
-      <div className={`inline-flex items-baseline gap-1 ${className}`}>
-        <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
-          AK-7
-        </span>
-        <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
-          REST
-        </span>
-      </div>
-    );
-  }
-
-  if (variant === 'full') {
-    return (
-      <div className={`flex flex-col ${className}`}>
-        <div className="inline-flex items-baseline gap-1">
-          <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
-            AK-7
-          </span>
-          <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
-            REST
-          </span>
+        <div className={`flex flex-col items-center ${className}`}>
+            <h1 className={`${s.brand} font-serif font-black tracking-tighter leading-none`}>
+                <span className="text-gold">Dine</span>
+                <span className="text-crimson">Xis</span>
+            </h1>
+            <span className={`${s.tag} font-black uppercase tracking-[0.35em] text-soft-white/40 mt-1`}>
+                Premium Smart Dining
+            </span>
         </div>
-        <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1 italic`}>
-          Exquisite Taste, Premium Experience
-        </p>
-      </div>
     );
-  }
+};
 
-  // Default variant - logo with optional tagline
-  return (
-    <div className={`flex flex-col ${className}`}>
-      <div className="inline-flex items-baseline gap-1">
-        <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
-          AK-7
+// Inline logo for navbar / compact spaces
+export const InlineLogo = ({ size = 'md', className = '' }) => {
+    const sizes = {
+        sm: { brand: 'text-lg', tag: 'text-[6px]' },
+        md: { brand: 'text-2xl md:text-3xl', tag: 'text-[8px] md:text-[10px]' },
+        lg: { brand: 'text-4xl md:text-5xl', tag: 'text-[10px] md:text-[12px]' },
+    };
+
+    const s = sizes[size] || sizes.md;
+
+    return (
+        <span className={`${s.brand} font-serif font-black tracking-tighter ${className}`}>
+            <span className="text-gold">Dine</span>
+            <span className="text-crimson">Xis</span>
         </span>
-        <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
-          REST
-        </span>
-      </div>
-      {showTagline && (
-        <p className={`${sizes.tag} font-black uppercase tracking-[0.3em] text-gold/40 mt-1 italic`}>
-          Culinary Excellence
-        </p>
-      )}
-    </div>
-  );
+    );
 };
 
-// Typography hooks and utilities
-export const typographyClasses = {
-  // Main headers
-  heading1: 'text-5xl md:text-6xl font-serif font-black italic tracking-tighter text-soft-white',
-  heading2: 'text-4xl md:text-5xl font-serif font-black italic tracking-tighter text-soft-white',
-  heading3: 'text-3xl md:text-4xl font-serif font-bold italic tracking-tight text-soft-white',
-  heading4: 'text-2xl md:text-3xl font-serif font-bold italic text-soft-white',
-  
-  // Section headers
-  sectionHead: 'text-lg md:text-xl font-serif font-bold text-gold mb-6 md:mb-8 flex items-center gap-3',
-  sectionHeadSmall: 'text-base md:text-lg font-serif font-bold text-gold mb-4',
-  
-  // Body text
-  body: 'text-base md:text-lg text-soft-white/80 leading-relaxed font-normal',
-  bodySmall: 'text-sm md:text-base text-soft-white/70 leading-relaxed font-normal',
-  bodySemibold: 'text-base md:text-lg text-soft-white/80 leading-relaxed font-semibold',
-  
-  // Labels and captions
-  label: 'text-xs md:text-sm font-bold uppercase tracking-widest text-soft-white/60',
-  labelSmall: 'text-[10px] md:text-xs font-bold uppercase tracking-wider text-soft-white/50',
-  caption: 'text-xs text-soft-white/50 font-normal',
-  
-  // Accents
-  accentGold: 'text-gold font-semibold',
-  accentCrimson: 'text-crimson font-semibold',
-  accentBold: 'font-black uppercase tracking-wider',
-  
-  // Menu/Navigation
-  navItem: 'font-bold tracking-wide uppercase text-sm tracking-[0.05em] text-soft-white/60 hover:text-gold transition-colors',
-  navItemActive: 'font-bold tracking-wide uppercase text-sm tracking-[0.05em] text-gold',
+// Full branded header
+export const BrandedHeader = ({ size = 'lg', subtitle = 'Premium Smart Dining', className = '' }) => {
+    const sizes = {
+        sm: { brand: 'text-lg', tag: 'text-[6px]' },
+        md: { brand: 'text-2xl md:text-3xl', tag: 'text-[8px] md:text-[10px]' },
+        lg: { brand: 'text-4xl md:text-5xl', tag: 'text-[10px] md:text-[12px]' },
+        xl: { brand: 'text-5xl md:text-6xl', tag: 'text-[12px] md:text-[14px]' },
+    };
+
+    const s = sizes[size] || sizes.lg;
+
+    return (
+        <div className={`text-center ${className}`}>
+            <h1 className={`${s.brand} font-serif font-black tracking-tighter leading-none`}>
+                <span className="text-gold">Dine</span>
+                <span className="text-crimson">Xis</span>
+            </h1>
+            {subtitle && (
+                <p className={`${s.tag} font-black uppercase tracking-[0.35em] text-soft-white/40 mt-2`}>
+                    {subtitle}
+                </p>
+            )}
+        </div>
+    );
 };
 
-// Variant components for common text patterns
-export const Typography = {
-  H1: ({ children, className = '' }) => (
-    <h1 className={`${typographyClasses.heading1} ${className}`}>{children}</h1>
-  ),
-  
-  H2: ({ children, className = '' }) => (
-    <h2 className={`${typographyClasses.heading2} ${className}`}>{children}</h2>
-  ),
-  
-  H3: ({ children, className = '' }) => (
-    <h3 className={`${typographyClasses.heading3} ${className}`}>{children}</h3>
-  ),
-  
-  H4: ({ children, className = '' }) => (
-    <h4 className={`${typographyClasses.heading4} ${className}`}>{children}</h4>
-  ),
-  
-  Body: ({ children, className = '', size = 'md' }) => (
-    <p className={`${size === 'md' ? typographyClasses.body : typographyClasses.bodySmall} ${className}`}>
-      {children}
-    </p>
-  ),
-  
-  Label: ({ children, className = '', size = 'md' }) => (
-    <span className={`${size === 'md' ? typographyClasses.label : typographyClasses.labelSmall} ${className}`}>
-      {children}
-    </span>
-  ),
-  
-  Caption: ({ children, className = '' }) => (
-    <span className={`${typographyClasses.caption} ${className}`}>{children}</span>
-  ),
-};
-
-// Accent text wrapper
-export const AccentText = ({ children, color = 'gold', className = '' }) => {
-  const colorClass = color === 'crimson' ? typographyClasses.accentCrimson : typographyClasses.accentGold;
-  return <span className={`${colorClass} ${className}`}>{children}</span>;
-};
-
-export default BrandLogo;
+export default { Logo, InlineLogo, BrandedHeader };

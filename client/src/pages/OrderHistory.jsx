@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { getMyOrders } from '../services/orderService';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Clock, ChevronRight, Package, Calendar } from 'lucide-react';
+import { ShoppingBag, Clock, ChevronRight, Package, Calendar, RotateCcw, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSocket } from '../context/SocketContext';
 import OrderDetailModal from '../components/OrderDetailModal';
+import useReorder from '../hooks/useReorder';
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -13,6 +14,7 @@ const OrderHistory = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { siteUpdate } = useSocket();
+  const { handleReorder, reordering } = useReorder();
 
   const groupOrdersByTime = (orders) => {
     const now = new Date();
@@ -176,13 +178,26 @@ const OrderHistory = () => {
                       </div>
                     </div>
 
-                    {/* View Details */}
-                    <button
-                      onClick={() => handleViewDetails(order)}
-                      className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-gold hover:text-charcoal border border-white/10 hover:border-gold px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
-                    >
-                      Check Details <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="flex flex-shrink-0 gap-3">
+                      {/* Reorder Button */}
+                      <button
+                        onClick={() => handleReorder(order._id)}
+                        disabled={reordering}
+                        className="flex items-center gap-2 bg-gold/10 hover:bg-gold hover:text-charcoal border border-gold/20 hover:border-gold text-gold px-5 py-3.5 rounded-2xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        {reordering ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                        Reorder
+                      </button>
+
+                      {/* View Details */}
+                      <button
+                        onClick={() => handleViewDetails(order)}
+                        className="flex items-center gap-2 bg-white/5 hover:bg-gold hover:text-charcoal border border-white/10 hover:border-gold px-6 py-3.5 rounded-2xl font-bold text-sm transition-all group/btn"
+                      >
+                        Details <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -202,4 +217,3 @@ const OrderHistory = () => {
 };
 
 export default OrderHistory;
-

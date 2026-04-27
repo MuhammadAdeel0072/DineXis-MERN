@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { 
+  sendOTP,
+  verifyOTP,
   registerUser, 
   authUser, 
   getUserProfile, 
@@ -12,8 +14,13 @@ const {
   changePassword 
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const { otpSendLimiter, otpVerifyLimiter } = require('../middleware/otpMiddleware');
 
-// Public routes
+// Phone OTP routes (Client app)
+router.post('/send-otp', otpSendLimiter, sendOTP);
+router.post('/verify-otp', otpVerifyLimiter, verifyOTP);
+
+// Email-based auth (Admin/Chef/Rider backward compat)
 router.post('/register', registerUser);
 router.post('/login', authUser);
 router.post('/forgot-password', forgotPassword);
@@ -30,4 +37,3 @@ router.post('/change-password', changePassword);
 router.delete('/delete', deleteUserAccount);
 
 module.exports = router;
-

@@ -103,7 +103,7 @@ app.use('/api/staff', staffRoutes);
 // 🏠 ROOT ROUTE
 // ======================
 app.get('/', (req, res) => {
-  res.send('AK-7 REST API is running');
+  res.send('DineXis API is running');
 });
 
 // Diagnostic Health Check

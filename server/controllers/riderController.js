@@ -79,20 +79,34 @@ const getNearbyOrders = asyncHandler(async (req, res) => {
 // @route   GET /api/rider/my-orders
 // @access  Private/Rider
 const getMyOrders = asyncHandler(async (req, res) => {
+    const { lat, lng } = req.query;
+    
     const orders = await Order.find({
         rider: req.user._id,
-        status: { $in: ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'ARRIVED'] }
+        status: { $in: ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'ARRIVED', 'DELIVERED'] }
     })
     .populate('user', 'firstName lastName email')
-    .sort({ sequenceNumber: 1, updatedAt: -1 });
+    .sort({ deliveredAt: -1, sequenceNumber: 1, updatedAt: -1 });
 
-    res.json(orders);
+    const ordersWithDistance = orders.map(order => {
+        let dist = null;
+        if (lat && lng && order.shippingAddress?.lat) {
+            dist = calculateDistance(lat, lng, order.shippingAddress.lat, order.shippingAddress.lng).toFixed(2);
+        }
+        return {
+            ...order.toObject(),
+            distance: dist
+        };
+    });
+
+    res.json(ordersWithDistance);
 });
 
 // @desc    Add order to current route (Batching)
 // @route   POST /api/rider/add-to-route/:orderId
 // @access  Private/Rider
 const addToRoute = asyncHandler(async (req, res) => {
+    const { lat, lng } = req.body; // Rider's current location for optimization
     const order = await Order.findById(req.params.orderId);
 
     if (!order || order.rider) {
@@ -102,15 +116,15 @@ const addToRoute = asyncHandler(async (req, res) => {
 
     const activeMissions = await Order.find({
         rider: req.user._id,
-        status: { $in: ['ACCEPTED', 'PICKED_UP'] }
+        status: { $in: ['ACCEPTED', 'PICKED_UP', 'ARRIVED'] }
     });
 
-    if (activeMissions.length >= 4) {
+    if (activeMissions.length >= 6) { // Increased capacity to 6 for "One trip should cover as many as possible"
         res.status(400);
-        throw new Error('Mission Capacity Reached (Max 4 orders)');
+        throw new Error('Mission Capacity Reached (Max 6 orders)');
     }
 
-    // Assign to current route group
+    // Assign to current route group or create new
     const routeGroupId = activeMissions[0]?.routeGroupId || `ROUTE-${Date.now()}`;
     
     order.rider = req.user._id;
@@ -124,12 +138,17 @@ const addToRoute = asyncHandler(async (req, res) => {
     // Re-optimize sequence for all orders in this route
     const allRouteOrders = await Order.find({
         rider: req.user._id,
-        status: { $in: ['ACCEPTED', 'PICKED_UP'] }
+        status: { $in: ['ACCEPTED', 'PICKED_UP', 'ARRIVED'] }
     });
 
-    // We'd need rider's current location here for true optimization
-    // For now, simple greedy sort by distance from first order's origin or current loc
-    // ... logic for sequenceNumber ...
+    if (lat && lng) {
+        const optimized = optimizeRouteSequence({ lat, lng }, allRouteOrders);
+        
+        // Update sequence numbers in DB
+        await Promise.all(optimized.map((o, idx) => {
+            return Order.findByIdAndUpdate(o._id, { sequenceNumber: idx + 1 });
+        }));
+    }
 
     emitEvent(null, 'orderUpdate', order);
     res.json(order);

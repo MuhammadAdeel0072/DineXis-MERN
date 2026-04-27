@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 
 /**
- * AuthModal — Lightweight redirect modal to the custom SignIn/SignUp pages.
- * The system uses a dedicated JWT authentication flow.
+ * AuthModal — Lightweight redirect modal to the SignIn page.
+ * Phone OTP authentication — no separate signup needed.
  */
 const AuthModal = ({ onClose }) => {
     return createPortal(
@@ -25,9 +25,9 @@ const AuthModal = ({ onClose }) => {
                 </button>
 
                 <h2 id="auth-title" className="text-4xl font-serif font-black text-gold tracking-wider mb-2">
-                    AK-7 <span className="text-crimson">REST</span>
+                    Dine<span className="text-crimson">Xis</span>
                 </h2>
-                <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mb-10">Premium Dining Identity</p>
+                <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mb-10">Premium Smart Dining</p>
 
                 <div className="flex flex-col gap-4">
                     <Link
@@ -35,14 +35,7 @@ const AuthModal = ({ onClose }) => {
                         onClick={onClose}
                         className="w-full py-5 bg-gold hover:bg-yellow-400 text-charcoal rounded-[2rem] font-black uppercase tracking-widest text-sm transition-all shadow-2xl shadow-gold/10 active:scale-95"
                     >
-                        Sign In
-                    </Link>
-                    <Link
-                        to="/signup"
-                        onClick={onClose}
-                        className="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm transition-all active:scale-95"
-                    >
-                        Create Account
+                        Sign In with Phone
                     </Link>
                 </div>
 
@@ -51,7 +44,7 @@ const AuthModal = ({ onClose }) => {
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_currentColor]"></span>
                         Secure
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-600">AK-7 Executive</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-600">DineXis Premium</span>
                 </div>
             </div>
         </div>,

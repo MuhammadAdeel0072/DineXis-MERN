@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Product = require('../models/Product');
 const LoyaltyTransaction = require('../models/Loyalty');
 const Cart = require('../models/Cart');
 const { generateReceipt } = require('../services/pdfService');
@@ -68,7 +69,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
   }
 
   try {
-    const orderNumber = `AK7-${Math.floor(100000 + Math.random() * 899999)}`;
+    const orderNumber = `DX-${Math.floor(100000 + Math.random() * 899999)}`;
 
     const order = new Order({
       orderItems,
@@ -332,6 +333,121 @@ const dispatchOrder = asyncHandler(async (req, res) => {
   }
 });
 
+// ============================
+// 🔁 REORDER FEATURE
+// ============================
+
+// @desc    Get user order history (last 5 delivered orders)
+// @route   GET /api/orders/user-history
+// @access  Private
+const getUserOrderHistory = asyncHandler(async (req, res) => {
+  const orders = await Order.find({
+    user: req.user._id,
+    status: 'DELIVERED'
+  })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean();
+
+  // Enrich with current product availability and pricing
+  for (const order of orders) {
+    for (const item of order.orderItems) {
+      if (item.product) {
+        const currentProduct = await Product.findById(item.product)
+          .select('name price isAvailable countInStock image')
+          .lean();
+
+        if (currentProduct) {
+          item.currentPrice = currentProduct.price;
+          item.isAvailable = currentProduct.isAvailable && currentProduct.countInStock > 0;
+          item.priceChanged = currentProduct.price !== item.price;
+          item.currentImage = currentProduct.image;
+        } else {
+          item.isAvailable = false;
+          item.priceChanged = false;
+          item.currentPrice = item.price;
+        }
+      }
+    }
+  }
+
+  res.json({ orders });
+});
+
+// @desc    Reorder items from a previous order
+// @route   POST /api/orders/reorder
+// @access  Private
+const reorderItems = asyncHandler(async (req, res) => {
+  const { orderId } = req.body;
+
+  if (!orderId) {
+    res.status(400);
+    throw new Error('Order ID is required');
+  }
+
+  // Find the original order
+  const originalOrder = await Order.findOne({
+    _id: orderId,
+    user: req.user._id
+  }).lean();
+
+  if (!originalOrder) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+
+  const cartItems = [];
+  const warnings = [];
+
+  for (const item of originalOrder.orderItems) {
+    if (!item.product) {
+      warnings.push({ name: item.name, reason: 'Product reference missing' });
+      continue;
+    }
+
+    const currentProduct = await Product.findById(item.product)
+      .select('name price isAvailable countInStock image description category customizations')
+      .lean();
+
+    if (!currentProduct) {
+      warnings.push({ name: item.name, reason: 'Item no longer exists in menu' });
+      continue;
+    }
+
+    if (!currentProduct.isAvailable || currentProduct.countInStock <= 0) {
+      warnings.push({ name: item.name, reason: 'Item is currently unavailable' });
+      continue;
+    }
+
+    // Check price change
+    if (currentProduct.price !== item.price) {
+      warnings.push({
+        name: item.name,
+        reason: 'Price updated',
+        oldPrice: item.price,
+        newPrice: currentProduct.price
+      });
+    }
+
+    // Build cart item with current product data
+    cartItems.push({
+      product: currentProduct._id.toString(),
+      name: currentProduct.name,
+      image: currentProduct.image,
+      price: currentProduct.price,
+      qty: item.qty,
+      customizations: item.customizations || []
+    });
+  }
+
+  res.json({
+    success: true,
+    cartItems,
+    warnings,
+    originalOrderNumber: originalOrder.orderNumber
+  });
+});
+
 module.exports = {
   addOrderItems,
   getOrderById,
@@ -342,5 +458,7 @@ module.exports = {
   getOrderReceipt,
   startCooking,
   markReady,
-  dispatchOrder
+  dispatchOrder,
+  getUserOrderHistory,
+  reorderItems
 };

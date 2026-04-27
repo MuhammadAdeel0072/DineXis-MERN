@@ -8,6 +8,8 @@ const {
   getMyOrders,
   getOrders,
   getOrderReceipt,
+  getUserOrderHistory,
+  reorderItems
 } = require('../controllers/orderController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -15,6 +17,13 @@ const { admin } = require('../middleware/adminMiddleware');
 router.route('/')
   .post(protect, addOrderItems)
   .get(protect, admin, getOrders);
+
+// Reorder routes (MUST be before /:id catch-all)
+router.route('/user-history')
+  .get(protect, getUserOrderHistory);
+
+router.route('/reorder')
+  .post(protect, reorderItems);
 
 router.route('/myorders')
   .get(protect, getMyOrders);

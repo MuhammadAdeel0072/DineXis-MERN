@@ -14,7 +14,7 @@ export const exportToPDF = ({ filename, title, subtitle, columns, data }) => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
     doc.setTextColor(212, 175, 55); // #D4AF37 Gold
-    doc.text("AK-7 RESTAURANT", pageWidth / 2, 25, { align: "center" });
+    doc.text("DineXis", pageWidth / 2, 25, { align: "center" });
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);

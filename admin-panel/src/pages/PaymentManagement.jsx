@@ -63,7 +63,7 @@ const PaymentManagement = () => {
     >
       <header>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-soft-white tracking-tighter">Payment <span className="text-gold">Gateway</span></h1>
-        <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">AK-7 REST PAYMENT MANAGEMENT</p>
+        <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">DINEXIS PAYMENT MANAGEMENT</p>
       </header>
 
       <form onSubmit={handleSave} className="glass rounded-[2rem] sm:rounded-[32px] border border-white/5 p-6 sm:p-10 space-y-6 sm:space-y-8 shadow-2xl">

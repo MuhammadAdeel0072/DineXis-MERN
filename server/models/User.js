@@ -4,8 +4,12 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
     firstName: { type: String },
     lastName: { type: String },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    // Email — primary identifier for client OTP auth
+    email: { type: String, unique: true, required: true },
+    // Phone number — optional for delivery contact
+    phoneNumber: { type: String, unique: true, sparse: true },
+    // Password — optional for OTP users, required for admin/chef/rider
+    password: { type: String },
     avatar: { type: String },
     role: {
         type: String,
@@ -51,25 +55,25 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Hash password before saving
+// Hash password before saving (only if password exists and is modified)
 userSchema.pre('save', async function () {
-    if (!this.isModified('password')) {
+    if (!this.isModified('password') || !this.password) {
         return;
     }
 
     // Validate password exists and is a string
-    if (!this.password || typeof this.password !== 'string' || this.password.length === 0) {
+    if (typeof this.password !== 'string' || this.password.length === 0) {
         const error = new Error('Password must be a non-empty string');
-        console.error(`❌ Invalid password format for ${this.email}:`, error.message);
+        console.error(`❌ Invalid password format for ${this.email || this.phoneNumber}:`, error.message);
         throw error;
     }
 
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
-        console.log(`🔐 Password hashed successfully for user: ${this.email}`);
+        console.log(`🔐 Password hashed successfully for user: ${this.email || this.phoneNumber}`);
     } catch (error) {
-        console.error(`❌ Error hashing password for ${this.email}:`, error.message);
+        console.error(`❌ Error hashing password for ${this.email || this.phoneNumber}:`, error.message);
         throw error;
     }
 });
@@ -85,7 +89,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
         // Validate stored password
         if (!this.password || typeof this.password !== 'string') {
-            console.error(`❌ Password comparison error: Stored password is invalid for user ${this.email}`);
+            console.error(`❌ Password comparison error: Stored password is invalid for user ${this.email || this.phoneNumber}`);
             throw new Error('Server error: User password data is corrupted');
         }
 
@@ -99,4 +103,3 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 module.exports = mongoose.model('User', userSchema);
-

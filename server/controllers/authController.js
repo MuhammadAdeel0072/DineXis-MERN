@@ -1,9 +1,12 @@
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const OTP = require('../models/OTP');
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const LoyaltyTransaction = require('../models/Loyalty');
+const { sendOTPEmail } = require('../services/emailService');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -12,7 +15,164 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Register a new user
+// ============================
+// 📱 PHONE OTP AUTHENTICATION
+// ============================
+
+// @desc    Send OTP to email
+// @route   POST /api/auth/send-otp
+// @access  Public
+const sendOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  // Validate email
+  if (!email) {
+    res.status(400);
+    throw new Error('Email is required');
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400);
+    throw new Error('Invalid email format. Please enter a valid email.');
+  }
+
+  // Check if there's already a recent OTP for this email (prevent spam)
+  const recentOTP = await OTP.findOne({
+    email: email.toLowerCase(),
+    createdAt: { $gt: new Date(Date.now() - 30 * 1000) } // within last 30 seconds
+  });
+
+  if (recentOTP) {
+    res.status(429);
+    throw new Error('OTP already sent. Please wait 30 seconds before requesting a new one.');
+  }
+
+  // Delete any existing OTPs for this email
+  await OTP.deleteMany({ email: email.toLowerCase() });
+
+  // Generate 6-digit OTP
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Store in DB with 5-minute TTL (Plain text for 6-digit OTP reliability)
+  await OTP.create({
+    email: email.toLowerCase(),
+    otp: otpCode,
+    attempts: 0
+  });
+
+  // Send OTP via email
+  const emailSent = await sendOTPEmail(email.toLowerCase(), otpCode);
+
+  if (!emailSent) {
+    // If email fails, we still log it in dev for convenience
+    console.log(`\n📧 [OTP FALLBACK] Code for ${email}: ${otpCode}\n`);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: emailSent ? 'OTP sent to your email successfully' : 'OTP generated (Email failed, check console)',
+    // Only include OTP in development for testing
+    ...(process.env.NODE_ENV === 'development' && { devOTP: otpCode })
+  });
+});
+
+// @desc    Verify OTP and authenticate
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    res.status(400);
+    throw new Error('Email and OTP are required');
+  }
+
+  const cleanEmail = email.toLowerCase();
+
+  // Find the OTP record
+  const otpRecord = await OTP.findOne({ email: cleanEmail });
+
+  // DEBUG LOGGING
+  console.log(`\n🔍 [AUTH DEBUG] Verification Attempt:`);
+  console.log(`- Received Email: ${cleanEmail}`);
+  console.log(`- Received OTP  : ${otp}`);
+  console.log(`- DB Record Found: ${otpRecord ? 'YES ✅' : 'NO ❌'}`);
+  if (otpRecord) {
+    console.log(`- DB Stored OTP: ${otpRecord.otp}`);
+    console.log(`- Match Result : ${otp === otpRecord.otp ? 'MATCH' : 'MISMATCH'}`);
+  }
+  console.log(`---------------------------\n`);
+
+  if (!otpRecord) {
+    res.status(401);
+    throw new Error('OTP expired or not found. Please request a new OTP.');
+  }
+
+  // Check brute force attempts
+  if (otpRecord.attempts >= 5) {
+    await OTP.deleteOne({ _id: otpRecord._id });
+    res.status(429);
+    throw new Error('Too many failed attempts. Please request a new OTP.');
+  }
+
+  // Compare OTP (Direct string match)
+  const isMatch = (otp === otpRecord.otp);
+
+  if (!isMatch) {
+    // Increment attempt counter
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+
+    const remaining = 5 - otpRecord.attempts;
+    res.status(401);
+    throw new Error(`Invalid OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
+  }
+
+  // OTP verified! Delete the record
+  await OTP.deleteOne({ _id: otpRecord._id });
+
+  // Find or create user by email
+  let user = await User.findOne({ email: cleanEmail });
+
+  if (!user) {
+    // Auto-register new user
+    user = await User.create({
+      email: cleanEmail,
+      firstName: 'User',
+      lastName: '',
+      role: 'customer'
+    });
+    console.log(`✅ New user auto-registered via OTP: ${cleanEmail}`);
+  } else {
+    console.log(`✅ Existing user authenticated via OTP: ${cleanEmail}`);
+  }
+
+  const token = generateToken(user._id);
+
+  res.status(200).json({
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phoneNumber: user.phoneNumber,
+    phone: user.phone,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    favorites: user.favorites,
+    addresses: user.addresses,
+    loyaltyPoints: user.loyaltyPoints,
+    loyaltyTier: user.loyaltyTier,
+    token
+  });
+});
+
+// ============================
+// 📧 EMAIL AUTH (Admin/Chef/Rider backward compat)
+// ============================
+
+// @desc    Register a new user (email-based — admin/chef/rider)
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res, next) => {
@@ -86,7 +246,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   }
 });
 
-// @desc    Authenticate user & get token
+// @desc    Authenticate user & get token (email-based — admin/chef/rider)
 // @route   POST /api/auth/login
 // @access  Public
 const authUser = asyncHandler(async (req, res, next) => {
@@ -137,6 +297,7 @@ const authUser = asyncHandler(async (req, res, next) => {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
+      phoneNumber: user.phoneNumber,
       role: user.role,
       avatar: user.avatar,
       favorites: user.favorites,
@@ -177,12 +338,11 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
     throw new Error('User not found');
   }
 
-  const { firstName, lastName, phone, phoneNumber, addresses, avatar, password, favorites } = req.body;
+  const { firstName, lastName, phone, addresses, avatar, password, favorites } = req.body;
   if (firstName !== undefined) user.firstName = firstName;
   if (lastName !== undefined) user.lastName = lastName;
   if (avatar !== undefined) user.avatar = avatar;
   if (phone !== undefined) user.phone = phone;
-  if (phoneNumber !== undefined && phone === undefined) user.phone = phoneNumber;
 
   if (addresses !== undefined) user.addresses = addresses;
   if (favorites !== undefined) user.favorites = favorites;
@@ -388,6 +548,8 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  sendOTP,
+  verifyOTP,
   registerUser,
   authUser,
   getUserProfile,
@@ -401,4 +563,3 @@ module.exports = {
   resetPassword,
   changePassword
 };
-

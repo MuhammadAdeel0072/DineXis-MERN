@@ -214,7 +214,7 @@ const OrderTracker = () => {
                 {/* Restaurant Marker */}
                 <Marker
                   position={{ lat: 33.6844, lng: 73.0479 }}
-                  label="AK-7 REST"
+                  label="DineXis"
                 />
 
                 {/* Rider Marker */}

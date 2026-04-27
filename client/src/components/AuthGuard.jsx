@@ -21,12 +21,12 @@ const AuthGuard = ({ children }) => {
           <AuthIcon className="w-10 h-10 text-gold/40" />
         </div>
         <h2 className="text-3xl font-serif font-bold text-white mb-2">Private Experience</h2>
-        <p className="text-gold/60 font-medium tracking-widest uppercase text-[10px] mb-8">Identification required for gourmet access</p>
+        <p className="text-gold/60 font-medium tracking-widest uppercase text-[10px] mb-8">Sign in with your phone to continue</p>
         <Link
           to="/signin"
           className="bg-gold text-charcoal font-black py-4 px-12 rounded-2xl transition-all transform hover:scale-105 shadow-xl shadow-gold/20 active:scale-95"
         >
-          Secure Identity
+          Sign In with Phone
         </Link>
       </div>
     );

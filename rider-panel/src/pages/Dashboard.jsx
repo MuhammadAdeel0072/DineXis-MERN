@@ -8,7 +8,7 @@ import {
     PlusCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRider } from '../context/RiderContext';
+import { useRider } from '../hooks/useRider';
 import OrderCard from '../components/OrderCard';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -31,10 +31,10 @@ const Dashboard = () => {
     
     const [actionLoading, setActionLoading] = useState(false);
 
-    // Filter active mission for the dashboard
-    const activeOrder = myOrders.find(o => ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'ARRIVED'].includes(o.status));
+    // Filter active missions for the dashboard (Batch View)
+    const activeOrders = myOrders.filter(o => ['ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'ARRIVED'].includes(o.status));
 
-    // Smart Suggestions: Orders that are on the route of the current active mission
+    // Smart Suggestions: Orders that are on the route of the current active missions
     const routeSuggestions = availableOrders.filter(o => o.onRoute);
 
     const handleAction = async (orderId, type) => {
@@ -98,15 +98,23 @@ const Dashboard = () => {
                         </h2>
                     </div>
 
-                    <div className="min-h-[300px]">
-                        <AnimatePresence mode="wait">
-                            {activeOrder ? (
-                                <OrderCard
-                                    key={activeOrder._id}
-                                    order={activeOrder}
-                                    onAction={handleAction}
-                                    actionLoading={actionLoading}
-                                />
+                    <div className="min-h-[300px] space-y-4">
+                        <AnimatePresence mode="popLayout">
+                            {activeOrders.length > 0 ? (
+                                activeOrders.map((order, index) => (
+                                    <div key={order._id} className="relative">
+                                        {activeOrders.length > 1 && (
+                                            <div className="absolute -top-3 -left-3 z-10 w-8 h-8 rounded-full bg-gold text-charcoal flex items-center justify-center font-black text-sm shadow-lg border-2 border-charcoal">
+                                                {order.sequenceNumber || index + 1}
+                                            </div>
+                                        )}
+                                        <OrderCard
+                                            order={order}
+                                            onAction={handleAction}
+                                            actionLoading={actionLoading}
+                                        />
+                                    </div>
+                                ))
                             ) : (
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -125,7 +133,7 @@ const Dashboard = () => {
 
                     {/* Smart Route Suggestions Overlay */}
                     <AnimatePresence>
-                        {activeOrder && routeSuggestions.length > 0 && (
+                        {activeOrders.length > 0 && routeSuggestions.length > 0 && (
                             <motion.div 
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}

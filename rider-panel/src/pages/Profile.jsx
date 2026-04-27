@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { User, Phone, Mail, Shield, LogOut, Award, Camera, Lock, CheckCircle, Edit2, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -132,7 +132,7 @@ const Profile = () => {
                 <h1 className="text-3xl font-serif font-black tracking-tighter mb-1 uppercase">
                     {user?.firstName} <span className="text-gold">{user?.lastName}</span>
                 </h1>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">AK-7 Delivery Team</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">DineXis Delivery Team</p>
                 
                 <div className="flex items-center gap-2 mt-6 px-4 py-1.5 bg-white/5 rounded-full border border-white/10">
                     <CheckCircle className="w-3.5 h-3.5 text-green-500" />

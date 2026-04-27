@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   // Check for existing token on mount
   useEffect(() => {
-    const token = localStorage.getItem('ak7_token');
+    const token = localStorage.getItem('dinexis_token');
     if (token) {
       fetchProfile();
     } else {
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       setIsSignedIn(true);
     } catch (error) {
       console.error('Failed to fetch user profile', error);
-      localStorage.removeItem('ak7_token');
+      localStorage.removeItem('dinexis_token');
       setUser(null);
       setIsSignedIn(false);
     } finally {
@@ -36,11 +36,44 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Email OTP: Send OTP to email address
+  const sendOTP = async (email) => {
+    try {
+      const { data } = await apiClient.post('/auth/send-otp', { email });
+      toast.success('OTP sent to your email!');
+      return data;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to send OTP';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  // Email OTP: Verify OTP and authenticate
+  const verifyOTP = async (email, otp) => {
+    try {
+      setLoading(true);
+      const { data } = await apiClient.post('/auth/verify-otp', { email, otp });
+      localStorage.setItem('dinexis_token', data.token);
+      setUser(data);
+      setIsSignedIn(true);
+      toast.success(`Welcome${data.firstName && data.firstName !== 'User' ? `, ${data.firstName}` : ''}! 🎉`);
+      return data;
+    } catch (error) {
+      const message = error.response?.data?.message || 'Verification failed';
+      toast.error(message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Email login (kept for backward compatibility with admin/chef/rider)
   const login = async (email, password) => {
     try {
       setLoading(true);
       const { data } = await apiClient.post('/auth/login', { email, password });
-      localStorage.setItem('ak7_token', data.token);
+      localStorage.setItem('dinexis_token', data.token);
       setUser(data);
       setIsSignedIn(true);
       toast.success(`Welcome back, ${data.firstName}!`);
@@ -56,11 +89,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Email register (kept for backward compatibility)
   const register = async (userData) => {
     try {
       setLoading(true);
       const { data } = await apiClient.post('/auth/register', userData);
-      localStorage.setItem('ak7_token', data.token);
+      localStorage.setItem('dinexis_token', data.token);
       setUser(data);
       setIsSignedIn(true);
       toast.success('Account created successfully!');
@@ -77,7 +111,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('ak7_token');
+    localStorage.removeItem('dinexis_token');
     setUser(null);
     setIsSignedIn(false);
     toast.success('Logged out successfully');
@@ -128,6 +162,8 @@ export const AuthProvider = ({ children }) => {
       profile: user,
       loading, 
       isSignedIn, 
+      sendOTP,
+      verifyOTP,
       login, 
       logout,
       register,

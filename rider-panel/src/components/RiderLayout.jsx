@@ -10,8 +10,8 @@ import {
     X 
 } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
-import { useRider } from '../context/RiderContext';
-import { useAuth } from '../context/AuthContext';
+import { useRider } from '../hooks/useRider';
+import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { BrandLogo, typographyClasses } from './BrandingUtils';
 

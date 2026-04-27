@@ -274,7 +274,7 @@ const MenuManagement = () => {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-soft-white tracking-tighter">Menu <span className="text-gold">Management</span></h1>
-          <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">AK-7 REST MENU MANAGEMENT</p>
+          <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">DINEXIS MENU MANAGEMENT</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <button 

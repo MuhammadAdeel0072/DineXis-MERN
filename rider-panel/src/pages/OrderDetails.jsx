@@ -14,7 +14,7 @@ import {
     ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRider } from '../context/RiderContext';
+import { useRider } from '../hooks/useRider';
 import toast from 'react-hot-toast';
 
 const OrderDetails = () => {

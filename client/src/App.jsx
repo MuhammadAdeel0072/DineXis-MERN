@@ -15,16 +15,12 @@ import AuthGuard from './components/AuthGuard';
 import Orders from './pages/Orders';
 import OrderHistory from './pages/OrderHistory';
 import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
 import OrderTracker from './pages/OrderTracker';
 import Help from './pages/Help';
 import Reservations from './pages/Reservations';
 import Settings from './pages/Settings';
 
 function App() {
-
-
-
   return (
     <AuthProvider>
       <SocketProvider>
@@ -36,7 +32,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
                 <Route path="/menu" element={<Menu />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={

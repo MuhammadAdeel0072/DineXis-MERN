@@ -12,18 +12,11 @@ import {
     addToRoute as apiAddToRoute
 } from '../services/api';
 import socket, { joinRiders } from '../services/socket';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 
-const RiderContext = createContext();
+export const RiderContext = createContext();
 
-export const useRider = () => {
-    const context = useContext(RiderContext);
-    if (!context) {
-        throw new Error('useRider must be used within a RiderProvider');
-    }
-    return context;
-};
 
 export const RiderProvider = ({ children }) => {
     const { user } = useAuth();
@@ -39,27 +32,41 @@ export const RiderProvider = ({ children }) => {
     const fetchData = useCallback(async () => {
         if (!user) return;
         try {
-            const [mine, currentStats] = await Promise.all([
-                getMyOrders(),
-                getRiderStats()
-            ]);
-            setMyOrders(mine);
+            // First fetch basic stats
+            const currentStats = await getRiderStats();
             setStats(currentStats);
 
-            // Fetch location-based data if location is available
+            // Fetch orders and nearby suggestions
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
-                    setLocation({ lat, lng });
-                    const nearby = await getNearbyOrders(lat, lng);
+                    const locObj = { lat, lng };
+                    setLocation(locObj);
+                    
+                    const [mine, nearby] = await Promise.all([
+                        getMyOrders(lat, lng),
+                        getNearbyOrders(lat, lng)
+                    ]);
+                    
+                    setMyOrders(mine);
                     setNearbyOrders(nearby);
-                }, () => {
-                    // Fallback to regular available orders if GPS denied
-                    getAvailableOrders().then(setAvailableOrders);
+                }, async () => {
+                    // Fallback if GPS denied
+                    const [mine, available] = await Promise.all([
+                        getMyOrders(),
+                        getAvailableOrders()
+                    ]);
+                    setMyOrders(mine);
+                    setAvailableOrders(available);
                 });
             } else {
-                getAvailableOrders().then(setAvailableOrders);
+                const [mine, available] = await Promise.all([
+                    getMyOrders(),
+                    getAvailableOrders()
+                ]);
+                setMyOrders(mine);
+                setAvailableOrders(available);
             }
         } catch (error) {
             console.error("Failed to fetch rider data:", error);
@@ -130,7 +137,7 @@ export const RiderProvider = ({ children }) => {
     };
 
     const batchToRoute = async (id) => {
-        const res = await apiAddToRoute(id);
+        const res = await apiAddToRoute(id, location);
         await fetchData();
         return res;
     };

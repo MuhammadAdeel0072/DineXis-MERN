@@ -39,7 +39,7 @@ const Login = () => {
                     <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-gold/20 rotate-3 group-hover:rotate-6 transition-transform">
                         <ChefHat className="text-gold" size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">AK-7 <span className="text-gold">Chef</span></h1>
+                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">DineXis <span className="text-gold">Chef</span></h1>
                     <p className="text-xs font-medium text-white/40 uppercase tracking-[0.3em]">Culinary HQ Authorization</p>
                 </div>
 

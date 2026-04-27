@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
 import RiderLayout from './components/RiderLayout';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';

@@ -7,7 +7,7 @@ const generateReceipt = (order, stream) => {
   doc
     .fillColor('#D4AF37')
     .fontSize(25)
-    .text('AK-7 REST', 50, 45, { align: 'center' })
+    .text('DineXis', 50, 45, { align: 'center' })
     .fillColor('#444444')
     .fontSize(10)
     .text('Gourmet Dining Experience', 200, 65, { align: 'center' })
@@ -47,7 +47,7 @@ const generateReceipt = (order, stream) => {
     .text('------------------------------------------------', 350, position + 20)
     .text(`Total Price: $${order.totalPrice.toFixed(2)}`, 350, position + 35, { bold: true })
     .fillColor('#D4AF37')
-    .text('Thank you for choosing AK-7 REST!', 50, position + 60, { align: 'center' });
+    .text('Thank you for choosing DineXis!', 50, position + 60, { align: 'center' });
 
   doc.pipe(stream);
   doc.end();

@@ -1,12 +1,16 @@
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-charcoal: #121212;
+  --color-charcoal: #0a0a0a;
   --color-off-white: #F9F9F9;
   --color-gold: #D4AF37;
   --color-soft-white: #E0E0E0;
   --color-crimson: #dc143c;
+  --color-near: #10b981;
+  --color-medium: #f59e0b;
+  --color-far: #ef4444;
   
   --font-sans: 'Outfit', sans-serif;
   --font-serif: 'Playfair Display', serif;
@@ -14,50 +18,63 @@
 
 @layer base {
   body {
-    background-color: #121212;
+    background-color: #0a0a0a;
     color: #E0E0E0;
     font-family: var(--font-sans);
     margin: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 }
 
-/* Reusing 'Midnight Gourmet' Component System */
+/* Simplified UI Components */
 
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.glass-gold {
-  background: rgba(212, 175, 55, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 175, 55, 0.1);
-}
-
-.btn-gold {
-  @apply bg-gold text-charcoal px-6 py-2 rounded-xl font-black transition-all hover:bg-gold/10 hover:text-gold hover:border hover:border-gold/30 active:scale-95 shadow-[0_0_15px_rgba(212,175,55,0.3)] uppercase tracking-widest text-[10px];
-}
-
-.btn-secondary {
-  @apply bg-crimson text-white px-6 py-2 rounded-xl font-black transition-all hover:bg-crimson/20 hover:text-crimson hover:border hover:border-crimson/30 active:scale-95 uppercase tracking-widest text-[10px];
-}
-
-.card-premium {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.card-minimal {
+  background: #141414;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 2rem;
-  transition: all 0.3s ease;
+  border-radius: 1.5rem;
+  transition: all 0.2s ease;
 }
 
-.card-premium:hover {
-  border-color: rgba(212, 175, 55, 0.2);
-  background: rgba(255, 255, 255, 0.04);
+.card-minimal:active {
+  transform: scale(0.98);
+}
+
+.btn-primary-large {
+  @apply bg-gold text-charcoal w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.1em] shadow-2xl shadow-gold/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+}
+
+.btn-secondary-large {
+  @apply bg-white/5 text-white w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.1em] border border-white/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+}
+
+.btn-success-large {
+  @apply bg-near text-charcoal w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.1em] shadow-2xl shadow-near/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+}
+
+/* Map Overrides */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  z-index: 1;
+  background: #141414 !important;
+}
+
+.leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.leaflet-control-attribution {
+  display: none !important;
 }
 
 /* Hide scrollbar globally */
@@ -72,20 +89,16 @@
   scrollbar-width: none !important;
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.text-gradient {
+  background: linear-gradient(135deg, #fff 0%, #a1a1a1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.tab-active {
+  @apply bg-gold text-charcoal shadow-xl shadow-gold/20 scale-105;
 }
 
-/* Typography Helpers */
-.text-premium {
-  @apply italic tracking-tighter;
-}
-
-.label-caps {
-  @apply text-[10px] font-bold uppercase tracking-[0.2em] text-soft-white/40;
-}
+.tab-inactive {
+  @apply text-white/30 hover:text-white/60;
+}
