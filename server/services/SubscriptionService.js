@@ -73,7 +73,7 @@ const createScheduledOrder = async (subscription, scheduleItem, now) => {
             image: item.product.image,
             price: item.price || item.product.price,
             product: item.product._id,
-            selectedSize: {
+            selectedVariant: {
                 name: item.size,
                 price: item.price
             },

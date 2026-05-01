@@ -80,7 +80,7 @@ const Checkout = () => {
             qty: item.qty,
             image: item.image,
             price: item.price,
-            selectedSize: item.selectedSize,
+            selectedVariant: item.selectedVariant,
             customizations: item.customizations || []
           })),
         shippingAddress: {
@@ -290,6 +290,7 @@ const Checkout = () => {
                           <h4 className="font-serif font-bold text-white text-xl mb-1">{item.name}</h4>
                           <div className="flex items-center gap-3 text-[10px] text-gray-500 font-black uppercase tracking-widest">
                             <span>Qty: {item.qty}</span>
+                            {item.selectedVariant?.name && <><span className="w-1 h-1 bg-white/10 rounded-full"></span><span>{item.selectedVariant.name}</span></>}
                             <span className="w-1 h-1 bg-white/10 rounded-full"></span>
                             <span>Rs. {item.price} each</span>
                           </div>

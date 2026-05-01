@@ -13,7 +13,7 @@ const ProductDetail = () => {
     const { dispatch } = useCart();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [selectedSize, setSelectedSize] = useState(null);
+    const [selectedVariant, setSelectedVariant] = useState(null);
     const [qty, setQty] = useState(1);
 
     useEffect(() => {
@@ -37,7 +37,7 @@ const ProductDetail = () => {
     }, [id]);
 
     const addToCartHandler = () => {
-        if (!selectedSize && product.sizes?.length > 0) {
+        if (!selectedVariant && product.variants?.length > 0) {
             toast.error('Please select a size first');
             return;
         }
@@ -46,8 +46,8 @@ const ProductDetail = () => {
             ...product,
             product: product._id,
             qty: qty,
-            selectedSize: selectedSize,
-            price: selectedSize ? selectedSize.price : product.price
+            selectedVariant: selectedVariant,
+            price: selectedVariant ? selectedVariant.price : product.price
         };
 
         dispatch({
@@ -55,7 +55,7 @@ const ProductDetail = () => {
             payload: cartItem,
         });
 
-        toast.success(`Added ${product.name} (${selectedSize?.name || 'Regular'}) to cart`, {
+        toast.success(`${product.name} (${selectedVariant?.name}) added to cart`, {
             icon: '🛒',
             duration: 3000,
         });
@@ -114,7 +114,7 @@ const ProductDetail = () => {
                         
                         <div className="flex items-center gap-8 mb-10">
                             <div className="flex items-center gap-2 text-[10px] text-gray-500 font-black uppercase tracking-widest">
-                                <Clock className="w-4 h-4 text-gold/40" /> {selectedSize?.prepTime || product.preparationTime} MINS
+                                <Clock className="w-4 h-4 text-gold/40" /> {selectedVariant?.prepTime || product.preparationTime} MINS
                             </div>
                             <div className="flex items-center gap-2 text-[10px] text-gray-500 font-black uppercase tracking-widest">
                                 <Package className="w-4 h-4 text-gold/40" /> SAFE PACKING
@@ -123,28 +123,28 @@ const ProductDetail = () => {
                     </div>
 
                     {/* Size Selection Section */}
-                    {product.sizes?.length > 0 && (
+                    {product.variants?.length > 0 && (
                         <div className="mb-12">
                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gold/60 mb-6 flex justify-between">
-                                Select Your Size
+                                Select Your Variant
                                 <span className="text-crimson/60">* Required</span>
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {product.sizes.map((size, idx) => (
+                                {product.variants.map((variant, idx) => (
                                     <button
                                         key={idx}
-                                        onClick={() => setSelectedSize(size)}
+                                        onClick={() => setSelectedVariant(variant)}
                                         className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300 relative group ${
-                                            selectedSize?.name === size.name
+                                            selectedVariant?.name === variant.name
                                                 ? 'bg-gold/10 border-gold shadow-[0_20px_40px_rgba(212,175,55,0.15)]'
                                                 : 'bg-white/5 border-white/5 hover:border-gold/30'
                                         }`}
                                     >
-                                        <span className={`text-xl font-black uppercase tracking-widest mb-2 ${selectedSize?.name === size.name ? 'text-gold' : 'text-gray-400'}`}>
-                                            {size.name}
+                                        <span className={`text-2xl font-black uppercase tracking-widest mb-2 ${selectedVariant?.name === variant.name ? 'text-gold' : 'text-gray-400'}`}>
+                                            {variant.name}
                                         </span>
-                                        <span className="text-2xl font-bold text-white tracking-tighter">Rs. {size.price}</span>
-                                        {selectedSize?.name === size.name && (
+                                        <span className="text-xl font-bold text-white tracking-tighter">Rs. {variant.price}</span>
+                                        {selectedVariant?.name === variant.name && (
                                             <div className="absolute -top-2 -right-2 bg-gold text-charcoal w-6 h-6 rounded-full flex items-center justify-center shadow-lg">
                                                 <Check className="w-4 h-4" />
                                             </div>
@@ -161,7 +161,7 @@ const ProductDetail = () => {
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-gold/60 mb-1">Total Price</span>
                                 <span className="text-4xl font-black text-white tracking-tighter">
-                                    Rs. {(selectedSize ? selectedSize.price : product.price) * qty}
+                                    Rs. {(selectedVariant ? selectedVariant.price : product.price) * qty}
                                 </span>
                             </div>
                             
@@ -184,14 +184,14 @@ const ProductDetail = () => {
 
                         <button
                             onClick={addToCartHandler}
-                            disabled={product.sizes?.length > 0 && !selectedSize}
+                            disabled={product.variants?.length > 0 && !selectedVariant}
                             className={`w-full py-6 rounded-[2.5rem] flex items-center justify-center gap-4 text-xl font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-2xl group ${
-                                (product.sizes?.length > 0 && !selectedSize)
+                                (product.variants?.length > 0 && !selectedVariant)
                                     ? 'bg-white/5 text-gray-600 border border-white/5 cursor-not-allowed'
                                     : 'bg-gold text-charcoal hover:scale-[1.02] active:scale-95 shadow-gold/30'
                             }`}
                         >
-                            <ShoppingCart className={`w-6 h-6 ${(product.sizes?.length > 0 && !selectedSize) ? '' : 'group-hover:rotate-12 transition-transform'}`} />
+                            <ShoppingCart className={`w-6 h-6 ${(product.variants?.length > 0 && !selectedVariant) ? '' : 'group-hover:rotate-12 transition-transform'}`} />
                             Add to Cart
                         </button>
 

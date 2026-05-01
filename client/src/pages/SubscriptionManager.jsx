@@ -81,7 +81,7 @@ const SubscriptionManager = () => {
                     items: newSub.items.map(i => ({
                         product: i._id,
                         qty: i.qty || 1,
-                        selectedSize: i.selectedSize
+                        selectedVariant: i.selectedVariant
                     }))
                 }],
                 endDate: endDate.toISOString()
@@ -219,7 +219,7 @@ const SubscriptionManager = () => {
                                             </div>
                                             <div>
                                                 <p className="text-white font-bold text-xs">{item.qty}x {item.product?.name || 'Item'}</p>
-                                                {item.selectedSize && <p className="text-[9px] text-gold/50 font-black uppercase tracking-widest">{item.selectedSize.name}</p>}
+                                                {item.selectedVariant && <p className="text-[9px] text-gold/50 font-black uppercase tracking-widest">{item.selectedVariant.name}</p>}
                                             </div>
                                         </div>
                                         <span className="text-gold font-black text-sm tracking-tighter">Rs. {(item.product?.price || 0) * item.qty}</span>

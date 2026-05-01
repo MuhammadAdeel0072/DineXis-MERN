@@ -54,24 +54,29 @@ const getProductById = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, customizations } = req.body;
+  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, hasVariants, variationGroups } = req.body;
 
   // Basic validation
-  if (!name || !price || !category) {
+  if (!name || !category) {
     res.status(400);
-    throw new Error('Please provide name, price, and category');
+    throw new Error('Please provide name and category');
   }
+
+  // Gracefully handle empty variation groups
+  const finalHasVariants = hasVariants && variationGroups && variationGroups.length > 0;
+  const finalVariationGroups = finalHasVariants ? variationGroups : [];
 
   const product = new Product({
     name,
-    price,
+    price: price || 0,
     image: image || '/images/sample.jpg',
     category,
     countInStock: countInStock || 0,
     description: description || '',
     isSpecial: isSpecial || false,
     dietaryInfo: dietaryInfo || [],
-    customizations: customizations || [],
+    hasVariants: finalHasVariants,
+    variationGroups: finalVariationGroups,
   });
 
   const createdProduct = await product.save();
@@ -87,20 +92,25 @@ const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, customizations } = req.body;
+  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, hasVariants, variationGroups } = req.body;
 
   const product = await Product.findById(req.params.id);
 
   if (product) {
+    // Gracefully handle empty variation groups
+    const finalHasVariants = hasVariants && variationGroups && variationGroups.length > 0;
+    const finalVariationGroups = finalHasVariants ? variationGroups : [];
+
     product.name = name || product.name;
-    product.price = price || product.price;
     product.description = description || product.description;
     product.image = image || product.image;
     product.category = category || product.category;
     product.countInStock = countInStock !== undefined ? countInStock : product.countInStock;
     product.isSpecial = isSpecial !== undefined ? isSpecial : product.isSpecial;
     product.dietaryInfo = dietaryInfo || product.dietaryInfo;
-    product.customizations = customizations || product.customizations;
+    product.hasVariants = finalHasVariants;
+    product.variationGroups = finalVariationGroups;
+    product.price = price !== undefined ? price : product.price;
 
     const updatedProduct = await product.save();
 

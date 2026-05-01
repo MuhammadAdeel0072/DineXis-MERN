@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
-import { Plus, Edit, Trash2, Search, X, Image as ImageIcon, Save, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, X, Image as ImageIcon, Save, Check, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -26,8 +26,8 @@ const MenuManagement = () => {
     isSpecial: false,
     isVegetarian: false,
     spicyLevel: 0,
-    hasSizes: false,
-    sizes: [
+    hasVariants: false,
+    variants: [
       { name: 'Small', price: '', prepTime: 10 },
       { name: 'Regular', price: '', prepTime: 15 },
       { name: 'Large', price: '', prepTime: 20 }
@@ -205,8 +205,8 @@ const MenuManagement = () => {
         isSpecial: item.isSpecial || false,
         isVegetarian: item.isVegetarian || false,
         spicyLevel: item.spicyLevel || 0,
-        hasSizes: (item.sizes && item.sizes.length > 0) || false,
-        sizes: item.sizes && item.sizes.length > 0 ? item.sizes : [
+        hasVariants: item.hasVariants || (item.variants && item.variants.length > 0) || false,
+        variants: item.variants && item.variants.length > 0 ? item.variants : [
           { name: 'Small', price: '', prepTime: 10 },
           { name: 'Regular', price: '', prepTime: 15 },
           { name: 'Large', price: '', prepTime: 20 }
@@ -224,8 +224,8 @@ const MenuManagement = () => {
         isSpecial: false,
         isVegetarian: false,
         spicyLevel: 0,
-        hasSizes: false,
-        sizes: [
+        hasVariants: false,
+        variants: [
           { name: 'Small', price: '', prepTime: 10 },
           { name: 'Regular', price: '', prepTime: 15 },
           { name: 'Large', price: '', prepTime: 20 }
@@ -246,17 +246,27 @@ const MenuManagement = () => {
       // Prepare data
       const dataToSubmit = { ...formData };
       
-      if (formData.hasSizes) {
-        // Filter out empty size entries and validate
-        dataToSubmit.sizes = formData.sizes.filter(s => s.name.trim() && s.price);
-        if (dataToSubmit.sizes.length === 0) {
-          toast.error('Please add at least one valid size variant âŒ');
+      if (formData.hasVariants) {
+        // Filter out empty variant entries and validate
+        dataToSubmit.variants = formData.variants.filter(v => v.name.trim() && v.price);
+        if (dataToSubmit.variants.length === 0) {
+          toast.error('Please add at least one valid variant');
           return;
         }
-        // Set the base price to the first size's price for compatibility
-        dataToSubmit.price = dataToSubmit.sizes[0].price;
+
+        // Check for duplicate names
+        const names = dataToSubmit.variants.map(v => v.name.toLowerCase().trim());
+        if (new Set(names).size !== names.length) {
+          toast.error('Duplicate variant names are not allowed');
+          return;
+        }
+
+        // Set the base price to the first variant's price for compatibility
+        dataToSubmit.price = dataToSubmit.variants[0].price;
+        dataToSubmit.hasVariants = true;
       } else {
-        dataToSubmit.sizes = [];
+        dataToSubmit.variants = [];
+        dataToSubmit.hasVariants = false;
       }
 
       const loadingToast = toast.loading(editingItem ? 'Updating product...' : 'Adding product...');
@@ -383,7 +393,15 @@ const MenuManagement = () => {
                       </span>
                     </td>
                     <td className="px-4 sm:px-8 py-4 sm:py-6 font-bold text-gold text-center text-base sm:text-lg">
-                      Rs. {item.price}
+                      <div className="flex flex-col items-center gap-1">
+                        <span>Rs. {item.price}</span>
+                        {item.hasVariants && item.variants?.length > 0 && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] font-bold bg-gold/10 text-gold border border-gold/20 uppercase tracking-tighter">
+                            <Layers className="w-3 h-3" />
+                            {item.variants.length} Variants
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 sm:px-8 py-4 sm:py-6 text-center">
                       <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${item.countInStock < 5 ? 'bg-crimson/10 text-crimson border border-crimson/10' : 'bg-white/5 text-soft-white/60'}`}>
@@ -549,73 +567,95 @@ const MenuManagement = () => {
                     </div>
                   </div>
 
-                  {/* Size Variants Section */}
+                  {/* Product Variations Section */}
                   <div className="md:col-span-2 space-y-6 glass p-6 rounded-2xl border border-white/5">
                     <div className="flex items-center justify-between mb-4">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gold opacity-70">Pizza Size Variants</label>
+                      <label className="text-xs font-bold uppercase tracking-widest text-gold opacity-70">Product Variations</label>
                       <label className="flex items-center space-x-3 cursor-pointer group">
-                        <div className={`w-10 h-5 rounded-full transition-all relative ${formData.hasSizes ? 'bg-gold' : 'bg-white/10'}`}>
-                          <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${formData.hasSizes ? 'left-6' : 'left-1'}`}></div>
+                        <div className={`w-10 h-5 rounded-full transition-all relative ${formData.hasVariants ? 'bg-gold' : 'bg-white/10'}`}>
+                          <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${formData.hasVariants ? 'left-6' : 'left-1'}`}></div>
                         </div>
-                        <input type="checkbox" className="hidden" checked={formData.hasSizes} onChange={(e) => setFormData({...formData, hasSizes: e.target.checked})}/>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-soft-white/60 group-hover:text-gold">Enable Sizes</span>
+                        <input type="checkbox" className="hidden" checked={formData.hasVariants} onChange={(e) => setFormData({...formData, hasVariants: e.target.checked})}/>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-soft-white/60 group-hover:text-gold">Enable Variations</span>
                       </label>
                     </div>
 
-                    {formData.hasSizes && (
+                    {formData.hasVariants && (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-3 gap-4 text-[10px] font-black uppercase tracking-widest text-soft-white/30 px-4">
-                          <span>Size Name</span>
+                        <div className="grid grid-cols-[1fr_1fr_1fr_40px] gap-4 text-[10px] font-black uppercase tracking-widest text-soft-white/30 px-4">
+                          <span>Variant Name</span>
                           <span>Price (Rs.)</span>
                           <span>Prep Time (min)</span>
+                          <span></span>
                         </div>
-                        {formData.sizes.map((size, idx) => (
-                          <div key={idx} className="grid grid-cols-3 gap-4 items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                            <input 
-                              placeholder="Size"
-                              className="bg-transparent border-none text-soft-white focus:outline-none font-bold"
-                              value={size.name}
-                              onChange={(e) => {
-                                const newSizes = [...formData.sizes];
-                                newSizes[idx].name = e.target.value;
-                                setFormData({...formData, sizes: newSizes});
-                              }}
-                            />
-                            <input 
-                              type="number"
-                              placeholder="Price"
-                              className="bg-transparent border-none text-gold font-bold focus:outline-none"
-                              value={size.price}
-                              onChange={(e) => {
-                                const newSizes = [...formData.sizes];
-                                newSizes[idx].price = e.target.value;
-                                setFormData({...formData, sizes: newSizes});
-                              }}
-                            />
-                            <input 
-                              type="number"
-                              placeholder="Min"
-                              className="bg-transparent border-none text-soft-white/60 focus:outline-none text-center"
-                              value={size.prepTime}
-                              onChange={(e) => {
-                                const newSizes = [...formData.sizes];
-                                newSizes[idx].prepTime = e.target.value;
-                                setFormData({...formData, sizes: newSizes});
-                              }}
-                            />
-                          </div>
-                        ))}
+                        {formData.variants.map((variant, idx) => {
+                          const isDuplicateName = formData.variants.filter((v, i) => i !== idx && v.name.toLowerCase().trim() === variant.name.toLowerCase().trim() && v.name.trim() !== '').length > 0;
+                          return (
+                            <div key={idx} className={`grid grid-cols-[1fr_1fr_1fr_40px] gap-4 items-center bg-white/5 p-3 rounded-xl border transition-all ${isDuplicateName ? 'border-crimson/40' : 'border-white/5'}`}>
+                              <div className="relative">
+                                <input 
+                                  placeholder="e.g. Small"
+                                  className="bg-transparent border-none text-soft-white focus:outline-none font-bold w-full"
+                                  value={variant.name}
+                                  onChange={(e) => {
+                                    const newVariants = [...formData.variants];
+                                    newVariants[idx].name = e.target.value;
+                                    setFormData({...formData, variants: newVariants});
+                                  }}
+                                />
+                                {isDuplicateName && <span className="text-[8px] text-crimson font-bold absolute -bottom-4 left-0">Duplicate</span>}
+                              </div>
+                              <input 
+                                type="number"
+                                placeholder="Price"
+                                className="bg-transparent border-none text-gold font-bold focus:outline-none w-full"
+                                value={variant.price}
+                                onChange={(e) => {
+                                  const newVariants = [...formData.variants];
+                                  newVariants[idx].price = e.target.value;
+                                  setFormData({...formData, variants: newVariants});
+                                }}
+                              />
+                              <input 
+                                type="number"
+                                placeholder="Min"
+                                className="bg-transparent border-none text-soft-white/60 focus:outline-none text-center w-full"
+                                value={variant.prepTime}
+                                onChange={(e) => {
+                                  const newVariants = [...formData.variants];
+                                  newVariants[idx].prepTime = e.target.value;
+                                  setFormData({...formData, variants: newVariants});
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (formData.variants.length <= 1) {
+                                    toast.error('At least one variant is required');
+                                    return;
+                                  }
+                                  const newVariants = formData.variants.filter((_, i) => i !== idx);
+                                  setFormData({...formData, variants: newVariants});
+                                }}
+                                className="p-1.5 text-soft-white/30 hover:text-crimson hover:bg-crimson/10 rounded-lg transition-all"
+                                title="Remove variant"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
                         <button 
                           type="button"
-                          onClick={() => setFormData({...formData, sizes: [...formData.sizes, { name: '', price: '', prepTime: 15 }]})}
+                          onClick={() => setFormData({...formData, variants: [...formData.variants, { name: '', price: '', prepTime: 15 }]})}
                           className="text-[10px] font-black text-gold/60 hover:text-gold uppercase tracking-[0.2em] pt-2 transition-colors"
                         >
-                          + Add Another Size Variant
+                          + Add Another Variant
                         </button>
                       </div>
                     )}
-                    {!formData.hasSizes && (
-                      <p className="text-[10px]  text-soft-white/20">Standard pricing will be used for this item.</p>
+                    {!formData.hasVariants && (
+                      <p className="text-[10px] text-soft-white/20">Standard pricing will be used for this item.</p>
                     )}
                   </div>
                 </div>

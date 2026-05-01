@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    price: { type: Number, required: true, default: 0 },
+    price: { type: Number, default: 0 },
     countInStock: { type: Number, required: true, default: 0 },
     lowStockThreshold: { type: Number, default: 10 },
     isAvailable: { type: Boolean, default: true },
@@ -18,32 +18,59 @@ const productSchema = new mongoose.Schema({
     isBestSeller: { type: Boolean, default: false },
     preparationTime: { type: Number, default: 20 },
     dietaryInfo: [String],
-    customizations: [
+    hasVariants: { type: Boolean, default: false },
+    variationGroups: [
         {
-            name: String,
-            type: {
-                type: String,
-                enum: ['select', 'multi-select', 'slider', 'checkbox'],
-                default: 'select'
+            name: { type: String, required: true },
+            type: { 
+                type: String, 
+                enum: ['single', 'multi'],
+                default: 'single'
             },
-            isRequired: { type: Boolean, default: false },
+            required: { type: Boolean, default: false },
             options: [
                 {
-                    name: String,
-                    extraPrice: { type: Number, default: 0 }
+                    name: { type: String, required: true },
+                    price: { type: Number, required: true },
+                    prepTime: { type: Number, default: 0 }
                 }
             ]
         }
     ],
-    sizes: [
-        {
-            name: { type: String, required: true },
-            price: { type: Number, required: true },
-            prepTime: { type: Number, default: 20 }
-        }
-    ],
 }, {
     timestamps: true
+});
+
+// Pre-save validation for variationGroups
+productSchema.pre('save', async function() {
+    if (this.hasVariants && this.variationGroups && this.variationGroups.length > 0) {
+        // Validate each variation group
+        for (const group of this.variationGroups) {
+            if (!group.name || group.name.trim() === '') {
+                throw new Error('Each variation group must have a name');
+            }
+            if (!group.options || group.options.length === 0) {
+                throw new Error(`Variation group '${group.name}' must have at least one option`);
+            }
+            
+            const optionNames = group.options.map(o => o.name.toLowerCase().trim());
+            const uniqueOptionNames = new Set(optionNames);
+            if (uniqueOptionNames.size !== optionNames.length) {
+                throw new Error(`Duplicate options found in variation group '${group.name}'`);
+            }
+
+            for (const option of group.options) {
+                if (!option.name || option.name.trim() === '') {
+                    throw new Error(`An option in '${group.name}' is missing a name`);
+                }
+                if (option.price === undefined || option.price === null || option.price < 0) {
+                    throw new Error(`Option '${option.name}' in '${group.name}' must have a valid price`);
+                }
+            }
+        }
+    } else if (this.hasVariants && (!this.variationGroups || this.variationGroups.length === 0)) {
+        throw new Error('Products with variations enabled must have at least one variation group');
+    }
 });
 
 // Index for category filtering

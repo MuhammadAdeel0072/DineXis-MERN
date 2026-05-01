@@ -16,8 +16,7 @@ const cartReducer = (state, action) => {
       const item = action.payload;
       const existItem = state.cartItems.find((x) => 
         x.product === item.product && 
-        JSON.stringify(x.customizations) === JSON.stringify(item.customizations) &&
-        x.selectedSize?.name === item.selectedSize?.name
+        JSON.stringify(x.selectedOptions) === JSON.stringify(item.selectedOptions)
       );
 
       if (existItem) {
@@ -25,8 +24,7 @@ const cartReducer = (state, action) => {
           ...state,
           cartItems: state.cartItems.map((x) =>
             (x.product === existItem.product && 
-             JSON.stringify(x.customizations) === JSON.stringify(existItem.customizations) &&
-             x.selectedSize?.name === existItem.selectedSize?.name) ? item : x
+             JSON.stringify(x.selectedOptions) === JSON.stringify(existItem.selectedOptions)) ? item : x
           ),
         };
       } else {
@@ -40,8 +38,7 @@ const cartReducer = (state, action) => {
         ...state,
         cartItems: state.cartItems.filter((x) => 
           !(x.product === action.payload.product && 
-            JSON.stringify(x.customizations) === JSON.stringify(action.payload.customizations) &&
-            x.selectedSize?.name === action.payload.selectedSize?.name)
+            JSON.stringify(x.selectedOptions) === JSON.stringify(action.payload.selectedOptions))
         ),
       };
     case 'CLEAR_CART':

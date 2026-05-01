@@ -13,7 +13,9 @@ export const AuthProvider = ({ children }) => {
             const { data } = await api.get('/auth/profile');
             setUser(data);
         } catch (error) {
-            localStorage.removeItem('ak7_token');
+            if (error.response && error.response.status === 401) {
+                localStorage.removeItem('ak7_token');
+            }
             setUser(null);
         } finally {
             setIsLoaded(true);

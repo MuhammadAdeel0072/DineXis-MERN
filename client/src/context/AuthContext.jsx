@@ -28,7 +28,9 @@ export const AuthProvider = ({ children }) => {
       setIsSignedIn(true);
     } catch (error) {
       console.error('Failed to fetch user profile', error);
-      localStorage.removeItem('dinexis_token');
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem('dinexis_token');
+      }
       setUser(null);
       setIsSignedIn(false);
     } finally {

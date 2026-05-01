@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProducts } from '../services/menuService';
 import { useCart } from '../context/CartContext';
@@ -7,7 +7,6 @@ import { useSocket } from '../context/SocketContext';
 import { ShoppingCart, Heart, Search, Filter, Plus, Minus, X, Package, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -18,10 +17,11 @@ const Menu = () => {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [customizations, setCustomizations] = useState({});
-  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedOptions, setSelectedOptions] = useState({}); // { groupName: [{ name, price }] }
   const [qty, setQty] = useState(1);
+  
   const { dispatch } = useCart();
   const { user: profile, isSignedIn, updateProfile } = useAuth();
   const { siteUpdate } = useSocket();
@@ -83,7 +83,6 @@ const Menu = () => {
       fetchProducts();
     }
 
-    // Handle category updates
     if (siteUpdate?.type === 'categoryAdded' || siteUpdate?.type === 'categoryUpdated' || siteUpdate?.type === 'categoryDeleted') {
       const fetchCategories = async () => {
         try {
@@ -103,27 +102,31 @@ const Menu = () => {
     }
   }, [siteUpdate]);
 
-  const addToCartHandler = (product, quantity = 1, e, finalCustoms = []) => {
+  const addToCartHandler = (product, quantity = 1, e, finalOptions = []) => {
     if (e) e.stopPropagation();
+    
+    // Calculate final price based on selected options
+    const optionsPrice = finalOptions.reduce((acc, opt) => acc + opt.price, 0);
+    const cartPrice = product.price + optionsPrice;
+
     dispatch({
       type: 'ADD_TO_CART',
       payload: {
         ...product,
         product: product._id,
+        price: cartPrice,
         qty: quantity,
-        customizations: finalCustoms,
-        selectedSize: product.selectedSize
+        selectedOptions: finalOptions
       },
     });
     toast.success(`${product.name} added!`, {
-      icon: 'ðŸ›’',
+      icon: '🛒',
       duration: 3000,
     });
     if (selectedProduct) {
       setSelectedProduct(null);
       setQty(1);
-      setCustomizations({});
-      setSelectedSize(null);
+      setSelectedOptions({});
     }
   };
 
@@ -141,7 +144,7 @@ const Menu = () => {
         : [...(profile.favorites || []), productId];
         
       await updateProfile({ favorites: newFavorites });
-      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites', { icon: 'â¤ï¸' });
+      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites', { icon: '❤️' });
     } catch (error) {
       // Handled by context
     }
@@ -163,6 +166,28 @@ const Menu = () => {
       p.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleOptionToggle = (group, option) => {
+    const groupName = group.name;
+    const isSingle = group.type === 'single';
+    
+    setSelectedOptions(prev => {
+        const currentGroupSelections = prev[groupName] || [];
+        
+        if (isSingle) {
+            // For single select, replace the selection
+            return { ...prev, [groupName]: [{ name: option.name, price: option.price }] };
+        } else {
+            // For multi-select, toggle the selection
+            const isSelected = currentGroupSelections.some(o => o.name === option.name);
+            if (isSelected) {
+                return { ...prev, [groupName]: currentGroupSelections.filter(o => o.name !== option.name) };
+            } else {
+                return { ...prev, [groupName]: [...currentGroupSelections, { name: option.name, price: option.price }] };
+            }
+        }
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
@@ -220,10 +245,14 @@ const Menu = () => {
               <div
                 key={product._id}
                 onClick={() => {
-                  if (product.category === 'Pizza' || product.sizes?.length > 0) {
-                    navigate(`/menu/${product._id}`);
+                  if (product.hasVariants && product.variationGroups?.length > 0) {
+                    setSelectedProduct(product);
+                    setSelectedOptions({});
+                    setQty(1);
                   } else {
                     setSelectedProduct(product);
+                    setSelectedOptions({});
+                    setQty(1);
                   }
                 }}
                 className="bg-white/[0.02] backdrop-blur-3xl border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-gold/40 group transition-all duration-700 transform hover:-translate-y-3 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] relative cursor-pointer flex flex-col h-full"
@@ -239,7 +268,7 @@ const Menu = () => {
                     }`}
                   >
                     {isFav ? (
-                      <span className="text-lg leading-none drop-shadow-md transform hover:scale-110 transition-transform">â¤ï¸</span>
+                      <span className="text-lg leading-none drop-shadow-md transform hover:scale-110 transition-transform">❤️</span>
                     ) : (
                       <Heart className="w-4 h-4" />
                     )}
@@ -249,8 +278,8 @@ const Menu = () => {
                     {deal && (
                       <div className="bg-crimson text-white px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg border border-crimson/50 whitespace-nowrap">
                         {deal.discountPercentage > 0 
-                          ? `ðŸ”¥ ${deal.discountPercentage}% OFF`
-                          : `ðŸ’° Rs. ${deal.discountAmount} OFF`
+                          ? `${deal.discountPercentage}% OFF`
+                          : `Rs. ${deal.discountAmount} OFF`
                         }
                       </div>
                     )}
@@ -284,7 +313,7 @@ const Menu = () => {
                           <span className="text-gold font-black text-lg tracking-tighter shrink-0">Rs. {Math.round(discountedPrice)}</span>
                         </>
                       ) : (
-                        <span className="text-gold font-black text-lg tracking-tighter shrink-0">Rs. {product.price}</span>
+                        <span className="text-gold font-black text-lg tracking-tighter shrink-0">{product.hasVariants && product.variationGroups?.length > 0 ? `From Rs. ${product.price}` : `Rs. ${product.price}`}</span>
                       )}
                     </div>
                   </div>
@@ -299,10 +328,21 @@ const Menu = () => {
                   </div>
 
                   <button
-                    onClick={(e) => addToCartHandler({ ...product, price: Math.round(discountedPrice) }, 1, e)}
+                    onClick={(e) => {
+                      if (product.hasVariants && product.variationGroups?.length > 0) {
+                        setSelectedProduct(product);
+                        setSelectedOptions({});
+                        setQty(1);
+                        e.stopPropagation();
+                      } else {
+                        addToCartHandler({ ...product, price: Math.round(discountedPrice) }, 1, e, []);
+                      }
+                    }}
                     className="mt-auto w-full flex items-center justify-between bg-white/5 hover:bg-gold/10 border border-white/5 group-hover:border-gold/30 hover:border-gold/50 px-5 py-3.5 rounded-2xl transition-all duration-300 group/btn"
                   >
-                    <span className="text-sm font-black uppercase tracking-widest text-white/40 group-hover/btn:text-gold transition-colors">Add to Cart</span>
+                    <span className="text-sm font-black uppercase tracking-widest text-white/40 group-hover/btn:text-gold transition-colors">
+                      {product.hasVariants ? 'Customize' : 'Add to Cart'}
+                    </span>
                     <ShoppingCart className="w-4 h-4 text-gold/40 group-hover/btn:text-gold group-hover/btn:scale-110 transition-all" />
                   </button>
                 </div>
@@ -328,17 +368,24 @@ const Menu = () => {
       <AnimatePresence>
         {selectedProduct && (() => {
           const deal = getDealForProduct(selectedProduct._id, selectedProduct.category);
-          let discountedPrice = selectedProduct.price;
+          let basePrice = selectedProduct.price;
           if (deal) {
             if (deal.discountPercentage > 0) {
-              discountedPrice = selectedProduct.price - (selectedProduct.price * (deal.discountPercentage / 100));
+              basePrice = selectedProduct.price - (selectedProduct.price * (deal.discountPercentage / 100));
             } else if (deal.discountAmount > 0) {
-              discountedPrice = selectedProduct.price - deal.discountAmount;
+              basePrice = selectedProduct.price - deal.discountAmount;
             }
-            discountedPrice = Math.max(0, discountedPrice);
+            basePrice = Math.max(0, basePrice);
           }
 
-          const currentPrice = selectedSize ? selectedSize.price : discountedPrice;
+          // Calculate current price dynamically
+          let optionsPrice = 0;
+          Object.values(selectedOptions).forEach(options => {
+              options.forEach(opt => {
+                  optionsPrice += opt.price;
+              });
+          });
+          const currentPrice = basePrice + optionsPrice;
 
           return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-charcoal/80 backdrop-blur-xl">
@@ -346,7 +393,7 @@ const Menu = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-charcoal border border-white/10 rounded-[3rem] overflow-hidden max-w-4xl w-full shadow-[0_50px_100px_rgba(0,0,0,0.8)] flex flex-col md:flex-row relative"
+              className="bg-charcoal border border-white/10 rounded-[3rem] overflow-hidden max-w-4xl w-full shadow-[0_50px_100px_rgba(0,0,0,0.8)] flex flex-col md:flex-row relative max-h-[90vh]"
             >
               <button
                 onClick={() => setSelectedProduct(null)}
@@ -355,119 +402,79 @@ const Menu = () => {
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="md:w-1/2 h-80 md:h-auto overflow-hidden">
+              <div className="md:w-1/2 h-64 md:h-auto overflow-hidden">
                 <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
               </div>
 
-              <div className="md:w-1/2 p-10 md:p-14 flex flex-col">
-                <div className="mb-8">
+              <div className="md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto no-scrollbar">
+                <div className="mb-8 shrink-0">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-gold font-black text-xs uppercase tracking-widest">{selectedProduct.category}</span>
                     <div className="w-1 h-1 rounded-full bg-white/20"></div>
                   </div>
-                  <h2 className="text-4xl font-serif font-black text-white mb-4 leading-tight">
+                  <h2 className="text-3xl font-serif font-black text-white mb-4 leading-tight">
                     {selectedProduct.name}
                     {deal && (
                       <span className="ml-4 inline-block align-middle bg-crimson text-white px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-widest shadow-lg border border-crimson/50 whitespace-nowrap">
                         {deal.discountPercentage > 0 
-                          ? `ðŸ”¥ ${deal.discountPercentage}% OFF`
-                          : `ðŸ’° Rs. ${deal.discountAmount} OFF`
+                          ? `${deal.discountPercentage}% OFF`
+                          : `Rs. ${deal.discountAmount} OFF`
                         }
                       </span>
                     )}
                   </h2>
                   <p className="text-gray-400 text-base leading-relaxed mb-6 font-medium">"{selectedProduct.description}"</p>
-                  <div className="flex items-center gap-4 mb-8">
-                    {deal && !selectedSize && (
+                  <div className="flex items-center gap-4 mb-4">
+                    {deal && (
                       <span className="text-gray-500 font-bold text-2xl line-through">Rs. {selectedProduct.price}</span>
                     )}
                     <span className="text-4xl font-black text-gold tracking-tighter">Rs. {Math.round(currentPrice)}</span>
                   </div>
                 </div>
 
-                <div className="mt-auto space-y-6 overflow-y-auto no-scrollbar max-h-[40vh] pr-2">
-                  {/* Size Selection */}
-                  {selectedProduct.sizes?.length > 0 && (
-                    <div className="space-y-4">
+                <div className="space-y-8 flex-grow">
+                  {/* Dynamic Variation Groups */}
+                  {selectedProduct.hasVariants && selectedProduct.variationGroups?.map((group, gIdx) => (
+                    <div key={gIdx} className="space-y-4">
                       <label className="text-xs font-black uppercase tracking-widest text-gold/60 flex justify-between">
-                        Select Size
-                        <span className="text-crimson">* Required</span>
+                        {group.name}
+                        {group.required && <span className="text-crimson">* Required</span>}
                       </label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {selectedProduct.sizes.map((size, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setSelectedSize(size)}
-                            className={`flex flex-col items-center justify-center p-6 rounded-2xl border transition-all ${
-                              selectedSize?.name === size.name
-                                ? 'bg-gold/20 border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]'
-                                : 'bg-white/5 border-white/10 hover:border-gold/30'
-                            }`}
-                          >
-                            <span className={`text-lg font-black uppercase tracking-widest mb-1 ${selectedSize?.name === size.name ? 'text-gold' : 'text-gray-400'}`}>
-                              {size.name}
-                            </span>
-                            <span className="text-lg font-semibold text-white">Rs. {size.price}</span>
-                            {idx === 1 && <span className="absolute -top-2 bg-gold text-charcoal text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Popular</span>}
-                          </button>
-                        ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {group.options.map((option, oIdx) => {
+                          const isSelected = selectedOptions[group.name]?.some(o => o.name === option.name);
+                          
+                          return (
+                            <button
+                                key={oIdx}
+                                onClick={() => handleOptionToggle(group, option)}
+                                className={`flex flex-col items-start p-4 rounded-2xl border transition-all text-left ${
+                                isSelected
+                                    ? 'bg-gold/20 border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                                    : 'bg-white/5 border-white/10 hover:border-gold/30'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3 w-full">
+                                    <div className={`w-5 h-5 flex items-center justify-center rounded-full border shrink-0 ${group.type === 'multi' ? 'rounded-md' : 'rounded-full'} ${isSelected ? 'border-gold bg-gold text-charcoal' : 'border-white/20'}`}>
+                                        {isSelected && (group.type === 'multi' ? '✓' : <div className="w-2.5 h-2.5 bg-charcoal rounded-full" />)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <span className={`block text-lg font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-gold' : 'text-gray-300'}`}>
+                                            {option.name}
+                                        </span>
+                                        <span className="text-sm font-bold text-white/70">
+                                            {option.price > 0 ? `+Rs. ${option.price}` : 'Free'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-                  )}
+                  ))}
 
-                  {/* Dynamic Customizations */}
-                  {selectedProduct.customizations?.length > 0 && (
-                    <div className="space-y-6">
-                      {selectedProduct.customizations.map((custom, idx) => (
-                        <div key={idx} className="space-y-3">
-                          <label className="text-xs font-black uppercase tracking-widest text-gold/60 flex justify-between">
-                            {custom.name}
-                            {custom.isRequired && <span className="text-crimson">* Required</span>}
-                          </label>
-                          
-                          {custom.type === 'multi-select' ? (
-                            <div className="grid grid-cols-2 gap-2">
-                              {custom.options.map((opt, oIdx) => (
-                                <button
-                                  key={oIdx}
-                                  onClick={() => {
-                                    const currentSelections = customizations[custom.name] || [];
-                                    const isSelected = currentSelections.includes(opt.name);
-                                    const newSelections = isSelected
-                                      ? currentSelections.filter(s => s !== opt.name)
-                                      : [...currentSelections, opt.name];
-                                    setCustomizations({ ...customizations, [custom.name]: newSelections });
-                                  }}
-                                  className={`px-4 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                                    (customizations[custom.name] || []).includes(opt.name)
-                                      ? 'bg-gold/20 border-gold text-gold'
-                                      : 'bg-white/5 border-white/10 text-gray-400 hover:border-gold/30'
-                                  }`}
-                                >
-                                  {opt.name} {opt.extraPrice > 0 && `(+${opt.extraPrice})`}
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <select
-                              value={customizations[custom.name] || ''}
-                              onChange={(e) => setCustomizations({ ...customizations, [custom.name]: e.target.value })}
-                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-xs outline-none focus:border-gold transition-all"
-                            >
-                              <option value="">Select {custom.name}</option>
-                              {custom.options.map((opt, oIdx) => (
-                                <option key={oIdx} value={opt.name}>
-                                  {opt.name} {opt.extraPrice > 0 ? `(+Rs. ${opt.extraPrice})` : ''}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between bg-white/5 p-4 rounded-3xl border border-white/10">
+                  <div className="flex items-center justify-between bg-white/5 p-4 rounded-3xl border border-white/10 mt-8 shrink-0">
                     <span className="text-xs font-black uppercase tracking-widest text-gold/60">Portions</span>
                     <div className="flex items-center gap-6">
                       <button
@@ -488,36 +495,38 @@ const Menu = () => {
 
                   <button
                     onClick={(e) => {
-                      if (selectedProduct.sizes?.length > 0 && !selectedSize) {
-                        toast.error('Please select a size first');
-                        return;
+                      // Validation
+                      let isValid = true;
+                      if (selectedProduct.hasVariants && selectedProduct.variationGroups) {
+                          for (const group of selectedProduct.variationGroups) {
+                              if (group.required && (!selectedOptions[group.name] || selectedOptions[group.name].length === 0)) {
+                                  toast.error(`Please select an option for ${group.name}`);
+                                  isValid = false;
+                                  break;
+                              }
+                          }
                       }
-                      const finalCustoms = Object.entries(customizations).map(([name, selection]) => ({
-                        name,
-                        selection: Array.isArray(selection) ? selection.join(', ') : selection,
-                        extraPrice: 0 // In a real app, calculate this
-                      }));
+                      
+                      if (!isValid) return;
+
+                      // Flatten selected options for Cart
+                      const finalOptions = [];
+                      Object.entries(selectedOptions).forEach(([groupName, options]) => {
+                          options.forEach(opt => {
+                              finalOptions.push({ groupName, optionName: opt.name, price: opt.price });
+                          });
+                      });
+
                       addToCartHandler({ 
                         ...selectedProduct, 
-                        price: Math.round(currentPrice),
-                        selectedSize: selectedSize 
-                      }, qty, e, finalCustoms);
+                        price: Math.round(basePrice) // Pass base price, addToCartHandler adds options price
+                      }, qty, e, finalOptions);
                     }}
-                    className="w-full bg-gold text-charcoal font-black py-5 rounded-[2rem] flex items-center justify-center gap-4 text-xl shadow-[0_20px_40px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-95 transition-all group uppercase tracking-widest"
+                    className="w-full bg-gold text-charcoal font-black py-5 rounded-[2rem] flex items-center justify-center gap-4 text-xl shadow-[0_20px_40px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-95 transition-all group uppercase tracking-widest shrink-0 mt-4"
                   >
                     <ShoppingCart className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    Add to Cart
+                    Add to Cart - Rs. {Math.round(currentPrice * qty)}
                   </button>
-
-                  <div className="flex justify-center gap-8 text-[10px] items-center">
-                    <div className="flex items-center gap-2 text-gray-500 font-black uppercase tracking-widest">
-                      <Clock className="w-3 h-3" /> {selectedProduct.preparationTime || 25} READY
-                    </div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/10"></div>
-                    <div className="flex items-center gap-2 text-gray-500 font-black uppercase tracking-widest">
-                      <Package className="w-3 h-3" /> SAFE PACKING
-                    </div>
-                  </div>
                 </div>
               </div>
             </motion.div>

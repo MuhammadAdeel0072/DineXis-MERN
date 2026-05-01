@@ -22,18 +22,13 @@ const orderSchema = new mongoose.Schema({
                 enum: ['pending', 'preparing', 'cooking', 'ready'],
                 default: 'pending'
             },
-            customizations: [
+            selectedOptions: [
                 {
-                    name: String,
-                    selection: String,
-                    extraPrice: Number
+                    groupName: { type: String, required: true },
+                    optionName: { type: String, required: true },
+                    price: { type: Number, required: true }
                 }
-            ],
-            selectedSize: {
-                name: String,
-                price: Number,
-                prepTime: Number
-            }
+            ]
         }
     ],
     orderType: {

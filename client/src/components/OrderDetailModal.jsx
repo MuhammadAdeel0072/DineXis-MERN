@@ -90,9 +90,9 @@ const OrderDetailModal = ({ order, isOpen, onClose }) => {
                       <h4 className="text-white font-bold text-sm leading-tight">{item.name}</h4>
                       <div className="flex items-center gap-3 mt-1">
                         <p className="text-gray-500 text-xs">Qty: {item.qty} × Rs. {item.price}</p>
-                        {item.selectedSize && (
+                        {item.selectedVariant && (
                           <span className="px-2 py-0.5 bg-gold/10 text-gold text-[8px] font-black uppercase tracking-widest rounded border border-gold/20">
-                            {item.selectedSize.name}
+                            {item.selectedVariant.name}
                           </span>
                         )}
                       </div>

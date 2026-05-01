@@ -417,7 +417,7 @@ const reorderItems = asyncHandler(async (req, res) => {
     }
 
     const currentProduct = await Product.findById(item.product)
-      .select('name price isAvailable countInStock image description category customizations')
+      .select('name price isAvailable countInStock image description category variationGroups')
       .lean();
 
     if (!currentProduct) {
@@ -447,8 +447,7 @@ const reorderItems = asyncHandler(async (req, res) => {
       image: currentProduct.image,
       price: currentProduct.price,
       qty: item.qty,
-      selectedSize: item.selectedSize,
-      customizations: item.customizations || []
+      selectedOptions: item.selectedOptions || []
     });
   }
 
