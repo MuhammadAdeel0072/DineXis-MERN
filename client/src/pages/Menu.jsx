@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProducts } from '../services/menuService';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +25,7 @@ const Menu = () => {
   const { dispatch } = useCart();
   const { user: profile, isSignedIn, updateProfile } = useAuth();
   const { siteUpdate } = useSocket();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -114,7 +116,7 @@ const Menu = () => {
       },
     });
     toast.success(`${product.name} added!`, {
-      icon: '🛒',
+      icon: 'ðŸ›’',
       duration: 3000,
     });
     if (selectedProduct) {
@@ -139,7 +141,7 @@ const Menu = () => {
         : [...(profile.favorites || []), productId];
         
       await updateProfile({ favorites: newFavorites });
-      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites', { icon: '❤️' });
+      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites', { icon: 'â¤ï¸' });
     } catch (error) {
       // Handled by context
     }
@@ -217,7 +219,13 @@ const Menu = () => {
             return (
               <div
                 key={product._id}
-                onClick={() => setSelectedProduct(product)}
+                onClick={() => {
+                  if (product.category === 'Pizza' || product.sizes?.length > 0) {
+                    navigate(`/menu/${product._id}`);
+                  } else {
+                    setSelectedProduct(product);
+                  }
+                }}
                 className="bg-white/[0.02] backdrop-blur-3xl border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-gold/40 group transition-all duration-700 transform hover:-translate-y-3 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] relative cursor-pointer flex flex-col h-full"
               >
                 <div className="h-64 overflow-hidden relative shrink-0">
@@ -231,7 +239,7 @@ const Menu = () => {
                     }`}
                   >
                     {isFav ? (
-                      <span className="text-lg leading-none drop-shadow-md transform hover:scale-110 transition-transform">❤️</span>
+                      <span className="text-lg leading-none drop-shadow-md transform hover:scale-110 transition-transform">â¤ï¸</span>
                     ) : (
                       <Heart className="w-4 h-4" />
                     )}
@@ -241,8 +249,8 @@ const Menu = () => {
                     {deal && (
                       <div className="bg-crimson text-white px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg border border-crimson/50 whitespace-nowrap">
                         {deal.discountPercentage > 0 
-                          ? `🔥 ${deal.discountPercentage}% OFF`
-                          : `💰 Rs. ${deal.discountAmount} OFF`
+                          ? `ðŸ”¥ ${deal.discountPercentage}% OFF`
+                          : `ðŸ’° Rs. ${deal.discountAmount} OFF`
                         }
                       </div>
                     )}
@@ -294,7 +302,7 @@ const Menu = () => {
                     onClick={(e) => addToCartHandler({ ...product, price: Math.round(discountedPrice) }, 1, e)}
                     className="mt-auto w-full flex items-center justify-between bg-white/5 hover:bg-gold/10 border border-white/5 group-hover:border-gold/30 hover:border-gold/50 px-5 py-3.5 rounded-2xl transition-all duration-300 group/btn"
                   >
-                    <span className="text-[11px] font-black uppercase tracking-widest text-white/40 group-hover/btn:text-gold transition-colors">Add to Cart</span>
+                    <span className="text-sm font-black uppercase tracking-widest text-white/40 group-hover/btn:text-gold transition-colors">Add to Cart</span>
                     <ShoppingCart className="w-4 h-4 text-gold/40 group-hover/btn:text-gold group-hover/btn:scale-110 transition-all" />
                   </button>
                 </div>
@@ -362,8 +370,8 @@ const Menu = () => {
                     {deal && (
                       <span className="ml-4 inline-block align-middle bg-crimson text-white px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-widest shadow-lg border border-crimson/50 whitespace-nowrap">
                         {deal.discountPercentage > 0 
-                          ? `🔥 ${deal.discountPercentage}% OFF`
-                          : `💰 Rs. ${deal.discountAmount} OFF`
+                          ? `ðŸ”¥ ${deal.discountPercentage}% OFF`
+                          : `ðŸ’° Rs. ${deal.discountAmount} OFF`
                         }
                       </span>
                     )}
@@ -495,10 +503,10 @@ const Menu = () => {
                         selectedSize: selectedSize 
                       }, qty, e, finalCustoms);
                     }}
-                    className="w-full bg-gold text-charcoal font-black py-5 rounded-[2rem] flex items-center justify-center gap-4 text-lg shadow-[0_20px_40px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-95 transition-all group"
+                    className="w-full bg-gold text-charcoal font-black py-5 rounded-[2rem] flex items-center justify-center gap-4 text-xl shadow-[0_20px_40px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-95 transition-all group uppercase tracking-widest"
                   >
                     <ShoppingCart className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    ADD TO CART (Rs. {Math.round(currentPrice * qty)})
+                    Add to Cart
                   </button>
 
                   <div className="flex justify-center gap-8 text-[10px] items-center">

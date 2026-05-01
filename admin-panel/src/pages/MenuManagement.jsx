@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import api, { socket } from '../services/api';
 import { Plus, Edit, Trash2, Search, X, Image as ImageIcon, Save, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +25,13 @@ const MenuManagement = () => {
     countInStock: 0,
     isSpecial: false,
     isVegetarian: false,
-    spicyLevel: 0
+    spicyLevel: 0,
+    hasSizes: false,
+    sizes: [
+      { name: 'Small', price: '', prepTime: 10 },
+      { name: 'Regular', price: '', prepTime: 15 },
+      { name: 'Large', price: '', prepTime: 20 }
+    ]
   });
 
   useEffect(() => {
@@ -77,12 +83,12 @@ const MenuManagement = () => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newCategoryName.trim()) {
-      toast.error('Category name cannot be empty ❌');
+      toast.error('Category name cannot be empty âŒ');
       return;
     }
     
     if (categories.includes(newCategoryName)) {
-      toast.error('Category already exists ❌');
+      toast.error('Category already exists âŒ');
       return;
     }
 
@@ -100,10 +106,10 @@ const MenuManagement = () => {
       socket.emit('adminAction', { type: 'categoryAdded', category: categoryName });
       
       toast.dismiss(loadingToast);
-      toast.success(`${categoryName} category added successfully ✅`);
+      toast.success(`${categoryName} category added successfully âœ…`);
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(error.response?.data?.message || 'Failed to add category ❌');
+      toast.error(error.response?.data?.message || 'Failed to add category âŒ');
     }
   };
 
@@ -114,12 +120,12 @@ const MenuManagement = () => {
 
   const handleUpdateCategory = async () => {
     if (!editingCategoryName.trim()) {
-      toast.error('Category name cannot be empty ❌');
+      toast.error('Category name cannot be empty âŒ');
       return;
     }
 
     if (categories.includes(editingCategoryName) && editingCategoryName !== categories[editingCategoryId]) {
-      toast.error('Category name already exists ❌');
+      toast.error('Category name already exists âŒ');
       return;
     }
 
@@ -144,13 +150,13 @@ const MenuManagement = () => {
       socket.emit('adminAction', { type: 'categoryUpdated', oldCategory: oldName, newCategory: editingCategoryName });
       
       toast.dismiss(loadingToast);
-      toast.success(`Category updated to "${editingCategoryName}" ✅`);
+      toast.success(`Category updated to "${editingCategoryName}" âœ…`);
       setEditingCategoryId(null);
       setEditingCategoryName('');
       fetchItems();
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(error.response?.data?.message || 'Failed to update category ❌');
+      toast.error(error.response?.data?.message || 'Failed to update category âŒ');
     }
   };
 
@@ -159,7 +165,7 @@ const MenuManagement = () => {
     const productsInCategory = items.filter(item => item.category === categoryName);
 
     if (productsInCategory.length > 0) {
-      toast.error(`Cannot delete "${categoryName}" - it has ${productsInCategory.length} product(s) ❌`);
+      toast.error(`Cannot delete "${categoryName}" - it has ${productsInCategory.length} product(s) âŒ`);
       return;
     }
 
@@ -177,11 +183,11 @@ const MenuManagement = () => {
         socket.emit('adminAction', { type: 'categoryDeleted', category: categoryName });
         
         toast.dismiss(loadingToast);
-        toast.success(`Category "${categoryName}" deleted successfully 🗑️`);
+        toast.success(`Category "${categoryName}" deleted successfully ðŸ—‘ï¸`);
         setEditingCategoryId(null);
       } catch (error) {
         toast.dismiss(loadingToast);
-        toast.error(error.response?.data?.message || 'Failed to delete category ❌');
+        toast.error(error.response?.data?.message || 'Failed to delete category âŒ');
       }
     }
   };
@@ -198,7 +204,13 @@ const MenuManagement = () => {
         countInStock: item.countInStock || 0,
         isSpecial: item.isSpecial || false,
         isVegetarian: item.isVegetarian || false,
-        spicyLevel: item.spicyLevel || 0
+        spicyLevel: item.spicyLevel || 0,
+        hasSizes: (item.sizes && item.sizes.length > 0) || false,
+        sizes: item.sizes && item.sizes.length > 0 ? item.sizes : [
+          { name: 'Small', price: '', prepTime: 10 },
+          { name: 'Regular', price: '', prepTime: 15 },
+          { name: 'Large', price: '', prepTime: 20 }
+        ]
       });
     } else {
       setEditingItem(null);
@@ -211,7 +223,13 @@ const MenuManagement = () => {
         countInStock: 10,
         isSpecial: false,
         isVegetarian: false,
-        spicyLevel: 0
+        spicyLevel: 0,
+        hasSizes: false,
+        sizes: [
+          { name: 'Small', price: '', prepTime: 10 },
+          { name: 'Regular', price: '', prepTime: 15 },
+          { name: 'Large', price: '', prepTime: 20 }
+        ]
       });
     }
     setIsModalOpen(true);
@@ -225,20 +243,36 @@ const MenuManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Prepare data
+      const dataToSubmit = { ...formData };
+      
+      if (formData.hasSizes) {
+        // Filter out empty size entries and validate
+        dataToSubmit.sizes = formData.sizes.filter(s => s.name.trim() && s.price);
+        if (dataToSubmit.sizes.length === 0) {
+          toast.error('Please add at least one valid size variant âŒ');
+          return;
+        }
+        // Set the base price to the first size's price for compatibility
+        dataToSubmit.price = dataToSubmit.sizes[0].price;
+      } else {
+        dataToSubmit.sizes = [];
+      }
+
       const loadingToast = toast.loading(editingItem ? 'Updating product...' : 'Adding product...');
       if (editingItem) {
-        await api.put(`/products/${editingItem._id}`, formData);
+        await api.put(`/products/${editingItem._id}`, dataToSubmit);
       } else {
-        await api.post('/products', formData);
+        await api.post('/products', dataToSubmit);
       }
       toast.dismiss(loadingToast);
-      toast.success(editingItem ? 'Product updated successfully ✅' : 'Product added successfully ✅');
+      toast.success(editingItem ? 'Product updated successfully âœ…' : 'Product added successfully âœ…');
       socket.emit('adminAction', { type: 'menuUpdate' });
       fetchItems();
       handleCloseModal();
     } catch (error) {
       toast.dismiss();
-      toast.error(error.response?.data?.message || 'Failed to save product ❌');
+      toast.error(error.response?.data?.message || 'Failed to save product âŒ');
       console.error('Failed to save item', error);
     }
   };
@@ -249,12 +283,12 @@ const MenuManagement = () => {
         const loadingToast = toast.loading('Deleting product...');
         await api.delete(`/products/${id}`);
         toast.dismiss(loadingToast);
-        toast.success('Product deleted successfully 🗑️');
+        toast.success('Product deleted successfully ðŸ—‘ï¸');
         socket.emit('adminAction', { type: 'menuUpdate' });
         fetchItems();
       } catch (error) {
         toast.dismiss();
-        toast.error(error.response?.data?.message || 'Failed to delete product ❌');
+        toast.error(error.response?.data?.message || 'Failed to delete product âŒ');
         console.error('Failed to delete item', error);
       }
     }
@@ -323,7 +357,7 @@ const MenuManagement = () => {
               {loading ? (
                 <tr><td colSpan="5" className="px-8 py-20 text-center"><div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto"></div></td></tr>
               ) : filteredItems.length === 0 ? (
-                <tr><td colSpan="5" className="px-8 py-20 text-center text-soft-white/30 italic">No items match your search.</td></tr>
+                <tr><td colSpan="5" className="px-8 py-20 text-center text-soft-white/30 ">No items match your search.</td></tr>
               ) : (
                 filteredItems.map((item) => (
                   <tr key={item._id} className="hover:bg-white/[0.02] transition-colors group">
@@ -514,6 +548,76 @@ const MenuManagement = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Size Variants Section */}
+                  <div className="md:col-span-2 space-y-6 glass p-6 rounded-2xl border border-white/5">
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gold opacity-70">Pizza Size Variants</label>
+                      <label className="flex items-center space-x-3 cursor-pointer group">
+                        <div className={`w-10 h-5 rounded-full transition-all relative ${formData.hasSizes ? 'bg-gold' : 'bg-white/10'}`}>
+                          <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${formData.hasSizes ? 'left-6' : 'left-1'}`}></div>
+                        </div>
+                        <input type="checkbox" className="hidden" checked={formData.hasSizes} onChange={(e) => setFormData({...formData, hasSizes: e.target.checked})}/>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-soft-white/60 group-hover:text-gold">Enable Sizes</span>
+                      </label>
+                    </div>
+
+                    {formData.hasSizes && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4 text-[10px] font-black uppercase tracking-widest text-soft-white/30 px-4">
+                          <span>Size Name</span>
+                          <span>Price (Rs.)</span>
+                          <span>Prep Time (min)</span>
+                        </div>
+                        {formData.sizes.map((size, idx) => (
+                          <div key={idx} className="grid grid-cols-3 gap-4 items-center bg-white/5 p-3 rounded-xl border border-white/5">
+                            <input 
+                              placeholder="Size"
+                              className="bg-transparent border-none text-soft-white focus:outline-none font-bold"
+                              value={size.name}
+                              onChange={(e) => {
+                                const newSizes = [...formData.sizes];
+                                newSizes[idx].name = e.target.value;
+                                setFormData({...formData, sizes: newSizes});
+                              }}
+                            />
+                            <input 
+                              type="number"
+                              placeholder="Price"
+                              className="bg-transparent border-none text-gold font-bold focus:outline-none"
+                              value={size.price}
+                              onChange={(e) => {
+                                const newSizes = [...formData.sizes];
+                                newSizes[idx].price = e.target.value;
+                                setFormData({...formData, sizes: newSizes});
+                              }}
+                            />
+                            <input 
+                              type="number"
+                              placeholder="Min"
+                              className="bg-transparent border-none text-soft-white/60 focus:outline-none text-center"
+                              value={size.prepTime}
+                              onChange={(e) => {
+                                const newSizes = [...formData.sizes];
+                                newSizes[idx].prepTime = e.target.value;
+                                setFormData({...formData, sizes: newSizes});
+                              }}
+                            />
+                          </div>
+                        ))}
+                        <button 
+                          type="button"
+                          onClick={() => setFormData({...formData, sizes: [...formData.sizes, { name: '', price: '', prepTime: 15 }]})}
+                          className="text-[10px] font-black text-gold/60 hover:text-gold uppercase tracking-[0.2em] pt-2 transition-colors"
+                        >
+                          + Add Another Size Variant
+                        </button>
+                      </div>
+                    )}
+                    {!formData.hasSizes && (
+                      <p className="text-[10px]  text-soft-white/20">Standard pricing will be used for this item.</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="pt-10 flex flex-col-reverse sm:flex-row justify-end gap-4 md:gap-6 sticky bottom-0 bg-charcoal p-5 md:p-8 border-t border-white/5">
@@ -606,7 +710,7 @@ const MenuManagement = () => {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="py-8 text-center text-soft-white/30 italic glass p-6 rounded-2xl border border-white/5"
+                          className="py-8 text-center text-soft-white/30  glass p-6 rounded-2xl border border-white/5"
                         >
                           No categories yet. Create one to get started.
                         </motion.div>

@@ -21,6 +21,7 @@ import Reservations from './pages/Reservations';
 import Settings from './pages/Settings';
 import PlansPage from './pages/PlansPage';
 import PlanEditor from './pages/PlanEditor';
+import ProductDetail from './pages/ProductDetail';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/menu" element={<Menu />} />
+                <Route path="/menu/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={
                   <AuthGuard>
