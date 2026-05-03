@@ -1,10 +1,11 @@
 {
-  "name": "ak7-restaurant",
+  "name": "dinexis-restaurant",
   "version": "1.0.0",
-  "description": "AK-7 Restaurant MERN Root",
+  "description": "DineXis Restaurant MERN Root",
   "scripts": {
     "start": "cd server && node server.js",
     "build": "cd server && npm install",
+    "predev": "node scripts/cleanup-ports.js",
     "dev": "concurrently -n \"SERVER,CLIENT,ADMIN,CHEF,RIDER\" -c \"bgBlue.bold,bgGreen.bold,bgMagenta.bold,bgCyan.bold,bgRed.bold\" \"npm run server\" \"npm run client\" \"npm run admin\" \"npm run chef\" \"npm run rider\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",

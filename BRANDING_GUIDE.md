@@ -1,4 +1,4 @@
-# AK-7 REST Branding & Typography Guide
+# DineXis Branding & Typography Guide
 
 ## 🎨 Consistent Design System Across All Panels
 

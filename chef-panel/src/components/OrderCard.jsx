@@ -32,10 +32,11 @@ const OrderCard = ({ order, onMainAction, actionText, isActionDisabled, isUpdati
     const isCloseToDelay = elapsed > estimatedLimit * 0.75;
 
     const getStatusColor = () => {
-        if (order.status === 'READY_FOR_DELIVERY') return 'border-green-500/30 bg-green-500/5';
+        const status = order.status?.toUpperCase();
+        if (status === 'READY_FOR_DELIVERY' || status === 'READY') return 'border-green-500/30 bg-green-500/5';
         if (isDelayed) return 'border-crimson/40 bg-crimson/5 shadow-[0_0_50px_rgba(220,38,38,0.1)]';
         if (isCloseToDelay) return 'border-gold/30 bg-gold/5';
-        if (order.status === 'PREPARING') return 'border-blue-400/30 bg-blue-400/5';
+        if (status === 'PREPARING') return 'border-blue-400/30 bg-blue-400/5';
         return 'border-white/10 bg-white/5';
     };
 
@@ -117,6 +118,11 @@ const OrderCard = ({ order, onMainAction, actionText, isActionDisabled, isUpdati
                                     <p className="font-bold text-white text-sm tracking-tight">{item.name}</p>
                                     <div className="flex flex-wrap gap-2 mt-1">
                                          <span className="text-gold font-black text-xs">x{item.qty}</span>
+                                         {item.variantName && (
+                                              <span className="text-[10px] text-gold/60 font-black uppercase tracking-widest">
+                                                   {item.variantName}
+                                              </span>
+                                         )}
                                          {item.customizations?.map((c, ci) => (
                                               <span key={ci} className="text-[8px] bg-white/5 text-soft-white/40 px-1.5 py-0.5 rounded border border-white/5">{typeof c === 'string' ? c : c.selection}</span>
                                          ))}

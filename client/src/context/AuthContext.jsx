@@ -6,14 +6,24 @@ import toast from 'react-hot-toast';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('dinexis_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [loading, setLoading] = useState(!localStorage.getItem('dinexis_user'));
+  const [isSignedIn, setIsSignedIn] = useState(!!localStorage.getItem('dinexis_token'));
 
   // Check for existing token on mount
   useEffect(() => {
     const token = localStorage.getItem('dinexis_token');
+    const cachedUser = localStorage.getItem('dinexis_user');
+
     if (token) {
+      // If we have a user cached, we can show the UI immediately and refresh in background
+      // If no user cached, we must show loading while we fetch
+      if (!cachedUser) {
+        setLoading(true);
+      }
       fetchProfile();
     } else {
       setLoading(false);
@@ -22,20 +32,25 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async () => {
     try {
-      setLoading(true);
       const data = await getUserProfile();
       setUser(data);
       setIsSignedIn(true);
+      localStorage.setItem('dinexis_user', JSON.stringify(data));
     } catch (error) {
       console.error('Failed to fetch user profile', error);
       if (error.response && error.response.status === 401) {
-        localStorage.removeItem('dinexis_token');
+        handleAuthFailure();
       }
-      setUser(null);
-      setIsSignedIn(false);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAuthFailure = () => {
+    localStorage.removeItem('dinexis_token');
+    localStorage.removeItem('dinexis_user');
+    setUser(null);
+    setIsSignedIn(false);
   };
 
   // Email OTP: Send OTP to email address
@@ -56,7 +71,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data } = await apiClient.post('/auth/verify-otp', { email, otp });
+      
+      // Persist Session
       localStorage.setItem('dinexis_token', data.token);
+      localStorage.setItem('dinexis_user', JSON.stringify(data));
+      
       setUser(data);
       setIsSignedIn(true);
       toast.success(`Welcome${data.firstName && data.firstName !== 'User' ? `, ${data.firstName}` : ''}! 🎉`);
@@ -75,7 +94,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data } = await apiClient.post('/auth/login', { email, password });
+      
+      // Persist Session
       localStorage.setItem('dinexis_token', data.token);
+      localStorage.setItem('dinexis_user', JSON.stringify(data));
+      
       setUser(data);
       setIsSignedIn(true);
       toast.success(`Welcome back, ${data.firstName}!`);
@@ -96,7 +119,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data } = await apiClient.post('/auth/register', userData);
+      
+      // Persist Session
       localStorage.setItem('dinexis_token', data.token);
+      localStorage.setItem('dinexis_user', JSON.stringify(data));
+      
       setUser(data);
       setIsSignedIn(true);
       toast.success('Account created successfully!');
@@ -114,6 +141,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('dinexis_token');
+    localStorage.removeItem('dinexis_user');
     setUser(null);
     setIsSignedIn(false);
     toast.success('Logged out successfully');
@@ -147,6 +175,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const updated = await updateUserProfile(data);
       setUser(updated);
+      localStorage.setItem('dinexis_user', JSON.stringify(updated));
       toast.success('Profile updated successfully');
       return updated;
     } catch (error) {
@@ -180,5 +209,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-// Alias for backward compatibility if needed, but better to migrate
+// Alias for backward compatibility
 export const useProfile = () => useContext(AuthContext);

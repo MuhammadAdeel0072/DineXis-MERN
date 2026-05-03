@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getProducts,
+  getProductsByMood,
   getProductById,
   createProduct,
   updateProduct,
@@ -13,6 +14,8 @@ const { admin } = require('../middleware/adminMiddleware');
 router.route('/')
   .get(getProducts)
   .post(protect, admin, createProduct);
+
+router.route('/mood/:mood').get(getProductsByMood);
 
 router.route('/:id')
   .get(getProductById)

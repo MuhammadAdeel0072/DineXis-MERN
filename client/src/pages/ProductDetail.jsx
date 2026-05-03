@@ -11,10 +11,7 @@ const ProductDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { dispatch } = useCart();
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [selectedVariant, setSelectedVariant] = useState(null);
-    const [qty, setQty] = useState(1);
+    const [quantities, setQuantities] = useState([]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -23,42 +20,87 @@ const ProductDetail = () => {
                 if (response.ok) {
                     const data = await response.json();
                     setProduct(data);
+                    
+                    // Initialize quantities for variants
+                    if (data.variants?.length > 0) {
+                        setQuantities(data.variants.map(() => 0));
+                    }
                 } else {
-                    toast.error('Item not available');
+                    toast.error("Failed to load product details");
                 }
             } catch (error) {
-                console.error('Failed to fetch product:', error);
-                toast.error('Failed to load item');
+                console.error("Fetch error:", error);
+                toast.error("System Protocol Error: Failed to fetch product");
             } finally {
                 setLoading(false);
             }
         };
+
         fetchProduct();
-    }, [id]);
+    }, [id, API_BASE_URL]);
+
+    const updateVariantQty = (index, type) => {
+        const newQuantities = [...quantities];
+        if (type === 'inc') {
+            newQuantities[index] += 1;
+        } else if (type === 'dec' && newQuantities[index] > 0) {
+            newQuantities[index] -= 1;
+        }
+        setQuantities(newQuantities);
+    };
 
     const addToCartHandler = () => {
-        if (!selectedVariant && product.variants?.length > 0) {
-            toast.error('Please select a size first');
-            return;
+        // If product has variants, use the multiple selection logic
+        if (product.variants?.length > 0) {
+            const selectedItems = product.variants
+                .map((variant, index) => ({
+                    ...variant,
+                    quantity: quantities[index]
+                }))
+                .filter(v => v.quantity > 0);
+
+            if (selectedItems.length === 0) {
+                toast.error('Please select at least one item');
+                return;
+            }
+
+            selectedItems.forEach(item => {
+                dispatch({
+                    type: 'ADD_TO_CART',
+                    payload: {
+                        ...product,
+                        product: product._id,
+                        qty: item.quantity,
+                        selectedVariant: item,
+                        variantName: item.name,
+                        price: item.price
+                    },
+                });
+            });
+
+            toast.success(`Items added to cart`, { icon: '🛒' });
+        } else {
+            // Standard single product logic
+            dispatch({
+                type: 'ADD_TO_CART',
+                payload: {
+                    ...product,
+                    product: product._id,
+                    qty: qty,
+                    price: product.price
+                },
+            });
+            toast.success(`${product.name} added to cart`, { icon: '🛒' });
         }
+    };
 
-        const cartItem = {
-            ...product,
-            product: product._id,
-            qty: qty,
-            selectedVariant: selectedVariant,
-            price: selectedVariant ? selectedVariant.price : product.price
-        };
-
-        dispatch({
-            type: 'ADD_TO_CART',
-            payload: cartItem,
-        });
-
-        toast.success(`${product.name} (${selectedVariant?.name}) added to cart`, {
-            icon: '🛒',
-            duration: 3000,
-        });
+    const calculateTotalPrice = () => {
+        if (product.variants?.length > 0) {
+            return product.variants.reduce((total, variant, index) => {
+                return total + (variant.price * (quantities[index] || 0));
+            }, 0);
+        }
+        return product.price * qty;
     };
 
     if (loading) {
@@ -77,6 +119,10 @@ const ProductDetail = () => {
             </div>
         );
     }
+
+    const hasSelection = product.variants?.length > 0 
+        ? quantities.some(q => q > 0)
+        : true;
 
     return (
         <div className="container mx-auto px-6 py-12 max-w-6xl">
@@ -114,7 +160,7 @@ const ProductDetail = () => {
                         
                         <div className="flex items-center gap-8 mb-10">
                             <div className="flex items-center gap-2 text-[10px] text-gray-500 font-black uppercase tracking-widest">
-                                <Clock className="w-4 h-4 text-gold/40" /> {selectedVariant?.prepTime || product.preparationTime} MINS
+                                <Clock className="w-4 h-4 text-gold/40" /> {product.preparationTime} MINS
                             </div>
                             <div className="flex items-center gap-2 text-[10px] text-gray-500 font-black uppercase tracking-widest">
                                 <Package className="w-4 h-4 text-gold/40" /> SAFE PACKING
@@ -122,34 +168,51 @@ const ProductDetail = () => {
                         </div>
                     </div>
 
-                    {/* Size Selection Section */}
+                    {/* Size Selection Section (Vertical List) */}
                     {product.variants?.length > 0 && (
-                        <div className="mb-12">
+                        <div className="mb-12 space-y-4">
                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gold/60 mb-6 flex justify-between">
-                                Select Your Variant
-                                <span className="text-crimson/60">* Required</span>
+                                Customise Your Order
+                                <span className="text-soft-white/20 italic">Select quantities</span>
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="space-y-3">
                                 {product.variants.map((variant, idx) => (
-                                    <button
+                                    <div 
                                         key={idx}
-                                        onClick={() => setSelectedVariant(variant)}
-                                        className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300 relative group ${
-                                            selectedVariant?.name === variant.name
-                                                ? 'bg-gold/10 border-gold shadow-[0_20px_40px_rgba(212,175,55,0.15)]'
-                                                : 'bg-white/5 border-white/5 hover:border-gold/30'
+                                        className={`flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 ${
+                                            quantities[idx] > 0 
+                                                ? 'bg-gold/10 border-gold/30 shadow-lg shadow-gold/5' 
+                                                : 'bg-white/5 border-white/5'
                                         }`}
                                     >
-                                        <span className={`text-2xl font-black uppercase tracking-widest mb-2 ${selectedVariant?.name === variant.name ? 'text-gold' : 'text-gray-400'}`}>
-                                            {variant.name}
-                                        </span>
-                                        <span className="text-xl font-bold text-white tracking-tighter">Rs. {variant.price}</span>
-                                        {selectedVariant?.name === variant.name && (
-                                            <div className="absolute -top-2 -right-2 bg-gold text-charcoal w-6 h-6 rounded-full flex items-center justify-center shadow-lg">
-                                                <Check className="w-4 h-4" />
-                                            </div>
-                                        )}
-                                    </button>
+                                        <div className="w-1/3">
+                                            <span className={`text-sm font-black uppercase tracking-wider ${quantities[idx] > 0 ? 'text-gold' : 'text-soft-white/60'}`}>
+                                                {variant.name}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 bg-charcoal/40 p-1.5 rounded-xl border border-white/5">
+                                            <button 
+                                                onClick={() => updateVariantQty(idx, 'dec')}
+                                                className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white hover:bg-crimson hover:text-white transition-all font-bold text-sm"
+                                            >
+                                                -
+                                            </button>
+                                            <span className={`text-lg font-black w-6 text-center ${quantities[idx] > 0 ? 'text-white' : 'text-white/20'}`}>
+                                                {quantities[idx] || 0}
+                                            </span>
+                                            <button 
+                                                onClick={() => updateVariantQty(idx, 'inc')}
+                                                className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white hover:bg-gold hover:text-charcoal transition-all font-bold text-sm"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+
+                                        <div className="w-1/3 text-right">
+                                            <span className="text-sm font-bold text-white">Rs. {variant.price}</span>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -157,41 +220,43 @@ const ProductDetail = () => {
 
                     {/* Add to Cart Section */}
                     <div className="mt-auto space-y-6">
-                        <div className="flex items-center justify-between bg-white/5 p-6 rounded-[2.5rem] border border-white/10">
+                        <div className="flex items-center justify-between bg-white/5 p-6 rounded-[2.5rem] border border-white/10 shadow-2xl">
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-gold/60 mb-1">Total Price</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gold/60 mb-1">Total Amount</span>
                                 <span className="text-4xl font-black text-white tracking-tighter">
-                                    Rs. {(selectedVariant ? selectedVariant.price : product.price) * qty}
+                                    Rs. {calculateTotalPrice()}
                                 </span>
                             </div>
                             
-                            <div className="flex items-center gap-6 bg-charcoal/40 p-2 rounded-2xl border border-white/5 shadow-inner">
-                                <button 
-                                    onClick={() => setQty(Math.max(1, qty - 1))}
-                                    className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white hover:bg-gold hover:text-charcoal transition-all font-bold"
-                                >
-                                    -
-                                </button>
-                                <span className="text-xl font-black text-white w-6 text-center">{qty}</span>
-                                <button 
-                                    onClick={() => setQty(qty + 1)}
-                                    className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white hover:bg-gold hover:text-charcoal transition-all font-bold"
-                                >
-                                    +
-                                </button>
-                            </div>
+                            {(!product.variants || product.variants.length === 0) && (
+                                <div className="flex items-center gap-6 bg-charcoal/40 p-2 rounded-2xl border border-white/5 shadow-inner">
+                                    <button 
+                                        onClick={() => setQty(Math.max(1, qty - 1))}
+                                        className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white hover:bg-gold hover:text-charcoal transition-all font-bold"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="text-xl font-black text-white w-6 text-center">{qty}</span>
+                                    <button 
+                                        onClick={() => setQty(qty + 1)}
+                                        className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white hover:bg-gold hover:text-charcoal transition-all font-bold"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <button
                             onClick={addToCartHandler}
-                            disabled={product.variants?.length > 0 && !selectedVariant}
+                            disabled={!hasSelection}
                             className={`w-full py-6 rounded-[2.5rem] flex items-center justify-center gap-4 text-xl font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-2xl group ${
-                                (product.variants?.length > 0 && !selectedVariant)
+                                !hasSelection
                                     ? 'bg-white/5 text-gray-600 border border-white/5 cursor-not-allowed'
                                     : 'bg-gold text-charcoal hover:scale-[1.02] active:scale-95 shadow-gold/30'
                             }`}
                         >
-                            <ShoppingCart className={`w-6 h-6 ${(product.variants?.length > 0 && !selectedVariant) ? '' : 'group-hover:rotate-12 transition-transform'}`} />
+                            <ShoppingCart className={`w-6 h-6 ${!hasSelection ? '' : 'group-hover:rotate-12 transition-transform'}`} />
                             Add to Cart
                         </button>
 

@@ -18,21 +18,21 @@ const seedBaseline = async () => {
       {
         firstName: 'System',
         lastName: 'Admin',
-        email: 'admin@ak7.com',
+        email: 'admin@dinexis.com',
         password: 'admin123',
         role: 'admin'
       },
       {
         firstName: 'Master',
         lastName: 'Chef',
-        email: 'chef@ak7.com',
+        email: 'chef@dinexis.com',
         password: 'chef123',
         role: 'chef'
       },
       {
         firstName: 'Fast',
         lastName: 'Rider',
-        email: 'rider@ak7.com',
+        email: 'rider@dinexis.com',
         password: 'rider123',
         role: 'rider'
       }
@@ -52,9 +52,9 @@ const seedBaseline = async () => {
 
     console.log('\n✨ Baseline Seeding Complete!');
     console.log('📝 Use these credentials to log in:');
-    console.log('   - Admin: admin@ak7.com / admin123');
-    console.log('   - Chef:  chef@ak7.com / chef123');
-    console.log('   - Rider: rider@ak7.com / rider123');
+    console.log('   - Admin: admin@dinexis.com / admin123');
+    console.log('   - Chef:  chef@dinexis.com / chef123');
+    console.log('   - Rider: rider@dinexis.com / rider123');
 
     await mongoose.disconnect();
     process.exit(0);

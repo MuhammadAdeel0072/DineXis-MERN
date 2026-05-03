@@ -7,7 +7,7 @@ const seedRider = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('Connected to MongoDB');
 
-        const email = 'rider@ak7rest.com';
+        const email = 'rider@dinexis.com';
         const password = 'password123';
 
         const exists = await User.findOne({ email });
@@ -31,7 +31,7 @@ const seedRider = async () => {
         });
 
         console.log('Rider seeded successfully!');
-        console.log('Email: rider@ak7rest.com');
+        console.log('Email: rider@dinexis.com');
         console.log('Password: password123');
         process.exit(0);
     } catch (error) {

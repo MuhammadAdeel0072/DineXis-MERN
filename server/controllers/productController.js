@@ -10,7 +10,7 @@ const getProducts = asyncHandler(async (req, res) => {
   const { category, isSpecial, dietary } = req.query;
   
   // Try to get from cache if no filters
-  if (!category && !isSpecial && !dietary) {
+  if (!category && !isSpecial && !dietary && !req.query.mood) {
     const cached = getCachedMenu();
     if (cached) return res.json(cached);
   }
@@ -19,6 +19,20 @@ const getProducts = asyncHandler(async (req, res) => {
   if (category) query.category = category;
   if (isSpecial) query.isSpecial = isSpecial === 'true';
   if (dietary) query.dietaryInfo = { $in: dietary.split(',') };
+  
+  // Mood filtering
+  if (req.query.mood) {
+    const moodMap = {
+      'hungry': ['heavy'],
+      'budget': ['budget'],
+      'quick': ['quick'],
+      'premium': ['premium']
+    };
+    const tags = moodMap[req.query.mood.toLowerCase()];
+    if (tags) {
+      query.tags = { $in: tags };
+    }
+  }
 
   let products = await Product.find(query).lean();
   
@@ -29,12 +43,43 @@ const getProducts = asyncHandler(async (req, res) => {
   }));
   
   // Set cache if no filters
-  if (!category && !isSpecial && !dietary) {
+  if (!category && !isSpecial && !dietary && !req.query.mood) {
     setCachedMenu(products);
   }
 
   res.json(products);
 });
+
+// @desc    Fetch products by mood
+// @route   GET /api/products/mood/:mood
+// @access  Public
+const getProductsByMood = asyncHandler(async (req, res) => {
+  const moodMap = {
+    hungry: ["heavy"],
+    budget: ["budget"],
+    quick: ["quick"],
+    premium: ["premium"]
+  };
+  const mood = req.params.mood.toLowerCase();
+  const tags = moodMap[mood];
+
+  if (!tags) {
+    return res.status(400).json({ message: "Invalid mood" });
+  }
+
+  let products = await Product.find({
+    tags: { $in: tags }
+  }).lean();
+  
+  // Safety check for empty results or missing image URLs
+  products = (products || []).map(product => ({
+    ...product,
+    image: product.image || '/images/sample.jpg'
+  }));
+
+  res.json({ success: true, data: products });
+});
+
 
 // @desc    Fetch single product
 // @route   GET /api/products/:id
@@ -54,7 +99,7 @@ const getProductById = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, hasVariants, variationGroups } = req.body;
+  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, hasVariants, variants, tags } = req.body;
 
   // Basic validation
   if (!name || !category) {
@@ -62,9 +107,9 @@ const createProduct = asyncHandler(async (req, res) => {
     throw new Error('Please provide name and category');
   }
 
-  // Gracefully handle empty variation groups
-  const finalHasVariants = hasVariants && variationGroups && variationGroups.length > 0;
-  const finalVariationGroups = finalHasVariants ? variationGroups : [];
+  // Gracefully handle empty variants
+  const finalHasVariants = hasVariants && variants && variants.length > 0;
+  const finalVariants = finalHasVariants ? variants : [];
 
   const product = new Product({
     name,
@@ -76,7 +121,8 @@ const createProduct = asyncHandler(async (req, res) => {
     isSpecial: isSpecial || false,
     dietaryInfo: dietaryInfo || [],
     hasVariants: finalHasVariants,
-    variationGroups: finalVariationGroups,
+    variants: finalVariants,
+    tags: tags || [],
   });
 
   const createdProduct = await product.save();
@@ -92,14 +138,14 @@ const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, hasVariants, variationGroups } = req.body;
+  const { name, price, description, image, category, countInStock, isSpecial, dietaryInfo, hasVariants, variants, tags } = req.body;
 
   const product = await Product.findById(req.params.id);
 
   if (product) {
-    // Gracefully handle empty variation groups
-    const finalHasVariants = hasVariants && variationGroups && variationGroups.length > 0;
-    const finalVariationGroups = finalHasVariants ? variationGroups : [];
+    // Gracefully handle empty variants
+    const finalHasVariants = hasVariants && variants && variants.length > 0;
+    const finalVariants = finalHasVariants ? variants : [];
 
     product.name = name || product.name;
     product.description = description || product.description;
@@ -109,8 +155,9 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.isSpecial = isSpecial !== undefined ? isSpecial : product.isSpecial;
     product.dietaryInfo = dietaryInfo || product.dietaryInfo;
     product.hasVariants = finalHasVariants;
-    product.variationGroups = finalVariationGroups;
+    product.variants = finalVariants;
     product.price = price !== undefined ? price : product.price;
+    product.tags = tags || product.tags;
 
     const updatedProduct = await product.save();
 
@@ -147,6 +194,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 module.exports = {
   getProducts,
+  getProductsByMood,
   getProductById,
   createProduct,
   updateProduct,

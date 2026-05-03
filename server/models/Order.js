@@ -12,6 +12,7 @@ const orderSchema = new mongoose.Schema({
             qty: { type: Number, required: true },
             image: { type: String, required: true },
             price: { type: Number, required: true },
+            variantName: String,
             product: {
                 type: mongoose.Schema.Types.ObjectId,
                 required: true,
@@ -47,6 +48,7 @@ const orderSchema = new mongoose.Schema({
     actualStartTime: { type: Date },
     deliveryStartTime: { type: Date },
     estimatedDeliveryTime: { type: Date },
+    etaMinutes: { type: Number },
     prepTime: { type: Number }, // Actual prep time in minutes
     shippingAddress: {
         fullName: { type: String },

@@ -80,6 +80,7 @@ const Checkout = () => {
             qty: item.qty,
             image: item.image,
             price: item.price,
+            variantName: item.variantName || item.selectedVariant?.name,
             selectedVariant: item.selectedVariant,
             customizations: item.customizations || []
           })),

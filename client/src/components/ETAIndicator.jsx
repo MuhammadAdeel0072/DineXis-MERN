@@ -42,7 +42,7 @@ const ETAIndicator = ({ estimatedTime }) => {
                             exit={{ opacity: 0, y: -10 }}
                             className="text-2xl font-bold text-white tracking-tight"
                         >
-                            Arriving in {timeLeft} mins
+                            {timeLeft > 0 ? `Arriving in ${timeLeft} mins` : 'Calculating delivery time...'}
                         </motion.h4>
                     </AnimatePresence>
                 </div>

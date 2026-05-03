@@ -7,7 +7,7 @@ import { ChefHat, Lock, User, Utensils, XCircle } from 'lucide-react';
 const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [email, setEmail] = useState('chef@ak7.com');
+    const [email, setEmail] = useState('chef@dinexis.com');
     const [password, setPassword] = useState('chef123');
     const [loading, setLoading] = useState(false);
 
@@ -55,7 +55,7 @@ const Login = () => {
                                 required
                                 autoComplete="off"
                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white font-medium placeholder:text-white/10 focus:border-gold/50 focus:bg-white/[0.05] outline-none transition-all"
-                                placeholder="chef@ak7.com"
+                                placeholder="chef@dinexis.com"
                             />
                             {email && (
                                 <button

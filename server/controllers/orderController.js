@@ -74,7 +74,15 @@ const addOrderItems = asyncHandler(async (req, res) => {
     const orderNumber = `DX-${Math.floor(100000 + Math.random() * 899999)}`;
 
     const order = new Order({
-      orderItems,
+      orderItems: orderItems.map(item => ({
+        ...item,
+        product: item.product,
+        name: item.name,
+        qty: item.qty,
+        image: item.image,
+        price: item.price,
+        variantName: item.variantName || (item.selectedVariant ? item.selectedVariant.name : undefined)
+      })),
       user: req.user._id,
       shippingAddress: {
         fullName: shippingAddress.fullName || (req.user.firstName + ' ' + (req.user.lastName || '')).trim(),
@@ -242,6 +250,11 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
             order: order._id,
             paymentMethod: order.paymentMethod
         }).catch(err => console.error('Financial Ledger Error:', err));
+    }
+
+    // Trigger Smart ETA recalculation on status change
+    if (!['DELIVERED', 'CANCELLED'].includes(status.toUpperCase())) {
+        calculateETA(order._id).catch(err => console.error('ETA Recalculation Failure:', err));
     }
 
     // Emit real-time status update to user and admin

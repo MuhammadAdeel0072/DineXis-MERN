@@ -7,7 +7,7 @@ import { Coffee, Lock, User, ShieldCheck, XCircle } from 'lucide-react';
 const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [email, setEmail] = useState('admin@ak7.com');
+    const [email, setEmail] = useState('admin@dinexis.com');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -39,7 +39,7 @@ const Login = () => {
                     <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-gold/20 rotate-3 group-hover:rotate-6 transition-transform">
                         <Coffee className="text-gold" size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">AK-7 <span className="text-gold">Admin</span></h1>
+                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Dine<span className="text-gold">Xis</span></h1>
                     <p className="text-xs font-medium text-white/40 uppercase tracking-[0.3em]">Admin Login</p>
                 </div>
 
@@ -55,7 +55,7 @@ const Login = () => {
                                 required
                                 autoComplete="off"
                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white font-medium placeholder:text-white/10 focus:border-gold/50 focus:bg-white/[0.05] outline-none transition-all"
-                                placeholder="admin@ak7.com"
+                                placeholder="admin@dinexis.com"
                             />
                             {email && (
                                 <button

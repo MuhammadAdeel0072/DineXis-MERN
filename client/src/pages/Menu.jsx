@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getProducts } from '../services/menuService';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -20,18 +20,23 @@ const Menu = () => {
   
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({}); // { groupName: [{ name, price }] }
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [qty, setQty] = useState(1);
   
   const { dispatch } = useCart();
   const { user: profile, isSignedIn, updateProfile } = useAuth();
   const { siteUpdate } = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const mood = useMemo(() => new URLSearchParams(location.search).get('mood'), [location.search]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await getProducts();
+        const params = mood ? { mood } : {};
+        const data = await getProducts(params);
         setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Failed to fetch products:', error);
@@ -72,7 +77,7 @@ const Menu = () => {
     fetchProducts();
     fetchCategories();
     fetchDeals();
-  }, []);
+  }, [mood]);
 
   useEffect(() => {
     if (siteUpdate?.type === 'menuUpdate') {
@@ -191,6 +196,18 @@ const Menu = () => {
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
+      {mood && (
+        <div className="mb-12 text-center animate-in fade-in slide-in-from-top-4 duration-1000">
+          <p className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-2">Tailored Selection</p>
+          <h1 className="text-4xl md:text-6xl font-serif font-black text-white tracking-tighter">Recommended <span className="text-gold">for you</span></h1>
+          <button 
+            onClick={() => navigate('/menu')}
+            className="mt-4 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-gold transition-colors underline underline-offset-8"
+          >
+            Clear mood filter
+          </button>
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row gap-6 mb-8 md:mb-12 items-center justify-between">
         <div className="relative w-full lg:max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/50 w-5 h-5" />
@@ -245,15 +262,10 @@ const Menu = () => {
               <div
                 key={product._id}
                 onClick={() => {
-                  if (product.hasVariants && product.variationGroups?.length > 0) {
-                    setSelectedProduct(product);
-                    setSelectedOptions({});
-                    setQty(1);
-                  } else {
-                    setSelectedProduct(product);
-                    setSelectedOptions({});
-                    setQty(1);
-                  }
+                  setSelectedProduct(product);
+                  setSelectedOptions({});
+                  setSelectedVariant(product.variants && product.variants.length > 0 ? product.variants[0] : null);
+                  setQty(1);
                 }}
                 className="bg-white/[0.02] backdrop-blur-3xl border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-gold/40 group transition-all duration-700 transform hover:-translate-y-3 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] relative cursor-pointer flex flex-col h-full"
               >
@@ -313,7 +325,7 @@ const Menu = () => {
                           <span className="text-gold font-black text-lg tracking-tighter shrink-0">Rs. {Math.round(discountedPrice)}</span>
                         </>
                       ) : (
-                        <span className="text-gold font-black text-lg tracking-tighter shrink-0">{product.hasVariants && product.variationGroups?.length > 0 ? `From Rs. ${product.price}` : `Rs. ${product.price}`}</span>
+                        <span className="text-gold font-black text-lg tracking-tighter shrink-0">{product.hasVariants && product.variants?.length > 0 ? `From Rs. ${product.price}` : `Rs. ${product.price}`}</span>
                       )}
                     </div>
                   </div>
@@ -329,8 +341,9 @@ const Menu = () => {
 
                   <button
                     onClick={(e) => {
-                      if (product.hasVariants && product.variationGroups?.length > 0) {
+                      if (product.hasVariants && product.variants?.length > 0) {
                         setSelectedProduct(product);
+                        setSelectedVariant(product.variants[0]);
                         setSelectedOptions({});
                         setQty(1);
                         e.stopPropagation();
@@ -385,7 +398,7 @@ const Menu = () => {
                   optionsPrice += opt.price;
               });
           });
-          const currentPrice = basePrice + optionsPrice;
+          const currentPrice = (selectedVariant ? selectedVariant.price : basePrice) + optionsPrice;
 
           return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-charcoal/80 backdrop-blur-xl">
@@ -433,8 +446,49 @@ const Menu = () => {
                 </div>
 
                 <div className="space-y-8 flex-grow">
-                  {/* Dynamic Variation Groups */}
-                  {selectedProduct.hasVariants && selectedProduct.variationGroups?.map((group, gIdx) => (
+                  {/* Standardized Variants */}
+                  {selectedProduct.hasVariants && selectedProduct.variants?.length > 0 && (
+                    <div className="space-y-4">
+                      <label className="text-xs font-black uppercase tracking-widest text-gold/60 flex justify-between">
+                        Select Variation
+                        <span className="text-crimson">* Required</span>
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {selectedProduct.variants.map((variant, vIdx) => {
+                          const isSelected = selectedVariant?.name === variant.name;
+                          
+                          return (
+                            <button
+                                key={vIdx}
+                                onClick={() => setSelectedVariant(variant)}
+                                className={`flex flex-col items-start p-4 rounded-2xl border transition-all text-left ${
+                                isSelected
+                                    ? 'bg-gold/20 border-gold shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                                    : 'bg-white/5 border-white/10 hover:border-gold/30'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3 w-full">
+                                    <div className={`w-5 h-5 flex items-center justify-center rounded-full border shrink-0 ${isSelected ? 'border-gold bg-gold text-charcoal' : 'border-white/20'}`}>
+                                        {isSelected && <div className="w-2.5 h-2.5 bg-charcoal rounded-full" />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <span className={`block text-lg font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-gold' : 'text-gray-300'}`}>
+                                            {variant.name}
+                                        </span>
+                                        <span className="text-sm font-bold text-white/70">
+                                            Rs. {variant.price}
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Legacy Variation Groups (if any) */}
+                  {selectedProduct.hasVariants && selectedProduct.variationGroups?.length > 0 && selectedProduct.variationGroups.map((group, gIdx) => (
                     <div key={gIdx} className="space-y-4">
                       <label className="text-xs font-black uppercase tracking-widest text-gold/60 flex justify-between">
                         {group.name}
@@ -497,7 +551,15 @@ const Menu = () => {
                     onClick={(e) => {
                       // Validation
                       let isValid = true;
-                      if (selectedProduct.hasVariants && selectedProduct.variationGroups) {
+                      
+                      // Check variants
+                      if (selectedProduct.hasVariants && selectedProduct.variants?.length > 0 && !selectedVariant) {
+                          toast.error(`Please select a variation`);
+                          isValid = false;
+                      }
+
+                      // Check variation groups
+                      if (isValid && selectedProduct.hasVariants && selectedProduct.variationGroups) {
                           for (const group of selectedProduct.variationGroups) {
                               if (group.required && (!selectedOptions[group.name] || selectedOptions[group.name].length === 0)) {
                                   toast.error(`Please select an option for ${group.name}`);
@@ -519,13 +581,14 @@ const Menu = () => {
 
                       addToCartHandler({ 
                         ...selectedProduct, 
-                        price: Math.round(basePrice) // Pass base price, addToCartHandler adds options price
+                        price: selectedVariant ? selectedVariant.price : Math.round(basePrice),
+                        variantName: selectedVariant?.name
                       }, qty, e, finalOptions);
                     }}
                     className="w-full bg-gold text-charcoal font-black py-5 rounded-[2rem] flex items-center justify-center gap-4 text-xl shadow-[0_20px_40px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-95 transition-all group uppercase tracking-widest shrink-0 mt-4"
                   >
                     <ShoppingCart className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    Add to Cart - Rs. {Math.round(currentPrice * qty)}
+                    Add to Cart
                   </button>
                 </div>
               </div>

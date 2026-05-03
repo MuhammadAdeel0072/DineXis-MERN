@@ -107,7 +107,14 @@ const OrderDetails = () => {
                                         <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-white/10" />
                                         <div>
                                             <p className="text-xs font-bold text-white uppercase tracking-wider">{item.name}</p>
-                                            <p className="text-[10px] text-gold/40 font-black uppercase tracking-widest mt-0.5">Quantity: {item.qty}</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <p className="text-[10px] text-gold/40 font-black uppercase tracking-widest">Qty: {item.qty}</p>
+                                                {item.variantName && (
+                                                    <span className="text-[9px] text-soft-white/20 font-bold uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                                        {item.variantName}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <p className="text-sm font-serif font-black text-gold">Rs. {item.price * item.qty}</p>

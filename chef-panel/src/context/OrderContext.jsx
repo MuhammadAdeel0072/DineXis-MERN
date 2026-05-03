@@ -88,7 +88,7 @@ export const OrderProvider = ({ children }) => {
                  if (exists) return prev;
                  return [newOrder, ...prev];
              });
-             if (newOrder.status === 'CONFIRMED' || newOrder.status === 'placed' || newOrder.status === 'PLACED') {
+             if (newOrder.status === 'PENDING' || newOrder.status === 'CONFIRMED' || newOrder.status === 'placed' || newOrder.status === 'PLACED') {
                  triggerAlert('NEW_ORDER', newOrder);
              }
              if (newOrder.priority === 'URGENT' || newOrder.priority === 'urgent') {

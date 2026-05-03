@@ -17,6 +17,57 @@ import toast from 'react-hot-toast';
 
 export const RiderContext = createContext();
 
+// --- Optimization Helpers ---
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+};
+
+const optimizeRoute = (riderLoc, orders) => {
+    if (!riderLoc || orders.length === 0) return { sequence: orders, totalDist: 0 };
+    
+    let currentLoc = riderLoc;
+    const unvisited = [...orders];
+    const sequence = [];
+    let totalDist = 0;
+
+    while (unvisited.length > 0) {
+        let nearestIdx = 0;
+        let minDist = Infinity;
+
+        for (let i = 0; i < unvisited.length; i++) {
+            const stop = unvisited[i].shippingAddress;
+            const d = calculateDistance(currentLoc.lat, currentLoc.lng, stop?.lat, stop?.lng);
+            if (d < minDist) {
+                minDist = d;
+                nearestIdx = i;
+            }
+        }
+
+        const nextStop = unvisited.splice(nearestIdx, 1)[0];
+        const distToNext = calculateDistance(
+            currentLoc.lat, currentLoc.lng, 
+            nextStop.shippingAddress?.lat, nextStop.shippingAddress?.lng
+        );
+        
+        totalDist += distToNext;
+        sequence.push({ ...nextStop, routeDistance: distToNext.toFixed(2) });
+        currentLoc = { 
+            lat: nextStop.shippingAddress?.lat, 
+            lng: nextStop.shippingAddress?.lng 
+        };
+    }
+
+    return { sequence, totalDist: totalDist.toFixed(2) };
+};
 
 export const RiderProvider = ({ children }) => {
     const { user } = useAuth();
@@ -26,17 +77,16 @@ export const RiderProvider = ({ children }) => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [location, setLocation] = useState(null);
+    const [routeInfo, setRouteInfo] = useState({ sequence: [], totalDistance: 0 });
     
     const refreshTimer = useRef(null);
 
     const fetchData = useCallback(async () => {
         if (!user) return;
         try {
-            // First fetch basic stats
             const currentStats = await getRiderStats();
             setStats(currentStats);
 
-            // Fetch orders and nearby suggestions
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     const lat = pos.coords.latitude;
@@ -49,10 +99,18 @@ export const RiderProvider = ({ children }) => {
                         getNearbyOrders(lat, lng)
                     ]);
                     
-                    setMyOrders(mine);
+                    // Optimization Step
+                    const active = mine.filter(o => o.status !== 'DELIVERED');
+                    const history = mine.filter(o => o.status === 'DELIVERED');
+                    const optimized = optimizeRoute(locObj, active);
+                    
+                    setMyOrders([...optimized.sequence, ...history]);
+                    setRouteInfo({ 
+                        sequence: optimized.sequence, 
+                        totalDistance: optimized.totalDist 
+                    });
                     setNearbyOrders(nearby);
                 }, async () => {
-                    // Fallback if GPS denied
                     const [mine, available] = await Promise.all([
                         getMyOrders(),
                         getAvailableOrders()
@@ -80,7 +138,6 @@ export const RiderProvider = ({ children }) => {
             fetchData();
             joinRiders();
 
-            // Background refresh every 30s
             refreshTimer.current = setInterval(fetchData, 30000);
 
             const handleRefresh = () => fetchData();
@@ -91,8 +148,6 @@ export const RiderProvider = ({ children }) => {
                     duration: 6000,
                     style: { background: '#121212', color: '#D4AF37', border: '1px solid #D4AF37' }
                 });
-                const audio = new Audio('/notification.mp3');
-                audio.play().catch(() => {});
             });
             
             socket.on('orderUpdate', handleRefresh);
@@ -105,7 +160,6 @@ export const RiderProvider = ({ children }) => {
         }
     }, [user, fetchData]);
 
-    // Workflow Actions
     const claim = async (id) => {
         const res = await apiClaimOrder(id);
         await fetchData();
@@ -149,6 +203,7 @@ export const RiderProvider = ({ children }) => {
         stats,
         loading,
         location,
+        routeInfo,
         refreshData: fetchData,
         claim,
         accept,
@@ -164,3 +219,4 @@ export const RiderProvider = ({ children }) => {
         </RiderContext.Provider>
     );
 };
+

@@ -14,9 +14,9 @@ const ActiveOrders = () => {
     const { orders, loading, error } = useOrderContext();
     const [filter, setFilter] = useState('all');
 
-    // Live Queue shows PENDING and PREPARING
-    const validStatuses = ['PENDING', 'PREPARING'];
-    const activeOrders = orders.filter(o => validStatuses.includes(o.status));
+    // Live Queue shows PENDING, RECEIVED, PLACED and PREPARING
+    const validStatuses = ['PENDING', 'RECEIVED', 'PLACED', 'CONFIRMED', 'PREPARING'];
+    const activeOrders = orders.filter(o => validStatuses.includes(o.status?.toUpperCase()));
 
     const filteredOrders = activeOrders.filter(o => {
         if (filter === 'all') return true;
@@ -112,8 +112,8 @@ const ActiveOrders = () => {
                             <OrderCard 
                                 key={order._id} 
                                 order={order} 
-                                actionText={order.status === 'PREPARING' ? "Mark as Ready" : "Start Cooking"}
-                                onMainAction={() => order.status === 'PREPARING' ? handleMarkReady(order._id) : handleStartCooking(order._id)}
+                                actionText={order.status?.toUpperCase() === 'PREPARING' ? "Mark as Ready" : "Start Cooking"}
+                                onMainAction={() => order.status?.toUpperCase() === 'PREPARING' ? handleMarkReady(order._id) : handleStartCooking(order._id)}
                             />
                         ))
                     )}

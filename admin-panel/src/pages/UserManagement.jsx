@@ -30,7 +30,7 @@ const UserManagement = () => {
     >
       <header>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-soft-white tracking-tighter">User <span className="text-gold">Directory</span></h1>
-        <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">AK-7 REST USER MANAGEMENT</p>
+        <p className="text-soft-white/50 mt-1 sm:mt-2 uppercase text-[7px] sm:text-[9px] md:text-[10px] font-bold tracking-[0.2em]">DINEXIS USER MANAGEMENT</p>
       </header>
 
       <div className="glass rounded-[32px] border border-white/5 overflow-hidden shadow-2xl">

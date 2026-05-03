@@ -6,13 +6,14 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
+const path = require('path');
 const connectDB = require('./config/db');
 const { init } = require('./services/socketService');
 const { initSubscriptionScheduler } = require('./services/SubscriptionService');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Database connection is handled in startServer()
 
@@ -26,17 +27,11 @@ initSubscriptionScheduler();
 // ======================
 // ⚙️ CORE BRIDGE & HANDSHAKE (ABSOLUTE TOP)
 // ======================
+// ======================
+// ⚙️ CORE BRIDGE & HANDSHAKE (ABSOLUTE TOP)
+// ======================
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
-    'http://127.0.0.1:5175',
-    'http://127.0.0.1:5176'
-  ],
+  origin: "*",
   credentials: true,
 }));
 
@@ -89,6 +84,29 @@ const staffRoutes = require('./routes/staffRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 
+// Diagnostic: Verify all routes are correctly loaded
+console.log('--- Initializing Dynamic Route Protocols ---');
+[
+  { name: 'Auth', handler: authRoutes },
+  { name: 'Admin', handler: adminRoutes },
+  { name: 'Analytics', handler: analyticsRoutes },
+  { name: 'Product', handler: productRoutes },
+  { name: 'Category', handler: categoryRoutes },
+  { name: 'Deal', handler: dealRoutes },
+  { name: 'Order', handler: orderRoutes },
+  { name: 'Reservation', handler: reservationRoutes },
+  { name: 'Payment', handler: paymentRoutes },
+  { name: 'Chef', handler: chefRoutes },
+  { name: 'Rider', handler: riderRoutes },
+  { name: 'Cart', handler: cartRoutes }
+].forEach(route => {
+  if (!route.handler || typeof route.handler !== 'function') {
+    console.error(`❌ CRITICAL: ${route.name} Route Handler is INVALID (${typeof route.handler})`);
+  } else {
+    console.log(`✅ ${route.name} Route Protocol: Online`);
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/admin', adminRoutes);
@@ -129,43 +147,36 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ======================
-// 🚀 START SERVER
+// 🚀 START SERVER — Dynamic Port Fallback
 // ======================
 const PORT = process.env.PORT || 5000;
 
-server.timeout = 60000;
-
-// Handle port conflicts gracefully
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`\n❌ FATAL: Port ${PORT} is already in use!`);
-    console.error('Solution: Kill the existing process or use a different PORT.');
-    console.error(`\nTo kill the process using port ${PORT}:`);
-    console.error('Windows: netstat -ano | findstr :' + PORT);
-    console.error('Then: taskkill /PID <PID> /F\n');
-    process.exit(1);
-  } else {
-    console.error('❌ Server crash error:', error);
-    process.exit(1);
-  }
-});
-
-// Main initialization
-const startServer = async () => {
+const startServer = async (port) => {
   try {
-    // Wait for DB to connect before listening
-    console.log('🔄 Initializing Database Connection...');
-    await connectDB();
+    // Database connection (only on first attempt)
+    if (port === PORT) {
+      console.log('🔄 Initializing Database Connection...');
+      await connectDB();
+    }
 
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`✅ Server running on http://localhost:${PORT}`);
+    server.listen(port, () => {
+      console.log(`✅ Server running on port ${port}`);
       console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log('✅ System Protocol: All systems operational. Awaiting incoming data streams.');
+      console.log('✅ System Protocol: All systems operational.\n');
+    });
+
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.log(`⚠️ Port ${port} busy, switching to ${Number(port) + 1}`);
+        startServer(Number(port) + 1);
+      } else {
+        console.error('❌ Unexpected server error:', err);
+      }
     });
   } catch (error) {
-    console.error('❌ Failed to connect to database. Server will not start:', error.message);
+    console.error('❌ Server startup failed:', error.message);
     process.exit(1);
   }
 };
 
-startServer();
+startServer(PORT);

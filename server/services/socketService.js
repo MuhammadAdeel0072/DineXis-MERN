@@ -11,22 +11,12 @@ let io;
 const init = (server) => {
   io = socketIO(server, {
     cors: {
-      origin: [
-        process.env.FRONTEND_URL, // deployed client
-        process.env.ADMIN_URL,    // deployed admin
-        'http://localhost:5173',  // client
-        'http://localhost:5174',  // admin
-        'http://localhost:5175',  // chef
-        'http://localhost:5176',  // rider
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        'http://127.0.0.1:5175',
-        'http://127.0.0.1:5176',
-      ],
+      origin: "*",
       methods: ['GET', 'POST'],
       credentials: true,
     },
   });
+
 
   io.on('connection', (socket) => {
     console.log(`Socket Connected: ${socket.id}`);

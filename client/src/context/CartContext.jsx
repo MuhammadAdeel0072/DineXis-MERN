@@ -16,7 +16,7 @@ const cartReducer = (state, action) => {
       const item = action.payload;
       const existItem = state.cartItems.find((x) => 
         x.product === item.product && 
-        JSON.stringify(x.selectedOptions) === JSON.stringify(item.selectedOptions)
+        x.selectedVariant?.name === item.selectedVariant?.name
       );
 
       if (existItem) {
@@ -24,7 +24,7 @@ const cartReducer = (state, action) => {
           ...state,
           cartItems: state.cartItems.map((x) =>
             (x.product === existItem.product && 
-             JSON.stringify(x.selectedOptions) === JSON.stringify(existItem.selectedOptions)) ? item : x
+             x.selectedVariant?.name === existItem.selectedVariant?.name) ? item : x
           ),
         };
       } else {
@@ -38,7 +38,7 @@ const cartReducer = (state, action) => {
         ...state,
         cartItems: state.cartItems.filter((x) => 
           !(x.product === action.payload.product && 
-            JSON.stringify(x.selectedOptions) === JSON.stringify(action.payload.selectedOptions))
+            x.selectedVariant?.name === action.payload.selectedVariant?.name)
         ),
       };
     case 'CLEAR_CART':
@@ -65,10 +65,44 @@ export const CartProvider = ({ children }) => {
     loading: false
   });
 
-  // Sync with LocalStorage
+  // Sync with LocalStorage and Backend
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
-  }, [state.cartItems]);
+    
+    // Backend Sync Protocol
+    const syncCart = async () => {
+      if (isSignedIn) {
+        try {
+          await apiClient.post('/cart', { cartItems: state.cartItems });
+        } catch (error) {
+          console.error('Cart Sync Failure:', error);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(syncCart, 1000); // Debounce sync
+    return () => clearTimeout(timeoutId);
+  }, [state.cartItems, isSignedIn]);
+
+  // Initial Fetch from Backend
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (isSignedIn) {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        try {
+          const { data } = await apiClient.get('/cart');
+          if (data && Array.isArray(data)) {
+            dispatch({ type: 'SET_CART', payload: data });
+          }
+        } catch (error) {
+          console.error('Failed to fetch backend cart:', error);
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      }
+    };
+    fetchCart();
+  }, [isSignedIn]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

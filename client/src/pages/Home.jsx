@@ -11,6 +11,27 @@ const Home = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const { handleReorder, reordering } = useReorder();
 
+  const [moodProducts, setMoodProducts] = useState([]);
+  const [moodLoading, setMoodLoading] = useState(false);
+  const [selectedMood, setSelectedMood] = useState(null);
+
+  const handleMoodClick = async (moodId) => {
+    setSelectedMood(moodId);
+    setMoodLoading(true);
+    setMoodProducts([]);
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/products/mood/${moodId}`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setMoodProducts(data.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setMoodLoading(false);
+    }
+  };
+
   // Lazy-load recent orders for signed-in users
   useEffect(() => {
     if (isSignedIn) {
@@ -53,6 +74,84 @@ const Home = () => {
               Order Now
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Mood-Based Ordering Section */}
+      <section className="py-16 bg-charcoal px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-4">
+            How are you <span className="text-gold">feeling today?</span>
+          </h2>
+          <p className="text-gray-500 text-sm md:text-base mb-12 uppercase tracking-[0.3em] font-black">Select your mood & we'll handle the rest</p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { id: 'hungry', label: "I'm Very Hungry", emoji: "😋", color: "from-orange-500/20 to-crimson/20" },
+              { id: 'budget', label: "Budget Meal", emoji: "💸", color: "from-green-500/20 to-emerald-500/20" },
+              { id: 'quick', label: "Quick Snack", emoji: "🍕", color: "from-blue-500/20 to-indigo-500/20" },
+              { id: 'premium', label: "Premium Dinner", emoji: "❤️", color: "from-gold/20 to-yellow-500/20" }
+            ].map((mood) => (
+              <button 
+                key={mood.id}
+                onClick={() => handleMoodClick(mood.id)}
+                className={`group relative overflow-hidden p-8 rounded-[2.5rem] border ${selectedMood === mood.id ? 'border-gold shadow-[0_0_20px_rgba(212,175,55,0.4)] scale-[1.02]' : 'border-white/5'} bg-gradient-to-br ${mood.color} transition-all duration-500 hover:scale-[1.02] hover:border-white/10 hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] text-left w-full`}
+              >
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-500">{mood.emoji}</div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-white group-hover:text-gold transition-colors">{mood.label}</h3>
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
+            ))}
+          </div>
+
+          {/* Mood Recommendations Display */}
+          {(moodLoading || selectedMood) && (
+            <div className="mt-16 text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h3 className="text-2xl font-serif font-bold text-white mb-8 flex items-center gap-3">
+                <span className="w-1.5 h-8 bg-gold rounded-full"></span>
+                Recommended for you
+              </h3>
+              
+              {moodLoading && (
+                 <div className="flex flex-col items-center justify-center py-16 bg-white/[0.02] rounded-[2.5rem] border border-white/5">
+                   <Loader2 className="w-12 h-12 text-gold animate-spin mb-4" />
+                   <p className="text-gold/80 uppercase tracking-widest font-black text-sm animate-pulse">Loading recommendations...</p>
+                 </div>
+              )}
+
+              {!moodLoading && selectedMood && moodProducts.length === 0 && (
+                <div className="text-center py-16 bg-white/[0.02] rounded-[2.5rem] border border-white/5">
+                  <div className="text-4xl mb-4">🍽️</div>
+                  <p className="text-gray-400 text-lg mb-4">No items found for this mood</p>
+                  <button onClick={() => setSelectedMood(null)} className="text-gold text-sm font-black uppercase tracking-widest hover:underline hover:text-white transition-colors">Clear Selection</button>
+                </div>
+              )}
+
+              {!moodLoading && moodProducts.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {moodProducts.map(item => (
+                    <div key={item._id} className="bg-white/5 border border-white/10 rounded-[2rem] p-4 hover:border-gold/30 hover:bg-white/[0.07] transition-all duration-500 flex flex-col group hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+                      <div className="h-48 rounded-2xl overflow-hidden mb-4 relative shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent opacity-80"></div>
+                        <div className="absolute top-3 right-3 bg-charcoal/80 backdrop-blur-xl px-3 py-1.5 rounded-xl text-gold font-black text-xs border border-white/10 shadow-lg">Rs. {item.price}</div>
+                        <div className="absolute bottom-3 left-3 flex gap-1">
+                           {item.tags?.slice(0,2).map(tag => (
+                             <span key={tag} className="bg-gold/20 text-gold border border-gold/20 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest backdrop-blur-md">{tag}</span>
+                           ))}
+                        </div>
+                      </div>
+                      <h4 className="text-white font-serif font-bold text-lg mb-2 group-hover:text-gold transition-colors leading-tight">{item.name}</h4>
+                      <p className="text-gray-500 text-xs line-clamp-2 mb-6 flex-grow font-medium">"{item.description}"</p>
+                      <Link to={`/menu`} className="w-full py-3 rounded-xl bg-gold/10 text-gold font-black text-[10px] uppercase tracking-widest text-center hover:bg-gold hover:text-charcoal transition-all border border-gold/20 hover:border-gold flex items-center justify-center gap-2 group/btn">
+                        Order Now <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
       

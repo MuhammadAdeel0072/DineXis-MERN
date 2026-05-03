@@ -7,7 +7,7 @@ const MONGODB_URI = process.env.MONGO_URI;
 const seedStaff = [
   {
     name: "Chef Marco Pierre",
-    email: "marco@ak7rest.com",
+    email: "marco@dinexis.com",
     phone: "0300-1112233",
     role: "Chef",
     status: "Active",
@@ -18,7 +18,7 @@ const seedStaff = [
   },
   {
     name: "Zeeshan Ali",
-    email: "zeeshan@ak7rest.com",
+    email: "zeeshan@dinexis.com",
     phone: "0321-4445566",
     role: "Rider",
     status: "Active",
@@ -29,7 +29,7 @@ const seedStaff = [
   },
   {
     name: "Sara Khan",
-    email: "sara@ak7rest.com",
+    email: "sara@dinexis.com",
     phone: "0345-9998877",
     role: "Cashier",
     status: "Active",
@@ -40,7 +40,7 @@ const seedStaff = [
   },
   {
     name: "Kamran Akmal",
-    email: "kamran@ak7rest.com",
+    email: "kamran@dinexis.com",
     phone: "0312-3334445",
     role: "Manager",
     status: "Active",
@@ -51,7 +51,7 @@ const seedStaff = [
   },
   {
     name: "Bilal Ahmed",
-    email: "bilal@ak7rest.com",
+    email: "bilal@dinexis.com",
     phone: "0333-7778889",
     role: "Waiter",
     status: "On Leave",

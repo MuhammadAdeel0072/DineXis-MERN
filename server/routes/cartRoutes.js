@@ -3,9 +3,6 @@ const router = express.Router();
 const { getCart, updateCart, clearCart } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Diagnostic verification of handlers
-console.log('Cart Route Handlers Detected:', { getCart: !!getCart, updateCart: !!updateCart, clearCart: !!clearCart });
-
 // All cart routes are protected as they belong to a user
 router.use(protect);
 

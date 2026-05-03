@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-charcoal: #0a0a0a;
+  --color-charcoal: #121212;
   --color-off-white: #F9F9F9;
   --color-gold: #D4AF37;
   --color-soft-white: #E0E0E0;
@@ -18,7 +18,7 @@
 
 @layer base {
   body {
-    background-color: #0a0a0a;
+    background-color: #121212;
     color: #E0E0E0;
     font-family: var(--font-sans);
     margin: 0;
@@ -28,17 +28,23 @@
   }
 }
 
-/* Simplified UI Components */
+/* UI Components matching Admin/Chef */
 
 .glass {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.glass-gold {
+  background: rgba(212, 175, 55, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
 .card-minimal {
-  background: #141414;
+  background: #1A1A1A;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 1.5rem;
   transition: all 0.2s ease;
@@ -49,15 +55,19 @@
 }
 
 .btn-primary-large {
-  @apply bg-gold text-charcoal w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.1em] shadow-2xl shadow-gold/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+  @apply bg-gold text-charcoal w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-gold/10 active:scale-95 transition-all flex items-center justify-center gap-3;
 }
 
 .btn-secondary-large {
-  @apply bg-white/5 text-white w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.1em] border border-white/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+  @apply bg-white/5 text-white w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] border border-white/10 active:scale-95 transition-all flex items-center justify-center gap-3;
 }
 
 .btn-success-large {
-  @apply bg-near text-charcoal w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.1em] shadow-2xl shadow-near/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+  @apply bg-near text-charcoal w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-near/10 active:scale-95 transition-all flex items-center justify-center gap-3;
+}
+
+.btn-gold {
+  @apply bg-gold text-charcoal px-6 py-2 rounded-xl font-black transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(212,175,55,0.3)] uppercase tracking-widest text-[10px];
 }
 
 /* Map Overrides */
@@ -66,7 +76,7 @@
   height: 100%;
   border-radius: 1.5rem;
   z-index: 1;
-  background: #141414 !important;
+  background: #121212 !important;
 }
 
 .leaflet-tile {
@@ -89,16 +99,18 @@
   scrollbar-width: none !important;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .text-gradient {
   background: linear-gradient(135deg, #fff 0%, #a1a1a1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
-.tab-active {
-  @apply bg-gold text-charcoal shadow-xl shadow-gold/20 scale-105;
-}
-
-.tab-inactive {
-  @apply text-white/30 hover:text-white/60;
-}
+

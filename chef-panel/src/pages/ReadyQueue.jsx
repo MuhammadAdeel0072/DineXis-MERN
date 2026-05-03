@@ -14,9 +14,9 @@ const ReadyQueue = () => {
     const { orders, loading, error } = useOrderContext();
     const [feedbacks, setFeedbacks] = useState({});
 
-    // Ready Queue only shows READY_FOR_DELIVERY
-    const validStatuses = ['READY_FOR_DELIVERY'];
-    const filteredOrders = orders.filter(o => validStatuses.includes(o.status));
+    // Ready Queue shows READY_FOR_DELIVERY, READY, COOKED, PACKED
+    const validStatuses = ['READY_FOR_DELIVERY', 'READY', 'COOKED', 'PACKED'];
+    const filteredOrders = orders.filter(o => validStatuses.includes(o.status?.toUpperCase()));
 
     const handleDispatch = async (id) => {
         const loadingToast = toast.loading("Dispatching order...");

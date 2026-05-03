@@ -76,6 +76,13 @@ const Cart = () => {
                     <h3 className="text-3xl font-serif font-black text-white group-hover:text-gold transition-colors">{item.name}</h3>
                     <div className="text-3xl font-black text-gold">Rs. {(item.qty * item.price).toFixed(0)}</div>
                   </div>
+                  {item.selectedVariant && (
+                    <div className="mb-4">
+                      <span className="bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg">
+                        Size: {item.selectedVariant.name}
+                      </span>
+                    </div>
+                  )}
                   {item.selectedOptions && item.selectedOptions.length > 0 && (
                     <div className="mb-4 flex flex-wrap gap-2">
                       {item.selectedOptions.map((opt, i) => (

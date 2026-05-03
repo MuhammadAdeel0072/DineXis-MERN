@@ -11,10 +11,10 @@ export const BrandLogo = ({
   variant = 'default' // 'default', 'minimal', 'full'
 }) => {
   const sizeMap = {
-    sm: { ak7: 'text-lg', rest: 'text-lg', tag: 'text-[6px]' },
-    md: { ak7: 'text-2xl md:text-3xl', rest: 'text-2xl md:text-3xl', tag: 'text-[8px] md:text-[10px]' },
-    lg: { ak7: 'text-4xl md:text-5xl', rest: 'text-4xl md:text-5xl', tag: 'text-[10px] md:text-[12px]' },
-    xl: { ak7: 'text-5xl md:text-6xl', rest: 'text-5xl md:text-6xl', tag: 'text-[12px] md:text-[14px]' },
+    sm: { dine: 'text-lg', xis: 'text-lg', tag: 'text-[6px]' },
+    md: { dine: 'text-2xl md:text-3xl', xis: 'text-2xl md:text-3xl', tag: 'text-[8px] md:text-[10px]' },
+    lg: { dine: 'text-4xl md:text-5xl', xis: 'text-4xl md:text-5xl', tag: 'text-[10px] md:text-[12px]' },
+    xl: { dine: 'text-5xl md:text-6xl', xis: 'text-5xl md:text-6xl', tag: 'text-[12px] md:text-[14px]' },
   };
 
   const sizes = sizeMap[size];
@@ -22,10 +22,10 @@ export const BrandLogo = ({
   if (variant === 'minimal') {
     return (
       <div className={`inline-flex items-baseline gap-1 ${className}`}>
-        <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
+        <span className={`${sizes.dine} font-serif font-black italic tracking-tighter text-gold`}>
           Dine
         </span>
-        <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
+        <span className={`${sizes.xis} font-serif font-black italic tracking-tighter text-crimson`}>
           Xis
         </span>
       </div>
@@ -36,10 +36,10 @@ export const BrandLogo = ({
     return (
       <div className={`flex flex-col ${className}`}>
         <div className="inline-flex items-baseline gap-1">
-          <span className={`${sizes.ak7} font-serif font-bold text-gold`}>
+          <span className={`${sizes.dine} font-serif font-bold text-gold`}>
             Dine
           </span>
-          <span className={`${sizes.rest} font-serif font-bold text-crimson`}>
+          <span className={`${sizes.xis} font-serif font-bold text-crimson`}>
             Xis
           </span>
         </div>
@@ -54,10 +54,10 @@ export const BrandLogo = ({
   return (
     <div className={`flex flex-col ${className}`}>
       <div className="inline-flex items-baseline gap-1">
-        <span className={`${sizes.ak7} font-serif font-black italic tracking-tighter text-gold`}>
+        <span className={`${sizes.dine} font-serif font-black italic tracking-tighter text-gold`}>
           Dine
         </span>
-        <span className={`${sizes.rest} font-serif font-black italic tracking-tighter text-crimson`}>
+        <span className={`${sizes.xis} font-serif font-black italic tracking-tighter text-crimson`}>
           Xis
         </span>
       </div>

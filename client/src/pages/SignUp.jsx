@@ -125,7 +125,7 @@ const SignUp = () => {
                                     type="email"
                                     required
                                     className={`w-full pl-12 pr-4 py-4 bg-white/5 border rounded-2xl outline-none transition-all font-bold text-white placeholder:text-gray-600 ${isValidEmail === true ? 'border-green-400/50 focus:border-green-400' : isValidEmail === false ? 'border-crimson/50 focus:border-crimson' : 'border-white/10 focus:border-gold'}`}
-                                    placeholder="customer@ak7rest.com"
+                                    placeholder="customer@dinexis.com"
                                     value={email}
                                     onChange={(e) => validateEmail(e.target.value)}
                                 />

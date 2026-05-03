@@ -31,7 +31,8 @@ const MenuManagement = () => {
       { name: 'Small', price: '', prepTime: 10 },
       { name: 'Regular', price: '', prepTime: 15 },
       { name: 'Large', price: '', prepTime: 20 }
-    ]
+    ],
+    tags: []
   });
 
   useEffect(() => {

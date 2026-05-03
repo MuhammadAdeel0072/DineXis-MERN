@@ -22,21 +22,21 @@ const seedUsers = async () => {
       {
         firstName: 'System',
         lastName: 'Admin',
-        email: 'admin@ak7.com',
+        email: 'admin@dinexis.com',
         password: 'admin123',
         role: 'admin'
       },
       {
         firstName: 'Head',
         lastName: 'Chef',
-        email: 'chef@ak7.com',
+        email: 'chef@dinexis.com',
         password: 'chef123',
         role: 'chef'
       },
       {
         firstName: 'Quick',
         lastName: 'Rider',
-        email: 'rider@ak7.com',
+        email: 'rider@dinexis.com',
         password: 'rider123',
         role: 'rider'
       }
@@ -56,9 +56,9 @@ const seedUsers = async () => {
     }
 
     console.log('--- SEEDING COMPLETE ---');
-    console.log('Admin login: admin@ak7.com / admin123');
-    console.log('Chef login: chef@ak7.com / chef123');
-    console.log('Rider login: rider@ak7.com / rider123');
+    console.log('Admin login: admin@dinexis.com / admin123');
+    console.log('Chef login: chef@dinexis.com / chef123');
+    console.log('Rider login: rider@dinexis.com / rider123');
     
     process.exit();
   } catch (error) {

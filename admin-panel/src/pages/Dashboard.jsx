@@ -82,7 +82,7 @@ const Dashboard = () => {
     >
       <header>
         <h1 className="text-3xl md:text-5xl font-serif font-black mb-1 md:mb-2 tracking-tighter italic transition-all duration-700">
-          <span className="text-gold">AK-7</span> <span className="text-crimson ml-1">REST</span>
+          <span className="text-gold">Dine</span><span className="text-crimson ml-1">Xis</span>
         </h1>
         <p className="text-soft-white/40 tracking-[0.4em] uppercase text-[8px] md:text-[10px] font-black">Culinary Control Center</p>
       </header>

@@ -1,8 +1,8 @@
-# 🌑 AK-7 REST — Midnight Gourmet
+# 🌑 DineXis — Midnight Gourmet
 
 **A Premium, Full-Stack Dining Experience meticulously crafted for the digital age.**
 
-AK-7 REST is a luxury restaurant management ecosystem built on the **MERN** stack. It combines cutting-edge performance with a bespoke "**Midnight Gourmet**" aesthetic to deliver a seamless, high-end experience across four specialized front-end modules—Client, Admin, Chef, and Rider—all powered by a robust, real-time Backend Server.
+DineXis is a luxury restaurant management ecosystem built on the **MERN** stack. It combines cutting-edge performance with a bespoke "**Midnight Gourmet**" aesthetic to deliver a seamless, high-end experience across four specialized front-end modules—Client, Admin, Chef, and Rider—all powered by a robust, real-time Backend Server.
 
 ---
 
@@ -79,8 +79,8 @@ Ensure you have **Node.js 18+** and **npm** installed on your machine.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/adeeel/AK-7-Restaurant-MERN.git
-cd AK-7-Restaurant-MERN
+git clone https://github.com/adeeel/DineXis-Restaurant-MERN.git
+cd DineXis-Restaurant-MERN
 ```
 
 ### 2. Configure Environment Variables

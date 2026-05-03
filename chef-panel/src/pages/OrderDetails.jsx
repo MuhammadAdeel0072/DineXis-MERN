@@ -97,7 +97,14 @@ const OrderDetails = () => {
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between items-start mb-2">
-                                            <h3 className="text-xl font-bold text-white group-hover:text-gold transition-colors">{item.name}</h3>
+                                            <div className="flex flex-col">
+                                                <h3 className="text-xl font-bold text-white group-hover:text-gold transition-colors">{item.name}</h3>
+                                                {item.variantName && (
+                                                    <span className="text-[10px] font-black text-gold/60 uppercase tracking-[0.2em] mt-1">
+                                                        Variation: {item.variantName}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <span className="text-gold font-sans font-black text-lg">x {item.qty}</span>
                                         </div>
                                         {item.customizations?.length > 0 && (

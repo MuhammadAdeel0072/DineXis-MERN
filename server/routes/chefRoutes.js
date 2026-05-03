@@ -6,9 +6,12 @@ const {
   updateOrderStatus,
   updateItemStatus,
   getKitchenStats
-} = require('../controllers/chefController.js');
-const { protect } = require('../middleware/authMiddleware.js');
-const { isChef } = require('../middleware/chefMiddleware.js');
+} = require('../controllers/chefController');
+const { protect } = require('../middleware/authMiddleware');
+const { isChef } = require('../middleware/chefMiddleware');
+
+// Secure all chef routes
+router.use(protect, isChef);
 
 // Get active orders and kitchen stats
 router.get('/orders', getActiveOrders);

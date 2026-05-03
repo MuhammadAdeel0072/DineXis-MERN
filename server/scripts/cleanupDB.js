@@ -25,7 +25,7 @@ const cleanupDB = async () => {
     await connectDB();
     
     // 1. Remove specific test users
-    const testEmails = ['admin@ak7.com', 'chef@ak7.com', 'rider@ak7.com', 'customer@ak7.com'];
+    const testEmails = ['admin@dinexis.com', 'chef@dinexis.com', 'rider@dinexis.com', 'customer@dinexis.com'];
     const userResult = await User.deleteMany({ email: { $in: testEmails } });
     console.log(`  🗑️  Removed ${userResult.deletedCount} specific test users.`);
 
