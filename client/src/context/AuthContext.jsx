@@ -57,7 +57,12 @@ export const AuthProvider = ({ children }) => {
   const sendOTP = async (email) => {
     try {
       const { data } = await apiClient.post('/auth/send-otp', { email });
-      toast.success('OTP sent to your email!');
+      
+      if (data.message && data.message.includes('failed')) {
+        toast.error(data.message, { duration: 4000 });
+      } else {
+        toast.success(data.message || 'OTP sent to your email!');
+      }
       return data;
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to send OTP';

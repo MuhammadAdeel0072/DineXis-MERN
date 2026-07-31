@@ -23,7 +23,7 @@ const sendOTPEmail = async (email, otp) => {
     // 1. Verify connection first
     await transporter.verify();
     console.log('✅ SMTP Connection verified');
-
+    console.log("📨 Sending OTP to:", email);
     const mailOptions = {
       from: `"DineXis" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: email,

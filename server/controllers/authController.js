@@ -66,13 +66,18 @@ const sendOTP = asyncHandler(async (req, res) => {
   const emailSent = await sendOTPEmail(email.toLowerCase(), otpCode);
 
   if (!emailSent) {
-    // If email fails, we still log it in dev for convenience
     console.log(`\n📧 [OTP FALLBACK] Code for ${email}: ${otpCode}\n`);
+    
+    // If in production and email fails, we must return an error so the user doesn't get stuck on the OTP screen
+    if (process.env.NODE_ENV !== 'development') {
+      res.status(500);
+      throw new Error('Failed to send email. Your SMTP provider might be restricting emails to unverified addresses (Sandbox mode) or it was blocked by spam filters.');
+    }
   }
 
   res.status(200).json({
     success: true,
-    message: emailSent ? 'OTP sent to your email successfully' : 'OTP generated (Email failed, check console)',
+    message: emailSent ? 'OTP sent to your email successfully' : 'OTP generated (Email failed, check server console)',
     // Only include OTP in development for testing
     ...(process.env.NODE_ENV === 'development' && { devOTP: otpCode })
   });
@@ -286,8 +291,12 @@ const authUser = asyncHandler(async (req, res, next) => {
   // Compare passwords safely
   let isPasswordValid = false;
   try {
-    isPasswordValid = await user.matchPassword(password);
-    console.log(`🔐 Password comparison result for ${email}:`, isPasswordValid ? 'MATCH ✅' : 'FAIL ❌');
+console.log("Entered Password:", password);
+console.log("Stored Hash:", user.password);
+
+isPasswordValid = await bcrypt.compare(password, user.password);
+
+console.log("Password Match:", isPasswordValid);
   } catch (bcryptError) {
     console.error(`❌ Bcrypt Error during password comparison for ${email}:`, bcryptError.message);
     res.status(500);

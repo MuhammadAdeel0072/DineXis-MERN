@@ -63,222 +63,227 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-charcoal/80 backdrop-blur-md border-b border-gold/30 sticky top-0 z-50 px-4 md:px-8 py-4 flex justify-between items-center transition-all duration-300">
-        {/* Logo */}
-        <Link to="/" className="flex items-center z-50 group">
-          <span className="text-2xl md:text-3xl font-serif font-black text-white tracking-tighter">Dine</span>
-          <span className="text-2xl md:text-3xl font-serif font-black text-gold tracking-tighter">Xis</span>
-        </Link>
-
-        {/* Desktop Nav links */}
-        <div className="hidden md:flex gap-8 items-center text-sm font-black uppercase tracking-widest">
-          {navLinks.map(link => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              end={link.path === '/'}
-              className={({ isActive }) =>
-                `transition-colors ${isActive ? 'text-gold' : 'text-gray-300 hover:text-gold'}`
-              }
-            >
-              {link.name}
-            </NavLink>
-          ))}
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-3 md:gap-5">
-          {/* Cart */}
-          <Link to="/cart" className="relative flex items-center gap-2 group">
-            <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-gold group-hover:scale-110 transition-transform" />
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-crimson text-white text-[10px] w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-full font-bold">
-                {totalItems}
-              </span>
-            )}
-            {totalPrice > 0 && (
-              <span className="hidden sm:block text-gold font-bold text-sm">Rs {totalPrice.toFixed(0)}</span>
-            )}
+      {/* ---- FULL-WIDTH BACKGROUND WRAPPER (sticky) ---- */}
+      <div className="sticky top-0 z-50 w-full bg-charcoal/80 backdrop-blur-md border-b border-gold/30 transition-all duration-300">
+        {/* ---- CENTERED CONTENT CONTAINER ---- */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
+          {/* Logo */}
+          <Link to="/" className="flex items-center z-50 group flex-shrink-0">
+            <span className="text-2xl md:text-3xl font-serif font-black text-white tracking-tighter">Dine</span>
+            <span className="text-2xl md:text-3xl font-serif font-black text-gold tracking-tighter">Xis</span>
           </Link>
 
-          {/* Auth */}
-          {isSignedIn ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2.5 p-1 rounded-full border-2 border-gold/40 hover:border-gold transition-all duration-300"
-                aria-label="User menu"
+          {/* Desktop Nav links */}
+          <div className="hidden md:flex gap-8 items-center text-sm font-black uppercase tracking-widest">
+            {navLinks.map(link => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                end={link.path === '/'}
+                className={({ isActive }) =>
+                  `transition-colors ${isActive ? 'text-gold' : 'text-gray-300 hover:text-gold'}`
+                }
               >
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="avatar" className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gold/20 flex items-center justify-center">
-                    <UserIcon className="w-4 h-4 text-gold" />
-                  </div>
-                )}
-                <span className="hidden lg:block text-gold/80 text-[10px] font-black uppercase tracking-widest pr-1">
-                  {user?.firstName || 'Member'}
+                {link.name}
+              </NavLink>
+            ))}
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-3 md:gap-5 flex-shrink-0">
+            {/* Cart */}
+            <Link to="/cart" className="relative flex items-center gap-2 group">
+              <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-gold group-hover:scale-110 transition-transform" />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-crimson text-white text-[10px] w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-full font-bold">
+                  {totalItems}
                 </span>
-              </button>
-
-              <AnimatePresence>
-                {dropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-14 w-56 bg-[#1a1a1a] border border-white/10 rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden z-[200]"
-                  >
-                    <div className="px-5 py-5 border-b border-white/5 bg-white/[0.02]">
-                      <p className="text-white font-bold text-sm truncate">{user?.firstName} {user?.lastName}</p>
-                      <p className="text-gold/40 text-[9px] font-black uppercase tracking-widest truncate mt-0.5">{user?.email}</p>
-                    </div>
-
-                    <div className="py-2">
-
-                      <Link
-                        to="/profile"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
-                      >
-                        <UserIcon className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
-                        <span>My Profile</span>
-                      </Link>
-                      <Link
-                        to="/reservation"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
-                      >
-                        <Calendar className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
-                        <span>My Bookings</span>
-                      </Link>
-                      <Link
-                        to="/order-history"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
-                      >
-                        <ShoppingBag className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
-                        <span>My Orders</span>
-                      </Link>
-                      <Link
-                        to="/help"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
-                      >
-                        <HelpCircle className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
-                        <span>Help Center</span>
-                      </Link>
-                    </div>
-
-                    <div className="border-t border-white/5 py-2">
-                      <button
-                        onClick={() => { setDropdownOpen(false); setShowSignOutModal(true); }}
-                        className="w-full flex items-center gap-3 px-5 py-4 text-red-400 hover:text-red-300 hover:bg-red-400/5 transition-all text-sm font-black uppercase tracking-widest"
-                      >
-                        <LogOut className="w-4 h-4" /> Sign Out
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <Link
-              to="/signin"
-              className="flex items-center gap-2 bg-gold text-charcoal px-4 md:px-5 py-2 md:py-2.5 rounded-full font-black text-xs md:text-sm uppercase tracking-widest shadow-lg shadow-gold/20 hover:shadow-gold/40 hover:scale-105 active:scale-95 transition-all"
-            >
-              <LogIn size={14} className="md:w-4 md:h-4" />
-              <span>Sign In</span>
+              )}
+              {totalPrice > 0 && (
+                <span className="hidden sm:block text-gold font-bold text-sm">Rs {totalPrice.toFixed(0)}</span>
+              )}
             </Link>
-          )}
 
-          <button
-            className="md:hidden p-2 text-gold z-50 relative"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-7 h-7" /> : <MenuIcon className="w-7 h-7" />}
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="fixed inset-0 bg-black/90 backdrop-blur-md z-40 transition-opacity duration-300"
-              />
-              <motion.div
-                initial={{ x: '100vw' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100vw' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-[#1a1a1a] shadow-[-30px_0_90px_rgba(0,0,0,0.9)] border-l border-white/10 z-[100] p-8 flex flex-col pt-32"
-              >
-                <div className="flex flex-col gap-8">
-                  {navLinks.map((link) => (
-                    <NavLink
-                      key={link.path}
-                      to={link.path}
-                      end={link.path === '/'}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `text-3xl font-serif font-black transition-colors flex items-center justify-between group py-2 ${isActive ? 'text-gold' : 'text-gray-400 hover:text-white'}`
-                      }
-                    >
-                      <span className="group-hover:translate-x-2 transition-transform duration-300">{link.name}</span>
-                      <motion.div
-                        whileHover={{ x: 5 }}
-                        className={`group-hover:scale-125 transition-transform ${location.pathname === link.path ? 'text-gold' : 'text-gold'}`}
-                      >
-                        <ChevronRight className="w-7 h-7" />
-                      </motion.div>
-                    </NavLink>
-                  ))}
-                  {isSignedIn && (
-                    <Link
-                      to="/profile"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-3xl font-serif font-black text-white hover:text-gold transition-colors flex items-center justify-between group py-2 border-t border-white/5 pt-8"
-                    >
-                      <span className="group-hover:translate-x-2 transition-transform duration-300">Profile & Settings</span>
-                      <motion.div
-                        whileHover={{ x: 5 }}
-                        className="text-gold group-hover:scale-125 transition-transform"
-                      >
-                        <SettingsIcon className="w-7 h-7" />
-                      </motion.div>
-                    </Link>
-                  )}
-                </div>
-
-                <div className="mt-auto pb-8">
-                  {!isSignedIn ? (
-                    <Link
-                      to="/signin"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full flex items-center justify-center gap-3 bg-gold text-charcoal py-5 rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl shadow-gold/20"
-                    >
-                      <LogIn className="w-6 h-6" /> Join Now
-                    </Link>
+            {/* Auth */}
+            {isSignedIn ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2.5 p-1 rounded-full border-2 border-gold/40 hover:border-gold transition-all duration-300"
+                  aria-label="User menu"
+                >
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="avatar" className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover" />
                   ) : (
-                    <button
-                      onClick={() => { setIsMobileMenuOpen(false); setShowSignOutModal(true); }}
-                      className="w-full flex items-center justify-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 py-5 rounded-[2rem] font-black text-lg uppercase tracking-widest transition-all hover:bg-red-500/20"
-                    >
-                      <LogOut className="w-6 h-6" /> Sign Out
-                    </button>
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gold/20 flex items-center justify-center">
+                      <UserIcon className="w-4 h-4 text-gold" />
+                    </div>
                   )}
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </nav>
+                  <span className="hidden lg:block text-gold/80 text-[10px] font-black uppercase tracking-widest pr-1">
+                    {user?.firstName || 'Member'}
+                  </span>
+                </button>
 
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-14 w-56 bg-[#1a1a1a] border border-white/10 rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden z-[200]"
+                    >
+                      <div className="px-5 py-5 border-b border-white/5 bg-white/[0.02]">
+                        <p className="text-white font-bold text-sm truncate">{user?.firstName} {user?.lastName}</p>
+                        <p className="text-gold/40 text-[9px] font-black uppercase tracking-widest truncate mt-0.5">{user?.email}</p>
+                      </div>
+
+                      <div className="py-2">
+                        <Link
+                          to="/profile"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
+                        >
+                          <UserIcon className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
+                          <span>My Profile</span>
+                        </Link>
+                        <Link
+                          to="/reservation"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
+                        >
+                          <Calendar className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
+                          <span>My Bookings</span>
+                        </Link>
+                        <Link
+                          to="/order-history"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
+                        >
+                          <ShoppingBag className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
+                          <span>My Orders</span>
+                        </Link>
+                        <Link
+                          to="/help"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium group/item border-l-2 border-transparent hover:border-gold"
+                        >
+                          <HelpCircle className="w-4 h-4 text-gold/50 group-hover/item:text-gold transition-colors" />
+                          <span>Help Center</span>
+                        </Link>
+                      </div>
+
+                      <div className="border-t border-white/5 py-2">
+                        <button
+                          onClick={() => { setDropdownOpen(false); setShowSignOutModal(true); }}
+                          className="w-full flex items-center gap-3 px-5 py-4 text-red-400 hover:text-red-300 hover:bg-red-400/5 transition-all text-sm font-black uppercase tracking-widest"
+                        >
+                          <LogOut className="w-4 h-4" /> Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                to="/signin"
+                className="flex items-center gap-2 bg-gold text-charcoal px-4 md:px-5 py-2 md:py-2.5 rounded-full font-black text-xs md:text-sm uppercase tracking-widest shadow-lg shadow-gold/20 hover:shadow-gold/40 hover:scale-105 active:scale-95 transition-all"
+              >
+                <LogIn size={14} className="md:w-4 md:h-4" />
+                <span>Sign In</span>
+              </Link>
+            )}
+
+            <button
+              className="md:hidden p-2 text-gold z-50 relative"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-7 h-7" /> : <MenuIcon className="w-7 h-7" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Mobile Menu ---- */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/45 backdrop-blur-sm z-40 transition-opacity duration-300"
+            />
+            <motion.div
+              initial={{ x: '100vw' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100vw' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 w-[72%] max-w-[300px] bg-neutral-900 backdrop-blur-xl border-l border-gold/20 shadow-[-10px_0_40px_rgba(0,0,0,.45)] z-[100] px-6 pt-24 pb-8 flex flex-col"
+            >
+              <div className="flex flex-col gap-2">
+                {navLinks.map((link) => (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    end={link.path === '/'}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `text-xl font-semibold tracking-wide transition-colors flex items-center justify-between group py-2 ${isActive ? 'text-gold' : 'text-gray-400 hover:text-white'}`
+                    }
+                  >
+                    <span className="group-hover:translate-x-2 transition-transform duration-300">{link.name}</span>
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      className={`group-hover:scale-125 transition-transform ${location.pathname === link.path ? 'text-gold' : 'text-gold'}`}
+                    >
+                      <ChevronRight className="w-4 h-4 opacity-70" />
+                    </motion.div>
+                  </NavLink>
+                ))}
+                {isSignedIn && (
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-xl font-semibold text-white hover:text-gold transition-colors flex items-center justify-between group py-2 border-t border-white/5 pt-8"
+                  >
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">Profile & Settings</span>
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      className="text-gold group-hover:scale-125 transition-transform"
+                    >
+                      <SettingsIcon className="w-6 h-6" />
+                    </motion.div>
+                  </Link>
+                )}
+              </div>
+
+              <div className="mt-auto pb-8">
+                {!isSignedIn ? (
+                  <Link
+                    to="/signin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 bg-gold text-charcoal py-3 rounded-xl font-semibold text-sm tracking-wide hover:bg-yellow-400 transition-all"
+                  >
+                    <LogIn className="w-6 h-6" /> Join Now
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); setShowSignOutModal(true); }}
+                    className="w-full flex items-center justify-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all hover:bg-red-500/20"
+                  >
+                    <LogOut className="w-6 h-6" /> Sign Out
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ---- Sign Out Modal ---- */}
       <AnimatePresence>
         {showSignOutModal && (
           <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">

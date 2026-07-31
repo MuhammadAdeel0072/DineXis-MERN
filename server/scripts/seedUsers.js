@@ -3,11 +3,23 @@ const dotenv = require('dotenv');
 const User = require('../models/User');
 
 const path = require('path');
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+  dotenv.config({
+  path: path.resolve(__dirname, '../.env')
+});
 
 const seedUsers = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MONGO_URI =", process.env.MONGO_URI);
+   const dns = require("dns");
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
+await mongoose.connect(process.env.MONGO_URI, {
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 30000,
+  family: 4
+});
     console.log('MongoDB Connected for Seeding...');
 
     // Drop legacy Clerk index if it exists

@@ -9,7 +9,7 @@ const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('admin@dinexis.com');
-    const [password, setPassword] = useState('');
+    const [password, setPassword] = useState('admin123');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {

@@ -11,7 +11,7 @@ const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('rider@dinexis.com');
-    const [password, setPassword] = useState('');
+    const [password, setPassword] = useState('rider123');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
